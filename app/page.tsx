@@ -1526,8 +1526,8 @@ FE-SERVICE`
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 pb-28 text-slate-900 lg:pb-0">
-      <div className="flex min-h-screen">
+    <main className="min-h-screen overflow-x-hidden bg-slate-100 pb-28 text-slate-900 lg:pb-0">
+      <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
         <aside className="hidden w-72 bg-[#07130d] p-6 text-white lg:flex lg:flex-col">
           <div className="flex flex-col items-center">
             <h1 className="whitespace-nowrap text-center text-2xl font-black tracking-[0.18em] text-green-500">
@@ -1574,7 +1574,7 @@ FE-SERVICE`
           </button>
         </aside>
 
-        <section className="flex-1 p-6 lg:p-10">
+        <section className="w-full min-w-0 flex-1 overflow-x-hidden p-4 lg:p-10">
           <div className="mb-6 rounded-[32px] bg-white p-6 shadow-sm">
             <p className="font-bold text-green-600">{isAdmin ? "Admin-Ansicht" : isTechnician ? "Techniker-Ansicht" : "Kundenportal"}</p>
             <h2 className="mt-2 text-4xl font-black">{activePage}</h2>
@@ -1583,18 +1583,18 @@ FE-SERVICE`
             </p>
           </div>
 
-          <div className="mb-6 rounded-[28px] bg-[#07130d] p-4 shadow-sm lg:hidden">
-            <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="mb-6 w-full max-w-full overflow-hidden rounded-[28px] bg-[#07130d] p-4 shadow-sm lg:hidden">
+            <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-green-400">FE-SERVICE</p>
-                <p className="mt-1 text-sm text-slate-300">{session.user.email}</p>
+                <p className="mt-1 max-w-[220px] truncate text-sm text-slate-300">{session.user.email}</p>
               </div>
               <span className="rounded-full bg-green-500/10 px-3 py-2 text-xs font-bold text-green-400">
                 {role}
               </span>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3">
               {visibleNavItems.map((item) => (
                 <button
                   key={item}
@@ -1604,7 +1604,7 @@ FE-SERVICE`
                     resetDeviceForm();
                     resetCustomerForm();
                   }}
-                  className={`shrink-0 rounded-2xl px-4 py-3 text-sm font-bold ${
+                  className={`min-w-0 rounded-2xl px-3 py-3 text-center text-xs font-bold sm:text-sm ${
                     activePage === item
                       ? "bg-green-500 text-[#07130d]"
                       : "bg-white/10 text-green-300"
@@ -3203,7 +3203,7 @@ FE-SERVICE`
         </section>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-green-500/20 bg-[#07130d] p-3 lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-green-500/20 bg-[#07130d] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
         <button
           onClick={logout}
           className="w-full rounded-2xl bg-black px-5 py-4 text-base font-black text-green-400 shadow-lg"
