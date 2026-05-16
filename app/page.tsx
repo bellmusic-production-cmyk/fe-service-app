@@ -1668,6 +1668,38 @@ FE-SERVICE`
             </p>
           </div>
 
+          <div className="mb-6 rounded-[28px] border border-green-900/40 bg-[#07130d] p-4 shadow-sm lg:hidden">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-green-500">Mobile Navigation</p>
+                <p className="mt-1 text-sm font-bold text-white">{isAdmin ? "Admin-Vollzugriff" : roleLabel()}</p>
+              </div>
+              <span className="rounded-full border border-green-500/40 bg-black px-3 py-1 text-xs font-black text-green-400">
+                {availableNavItems.length} Bereiche
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {availableNavItems.map((item) => (
+                <button
+                  key={`mobile-${item}`}
+                  onClick={() => {
+                    setActivePage(item);
+                    resetTicketForm();
+                    resetDeviceForm();
+                    resetCustomerForm();
+                  }}
+                  className={`rounded-2xl px-3 py-3 text-left text-sm font-black transition-all ${
+                    activePage === item
+                      ? "bg-green-600 text-white"
+                      : "bg-black text-green-400 hover:bg-green-950/60"
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {previewUrl && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
