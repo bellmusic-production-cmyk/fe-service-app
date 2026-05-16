@@ -12,9 +12,9 @@ type Ticket = {
   description: string;
   priority: string;
   status: string;
-  created_at: string;
   customer_id?: number | null;
   assigned_to?: string | null;
+  created_at: string;
 };
 
 type Device = {
@@ -25,8 +25,8 @@ type Device = {
   status: string | null;
   next_check: string | null;
   note: string | null;
-  created_at: string;
   customer_id?: number | null;
+  created_at: string;
 };
 
 type Customer = {
@@ -46,8 +46,8 @@ type DocumentItem = {
   category: string;
   file_size: number | null;
   device_id: number | null;
-  created_at: string;
   customer_id?: number | null;
+  created_at: string;
 };
 
 type DeviceHistory = {
@@ -71,10 +71,10 @@ type MaintenancePlan = {
 type UserProfile = {
   id: string;
   full_name: string | null;
-  role: "admin" | "technician" | "customer" | string;
+  role: "admin" | "technician" | "customer";
   company: string | null;
   customer_id: number | null;
-  created_at?: string;
+  created_at: string;
 };
 
 const fallbackDevices = [
@@ -123,7 +123,6 @@ export default function Home() {
   const [session, setSession] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [activePage, setActivePage] = useState("Service-Tickets");
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -134,6 +133,8 @@ export default function Home() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [deviceHistory, setDeviceHistory] = useState<DeviceHistory[]>([]);
   const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlan[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [editingDevice, setEditingDevice] = useState<Device | null>(null);
@@ -157,7 +158,7 @@ export default function Home() {
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [selectedCustomerDeviceIds, setSelectedCustomerDeviceIds] = useState<number[]>([]);
+  const [assignedDeviceIds, setAssignedDeviceIds] = useState<string[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Alle");
@@ -175,22 +176,22 @@ export default function Home() {
     checkSession();
 
     const { data } = supabase.auth.onAuthStateChange(
-      async (_event, currentSession) => {
+      (_event, currentSession) => {
         setSession(currentSession);
+        setAuthLoading(false);
 
         if (currentSession) {
-          await loadProfile(currentSession.user.id);
-          await loadTickets();
-          await loadDevices();
-          await loadCustomers();
-          await loadDocuments();
-          await loadDeviceHistory();
-          await loadMaintenancePlans();
+          loadUserProfile(currentSession.user.id);
+          loadTickets();
+          loadDevices();
+          loadCustomers();
+          loadDocuments();
+          loadDeviceHistory();
+          loadMaintenancePlans();
         } else {
           setUserProfile(null);
+          setProfileLoading(false);
         }
-
-        setAuthLoading(false);
       }
     );
 
@@ -217,101 +218,35 @@ export default function Home() {
     }
   }, [devices]);
 
-  const currentRole = userProfile?.role || "customer";
-  const isAdmin = currentRole === "admin";
-  const isTechnician = currentRole === "technician";
-  const isCustomer = currentRole === "customer";
-
-  const availableNavItems = useMemo(() => {
-    if (isAdmin) {
-      return navItems;
-    }
-
-    if (isTechnician) {
-      return ["Techniker", "Service-Tickets", "Geräte", "Dokumente", "Prüfungen"];
-    }
-
-    return ["Kundenportal", "Service-Tickets", "Dokumente"];
-  }, [isAdmin, isTechnician]);
-
-  useEffect(() => {
-    if (!session || !userProfile) return;
-
-    if (!availableNavItems.includes(activePage)) {
-      setActivePage(availableNavItems[0] || "Dashboard");
-    }
-  }, [session, userProfile, activePage, availableNavItems]);
-
-  const scopedCustomers = useMemo(() => {
-    if (!isCustomer) return customers;
-
-    return customers.filter((item) => {
-      const emailMatch = item.email && session?.user?.email && item.email.toLowerCase() === session.user.email.toLowerCase();
-      const idMatch = userProfile?.customer_id && item.id === userProfile.customer_id;
-      return Boolean(emailMatch || idMatch);
-    });
-  }, [customers, isCustomer, userProfile?.customer_id, session?.user?.email]);
-
-  const scopedDevices = useMemo(() => {
-    if (!isCustomer) return devices;
-
-    const customerIds = scopedCustomers.map((item) => item.id);
-
-    return devices.filter((item) => {
-      if (item.customer_id && customerIds.includes(item.customer_id)) return true;
-      return false;
-    });
-  }, [devices, isCustomer, scopedCustomers]);
-
-  const scopedDocuments = useMemo(() => {
-    if (!isCustomer) return documents;
-
-    const deviceIds = scopedDevices.map((item) => item.id);
-    const customerIds = scopedCustomers.map((item) => item.id);
-
-    return documents.filter((item) => {
-      if (item.customer_id && customerIds.includes(item.customer_id)) return true;
-      if (item.device_id && deviceIds.includes(item.device_id)) return true;
-      return false;
-    });
-  }, [documents, isCustomer, scopedCustomers, scopedDevices]);
-
-  const scopedTickets = useMemo(() => {
-    if (isAdmin) return tickets;
-
-    if (isTechnician) {
-      return tickets.filter((ticket) => {
-        if (ticket.assigned_to && session?.user?.id) {
-          return ticket.assigned_to === session.user.id;
-        }
-
-        return ticket.status !== "Erledigt";
-      });
-    }
-
-    const customerIds = scopedCustomers.map((item) => item.id);
-    const customerCompanies = scopedCustomers.map((item) => item.company).filter(Boolean);
-
-    return tickets.filter((ticket) => {
-      if (ticket.customer_id && customerIds.includes(ticket.customer_id)) return true;
-      if (ticket.customer && customerCompanies.includes(ticket.customer)) return true;
-      return false;
-    });
-  }, [tickets, isAdmin, isTechnician, scopedCustomers, session?.user?.id]);
-
   const deviceNames = useMemo(() => {
-    if (scopedDevices.length === 0) return fallbackDevices;
-    return scopedDevices.map((item) => item.name);
-  }, [scopedDevices]);
+    if (devices.length === 0) return fallbackDevices;
+    return devices.map((item) => item.name);
+  }, [devices]);
 
   const customerNames = useMemo(() => {
-    return scopedCustomers
+    return customers
       .map((item) => item.company || "")
       .filter((item) => item.trim() !== "");
-  }, [scopedCustomers]);
+  }, [customers]);
 
   const filteredTickets = useMemo(() => {
-    return scopedTickets.filter((ticket) => {
+    return tickets.filter((ticket) => {
+      if (userProfile?.role === "customer") {
+        const linkedCustomer = userProfile.customer_id
+          ? customers.find((item) => item.id === userProfile.customer_id)
+          : null;
+
+        const belongsToCustomer =
+          ticket.customer_id === userProfile.customer_id ||
+          (!!linkedCustomer?.company && ticket.customer === linkedCustomer.company);
+
+        if (!belongsToCustomer) return false;
+      }
+
+      if (userProfile?.role === "technician" && ticket.assigned_to) {
+        if (ticket.assigned_to !== userProfile.id) return false;
+      }
+
       const search = searchTerm.toLowerCase();
 
       const matchesSearch =
@@ -329,12 +264,12 @@ export default function Home() {
 
       return matchesSearch && matchesStatus && matchesPriority;
     });
-  }, [scopedTickets, searchTerm, statusFilter, priorityFilter]);
+  }, [tickets, customers, userProfile, searchTerm, statusFilter, priorityFilter]);
 
   const filteredDocuments = useMemo(() => {
-    if (activeDocumentCategory === "Alle") return scopedDocuments;
-    return scopedDocuments.filter((item) => item.category === activeDocumentCategory);
-  }, [scopedDocuments, activeDocumentCategory]);
+    if (activeDocumentCategory === "Alle") return documents;
+    return documents.filter((item) => item.category === activeDocumentCategory);
+  }, [documents, activeDocumentCategory]);
 
   const inspectionStats = useMemo(() => {
     const ok = devices.filter(
@@ -360,9 +295,10 @@ export default function Home() {
     const { data } = await supabase.auth.getSession();
 
     setSession(data.session);
+    setAuthLoading(false);
 
     if (data.session) {
-      await loadProfile(data.session.user.id);
+      await loadUserProfile(data.session.user.id);
       await loadTickets();
       await loadDevices();
       await loadCustomers();
@@ -370,42 +306,8 @@ export default function Home() {
       await loadDeviceHistory();
       await loadMaintenancePlans();
     } else {
-      setUserProfile(null);
+      setProfileLoading(false);
     }
-
-    setAuthLoading(false);
-  }
-
-  async function loadProfile(userId: string) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Profil konnte nicht geladen werden", error);
-    }
-
-    const safeProfile: UserProfile = data || {
-      id: userId,
-      full_name: session?.user?.email || "Benutzer",
-      role: "customer",
-      company: null,
-      customer_id: null,
-    };
-
-    setUserProfile(safeProfile);
-
-    if (safeProfile.role === "admin") {
-      setActivePage("Dashboard");
-    } else if (safeProfile.role === "technician") {
-      setActivePage("Techniker");
-    } else {
-      setActivePage("Kundenportal");
-    }
-
-    return safeProfile;
   }
 
   async function login() {
@@ -437,6 +339,7 @@ export default function Home() {
       setDeviceHistory([]);
       setMaintenancePlans([]);
       setUserProfile(null);
+      setProfileLoading(false);
       setSelectedDeviceView(null);
       setPreviewUrl("");
       setPreviewName("");
@@ -453,6 +356,37 @@ export default function Home() {
     } catch (error) {
       console.error(error);
       alert("Logout fehlgeschlagen. Bitte Seite neu laden.");
+    }
+  }
+
+  async function loadUserProfile(userId: string) {
+    setProfileLoading(true);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error || !data) {
+      setUserProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    setUserProfile(data as UserProfile);
+    setProfileLoading(false);
+
+    if (data.role === "admin") {
+      setActivePage("Dashboard");
+    }
+
+    if (data.role === "technician") {
+      setActivePage("Techniker");
+    }
+
+    if (data.role === "customer") {
+      setActivePage("Kundenportal");
     }
   }
 
@@ -769,7 +703,7 @@ export default function Home() {
     setCustomerEmail("");
     setCustomerPhone("");
     setCustomerAddress("");
-    setSelectedCustomerDeviceIds([]);
+    setAssignedDeviceIds([]);
   }
 
   function startEdit(ticket: Ticket) {
@@ -802,10 +736,10 @@ export default function Home() {
     setCustomerEmail(item.email || "");
     setCustomerPhone(item.phone || "");
     setCustomerAddress(item.address || "");
-    setSelectedCustomerDeviceIds(
+    setAssignedDeviceIds(
       devices
         .filter((deviceItem) => deviceItem.customer_id === item.id)
-        .map((deviceItem) => deviceItem.id)
+        .map((deviceItem) => String(deviceItem.id))
     );
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1013,7 +947,7 @@ export default function Home() {
           address: customerAddress,
         },
       ])
-      .select("*")
+      .select("id")
       .single();
 
     if (error || !data) {
@@ -1021,15 +955,11 @@ export default function Home() {
       return;
     }
 
-    if (selectedCustomerDeviceIds.length > 0) {
-      const { error: deviceAssignError } = await supabase
+    if (assignedDeviceIds.length > 0) {
+      await supabase
         .from("devices")
         .update({ customer_id: data.id })
-        .in("id", selectedCustomerDeviceIds);
-
-      if (deviceAssignError) {
-        alert("Kunde wurde gespeichert, aber Geräte konnten nicht zugewiesen werden.");
-      }
+        .in("id", assignedDeviceIds.map(Number));
     }
 
     resetCustomerForm();
@@ -1061,26 +991,16 @@ export default function Home() {
       return;
     }
 
-    const previouslyAssignedIds = devices
-      .filter((deviceItem) => deviceItem.customer_id === editingCustomer.id)
-      .map((deviceItem) => deviceItem.id);
+    await supabase
+      .from("devices")
+      .update({ customer_id: null })
+      .eq("customer_id", editingCustomer.id);
 
-    const deviceIdsToRemove = previouslyAssignedIds.filter(
-      (deviceId) => !selectedCustomerDeviceIds.includes(deviceId)
-    );
-
-    if (deviceIdsToRemove.length > 0) {
-      await supabase
-        .from("devices")
-        .update({ customer_id: null })
-        .in("id", deviceIdsToRemove);
-    }
-
-    if (selectedCustomerDeviceIds.length > 0) {
+    if (assignedDeviceIds.length > 0) {
       await supabase
         .from("devices")
         .update({ customer_id: editingCustomer.id })
-        .in("id", selectedCustomerDeviceIds);
+        .in("id", assignedDeviceIds.map(Number));
     }
 
     resetCustomerForm();
@@ -1089,17 +1009,11 @@ export default function Home() {
   }
 
   async function deleteCustomer(customerId: number) {
-    if (!isAdmin) {
-      alert("Nur Admins dürfen Kunden löschen.");
-      return;
-    }
-
-    if (!confirm("Kunde wirklich löschen? Zugeordnete Geräte/Tickets bleiben erhalten, werden aber vom Kunden gelöst.")) return;
+    if (!confirm("Kunde wirklich löschen?")) return;
 
     await supabase.from("devices").update({ customer_id: null }).eq("customer_id", customerId);
     await supabase.from("tickets").update({ customer_id: null }).eq("customer_id", customerId);
     await supabase.from("documents").update({ customer_id: null }).eq("customer_id", customerId);
-    await supabase.from("profiles").update({ customer_id: null }).eq("customer_id", customerId);
 
     const { error } = await supabase
       .from("customers")
@@ -1107,17 +1021,14 @@ export default function Home() {
       .eq("id", customerId);
 
     if (error) {
-      console.error(error);
-      alert("Kunde konnte nicht gelöscht werden. Bitte Verknüpfungen prüfen.");
+      alert("Kunde konnte nicht gelöscht werden. Prüfe, ob noch verknüpfte Daten existieren.");
       return;
     }
 
-    if (editingCustomer?.id === customerId) {
-      resetCustomerForm();
-    }
-
     await loadCustomers();
-    alert("Kunde gelöscht.");
+    await loadDevices();
+    await loadTickets();
+    await loadDocuments();
   }
 
   function createTicketFromDevice(item: Device) {
@@ -1245,18 +1156,6 @@ export default function Home() {
     const foundDevice = devices.find((item) => item.id === deviceId);
 
     return foundDevice?.name || "Gerät nicht gefunden";
-  }
-
-  function toggleCustomerDevice(deviceId: number) {
-    setSelectedCustomerDeviceIds((prev) =>
-      prev.includes(deviceId)
-        ? prev.filter((id) => id !== deviceId)
-        : [...prev, deviceId]
-    );
-  }
-
-  function customerDeviceCount(customerId: number) {
-    return devices.filter((item) => item.customer_id === customerId).length;
   }
 
   function getDeviceDirectUrl(item: Device) {
@@ -1501,17 +1400,21 @@ FE-SERVICE`
     return diffDays <= 30;
   });
 
-  function roleLabel() {
-    if (currentRole === "admin") return "Admin";
-    if (currentRole === "technician") return "Techniker";
-    return "Kunde";
-  }
-
-  function roleDescription() {
-    if (currentRole === "admin") return "Voller Zugriff auf Kunden, Geräte, Tickets und Verwaltung.";
-    if (currentRole === "technician") return "Technikerbereich mit Einsätzen, Tickets, Geräten und Uploads.";
-    return "Kundenportal mit eigenen Tickets, Dokumenten und Geräten.";
-  }
+  const role = userProfile?.role || null;
+  const isAdmin = role === "admin";
+  const isTechnician = role === "technician";
+  const isCustomer = role === "customer";
+  const profileCustomer = userProfile?.customer_id
+    ? customers.find((item) => item.id === userProfile.customer_id)
+    : null;
+  const visibleNavItems = isAdmin
+    ? navItems
+    : isTechnician
+      ? ["Techniker", "Service-Tickets", "Geräte", "Dokumente"]
+      : ["Kundenportal", "Service-Tickets", "Dokumente"];
+  const portalCustomers = isCustomer && userProfile?.customer_id
+    ? customers.filter((item) => item.id === userProfile.customer_id)
+    : customers;
 
   if (authLoading) {
     return (
@@ -1594,6 +1497,34 @@ FE-SERVICE`
     );
   }
 
+  if (profileLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#07130d] text-white">
+        <h1 className="text-4xl font-black">Rolle wird geladen...</h1>
+      </main>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#07130d] p-6 text-white">
+        <div className="max-w-xl rounded-[32px] bg-white/10 p-8 text-center">
+          <h1 className="text-3xl font-black text-green-400">Keine Rolle zugewiesen</h1>
+          <p className="mt-4 text-slate-200">
+            Dein Login existiert, aber in Supabase fehlt der passende Eintrag in der Tabelle profiles.
+          </p>
+          <p className="mt-4 break-all text-sm text-slate-400">User-ID: {session.user.id}</p>
+          <button
+            onClick={logout}
+            className="mt-6 rounded-2xl bg-black px-6 py-4 font-bold text-green-400"
+          >
+            Logout
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 pb-28 text-slate-900 lg:pb-0">
       <div className="flex min-h-screen">
@@ -1615,7 +1546,7 @@ FE-SERVICE`
           </div>
 
           <nav className="mt-10 space-y-3">
-            {availableNavItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <button
                 key={item}
                 onClick={() => {
@@ -1643,34 +1574,28 @@ FE-SERVICE`
           </button>
         </aside>
 
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-green-900/40 bg-[#07130d] p-3 shadow-2xl lg:hidden">
-          <div className="mx-auto flex max-w-3xl items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold uppercase tracking-[0.18em] text-green-500">FE-SERVICE</p>
-              <p className="truncate text-sm font-bold text-white">{roleLabel()} · {session.user.email}</p>
-            </div>
-
-            <button
-              onClick={logout}
-              className="rounded-2xl border border-green-500 bg-black px-5 py-3 text-sm font-black text-green-400 shadow-lg"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
         <section className="flex-1 p-6 lg:p-10">
           <div className="mb-6 rounded-[32px] bg-white p-6 shadow-sm">
-            <p className="font-bold text-green-600">{roleLabel()}-Ansicht</p>
+            <p className="font-bold text-green-600">{isAdmin ? "Admin-Ansicht" : isTechnician ? "Techniker-Ansicht" : "Kundenportal"}</p>
             <h2 className="mt-2 text-4xl font-black">{activePage}</h2>
             <p className="mt-3 text-slate-600">
-              {roleDescription()}
+              Geschützter Bereich mit echter Datenbank.
             </p>
           </div>
 
-          <div className="mb-6 rounded-[28px] bg-[#07130d] p-3 shadow-sm lg:hidden">
+          <div className="mb-6 rounded-[28px] bg-[#07130d] p-4 shadow-sm lg:hidden">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-green-400">FE-SERVICE</p>
+                <p className="mt-1 text-sm text-slate-300">{session.user.email}</p>
+              </div>
+              <span className="rounded-full bg-green-500/10 px-3 py-2 text-xs font-bold text-green-400">
+                {role}
+              </span>
+            </div>
+
             <div className="flex gap-2 overflow-x-auto pb-1">
-              {availableNavItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <button
                   key={item}
                   onClick={() => {
@@ -1679,10 +1604,10 @@ FE-SERVICE`
                     resetDeviceForm();
                     resetCustomerForm();
                   }}
-                  className={`whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-black transition-all ${
+                  className={`shrink-0 rounded-2xl px-4 py-3 text-sm font-bold ${
                     activePage === item
-                      ? "bg-green-600 text-white"
-                      : "bg-black text-green-400"
+                      ? "bg-green-500 text-[#07130d]"
+                      : "bg-white/10 text-green-300"
                   }`}
                 >
                   {item}
@@ -1690,7 +1615,6 @@ FE-SERVICE`
               ))}
             </div>
           </div>
-
 
           {previewUrl && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -1721,10 +1645,10 @@ FE-SERVICE`
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="grid gap-4 md:grid-cols-4">
-                <StatCard label="Kunden" value={scopedCustomers.length} />
-                <StatCard label="Geräte" value={scopedDevices.length} />
-                <StatCard label="Tickets" value={scopedTickets.length} />
-                <StatCard label="Dokumente" value={scopedDocuments.length} />
+                <StatCard label="Kunden" value={customers.length} />
+                <StatCard label="Geräte" value={devices.length} />
+                <StatCard label="Tickets" value={tickets.length} />
+                <StatCard label="Dokumente" value={documents.length} />
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
@@ -1944,63 +1868,43 @@ FE-SERVICE`
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-black text-slate-800">Geräte zuweisen</p>
-                        <p className="mt-1 text-xs text-slate-500">Wähle direkt beim Kunden die passenden Geräte aus.</p>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="mb-3 text-sm font-bold text-slate-700">
+                      Geräte diesem Kunden zuweisen
+                    </p>
+
+                    {devices.length === 0 ? (
+                      <p className="text-sm text-slate-500">Noch keine Geräte vorhanden.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {devices.map((deviceItem) => (
+                          <label
+                            key={deviceItem.id}
+                            className="flex items-center gap-3 rounded-xl bg-white p-3 text-sm font-bold"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={assignedDeviceIds.includes(String(deviceItem.id))}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAssignedDeviceIds((prev) => [...prev, String(deviceItem.id)]);
+                                } else {
+                                  setAssignedDeviceIds((prev) =>
+                                    prev.filter((id) => id !== String(deviceItem.id))
+                                  );
+                                }
+                              }}
+                            />
+                            <span>{deviceItem.name}</span>
+                            {deviceItem.customer_id && deviceItem.customer_id !== editingCustomer?.id && (
+                              <span className="ml-auto rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-700">
+                                bereits zugewiesen
+                              </span>
+                            )}
+                          </label>
+                        ))}
                       </div>
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
-                        {selectedCustomerDeviceIds.length} gewählt
-                      </span>
-                    </div>
-
-                    <div className="mt-4 max-h-64 space-y-2 overflow-auto pr-1">
-                      {devices.length === 0 ? (
-                        <div className="rounded-2xl bg-white p-3 text-sm text-slate-500">
-                          Noch keine Geräte vorhanden. Geräte kannst du im Bereich „Geräte“ anlegen.
-                        </div>
-                      ) : (
-                        devices.map((deviceItem) => {
-                          const isChecked = selectedCustomerDeviceIds.includes(deviceItem.id);
-                          const assignedCustomer = customers.find((customerItem) => customerItem.id === deviceItem.customer_id);
-                          const blockedByOtherCustomer =
-                            Boolean(deviceItem.customer_id) &&
-                            deviceItem.customer_id !== editingCustomer?.id;
-
-                          return (
-                            <label
-                              key={deviceItem.id}
-                              className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 ${
-                                isChecked
-                                  ? "border-green-300 bg-green-50"
-                                  : "border-slate-200 bg-white"
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                disabled={blockedByOtherCustomer}
-                                onChange={() => toggleCustomerDevice(deviceItem.id)}
-                                className="mt-1 h-5 w-5 accent-green-600"
-                              />
-
-                              <div className="flex-1">
-                                <p className="font-bold text-slate-900">{deviceItem.name}</p>
-                                <p className="text-xs text-slate-500">
-                                  Seriennummer: {deviceItem.serial_number || "nicht angegeben"}
-                                </p>
-                                {blockedByOtherCustomer && (
-                                  <p className="mt-1 text-xs font-bold text-red-600">
-                                    Bereits zugewiesen an {assignedCustomer?.company || "anderen Kunden"}
-                                  </p>
-                                )}
-                              </div>
-                            </label>
-                          );
-                        })
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   {editingCustomer ? (
@@ -2064,10 +1968,6 @@ FE-SERVICE`
 
                             <p className="mt-2 text-sm text-slate-500">
                               {item.address || "Keine Adresse vorhanden."}
-                            </p>
-
-                            <p className="mt-3 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
-                              {customerDeviceCount(item.id)} Gerät(e) zugeordnet
                             </p>
                           </div>
 
@@ -2876,7 +2776,7 @@ FE-SERVICE`
                   </h3>
 
                   <div className="mt-5 space-y-4">
-                    {scopedCustomers.length > 0 ? (
+                    {customers.length > 0 ? (
                       <select
                         value={customer}
                         onChange={(e) => setCustomer(e.target.value)}
@@ -3118,7 +3018,7 @@ FE-SERVICE`
                 </div>
 
                 <div className="mt-6 rounded-2xl bg-green-50 p-4 text-sm font-bold text-green-700">
-                  Aktueller Benutzer: {session.user.email} · Rolle: {roleLabel()}
+                  Aktueller Benutzer: {session.user.email} · Rolle: {role}
                 </div>
               </div>
             </div>
@@ -3133,10 +3033,10 @@ FE-SERVICE`
                 </p>
 
                 <div className="mt-6 space-y-4">
-                  {scopedCustomers.length === 0 ? (
+                  {portalCustomers.length === 0 ? (
                     <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">Noch keine Kundendaten vorhanden.</div>
                   ) : (
-                    scopedCustomers.map((item) => {
+                    portalCustomers.map((item) => {
                       const customerTickets = tickets.filter((ticket) => ticket.customer === item.company);
                       return (
                         <div key={item.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
@@ -3301,6 +3201,15 @@ FE-SERVICE`
           )}
 
         </section>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-green-500/20 bg-[#07130d] p-3 lg:hidden">
+        <button
+          onClick={logout}
+          className="w-full rounded-2xl bg-black px-5 py-4 text-base font-black text-green-400 shadow-lg"
+        >
+          Logout
+        </button>
       </div>
     </main>
   );
