@@ -1401,7 +1401,7 @@ export default function Home() {
           </style>
         </head>
         <body>
-          <h1>FE-SERVICE</h1>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
           <p class="muted">Fitness Equipment Service · Automatisch archivierter Servicebericht</p>
 
           <h2>Kunde & Gerät</h2>
@@ -1607,7 +1607,7 @@ export default function Home() {
         <body>
           <div class="top">
             <div>
-              <h1>FE-SERVICE</h1>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
               <p class="muted">Fitness Equipment Service · Servicebericht / Prüfbericht</p>
             </div>
             <div>
@@ -2132,7 +2132,7 @@ export default function Home() {
         </head>
         <body>
           <div class="label">
-            <h1>FE-SERVICE</h1>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
             <p>Geräteakte / Service-QR</p>
             <img src="${qrUrl}" />
             <h2>${item.name}</h2>
@@ -2159,6 +2159,37 @@ export default function Home() {
 
     printWindow.document.write(html);
     printWindow.document.close();
+  }
+
+  function FeServiceLogo({ dark = false }: { dark?: boolean }) {
+    return (
+      <div className="flex items-center gap-3">
+        <img
+          src="/fe-service-logo.png"
+          alt="FE-Service"
+          className="h-9 w-auto rounded-md object-contain"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+        <div>
+          <p
+            className={`text-lg font-black tracking-[0.18em] ${
+              dark ? "text-white" : "text-slate-950"
+            }`}
+          >
+            FE-SERVICE
+          </p>
+          <p
+            className={`-mt-1 text-[10px] font-bold uppercase tracking-[0.22em] ${
+              dark ? "text-green-400" : "text-green-600"
+            }`}
+          >
+            Serviceplattform
+          </p>
+        </div>
+      </div>
+    );
   }
 
   function getDeviceDirectUrl(item: Device) {
@@ -2626,7 +2657,7 @@ export default function Home() {
           </style>
         </head>
         <body>
-          <h1>FE-SERVICE</h1>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
           <p class="muted">Fitness Equipment Service · Automatischer Prüfbericht</p>
 
           <h2>Prüfbericht</h2>
@@ -3220,7 +3251,7 @@ FE-SERVICE`,
           </style>
         </head>
         <body>
-          <h1>FE-SERVICE</h1>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
           <p>Fitness Equipment Service · ${item.type}</p>
 
           <h2>${item.type} ${item.number}</h2>
@@ -3596,7 +3627,7 @@ FE-SERVICE`,
       <main className="grid min-h-screen bg-slate-100 lg:grid-cols-2">
         <section className="hidden bg-[#07130d] p-12 text-white lg:flex lg:flex-col lg:justify-between">
           <div className="flex flex-col items-center">
-            <h1 className="whitespace-nowrap text-center text-2xl font-black tracking-[0.18em] text-green-500">
+            <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-500">
               FE-SERVICE
             </h1>
 
@@ -3621,7 +3652,7 @@ FE-SERVICE`,
         <section className="flex items-center justify-center p-6">
           <div className="w-full max-w-xl rounded-[36px] bg-white p-10 shadow-2xl">
             <div className="mb-8 text-center">
-              <h1 className="whitespace-nowrap text-center text-2xl font-black tracking-[0.18em] text-green-600">
+              <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-600">
                 FE-SERVICE
               </h1>
 
@@ -3676,7 +3707,7 @@ FE-SERVICE`,
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#07130d] p-6 text-white">
         <div className="max-w-xl rounded-[32px] bg-white/10 p-8 text-center">
-          <h1 className="text-3xl font-black text-green-400">
+          <h1 className="text-xl font-black text-green-400">
             Keine Rolle zugewiesen
           </h1>
           <p className="mt-4 text-slate-200">
@@ -3702,7 +3733,7 @@ FE-SERVICE`,
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
         <aside className="hidden w-72 bg-[#07130d] p-6 text-white lg:flex lg:flex-col">
           <div className="flex flex-col items-center">
-            <h1 className="whitespace-nowrap text-center text-2xl font-black tracking-[0.18em] text-green-500">
+            <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-500">
               FE-SERVICE
             </h1>
 
@@ -3742,11 +3773,11 @@ FE-SERVICE`,
         </aside>
 
         <section className="w-full min-w-0 flex-1 overflow-x-hidden p-5 lg:p-10">
-          <div className="mb-6 hidden rounded-[32px] bg-white p-6 shadow-sm lg:block">
+          <div className="mb-6 hidden rounded-[24px] bg-white p-4 shadow-sm lg:block">
             <p className="text-sm font-black uppercase tracking-[0.2em] text-green-600">
               FE-SERVICE
             </p>
-            <h2 className="mt-2 text-3xl font-black leading-tight lg:text-4xl">
+            <h2 className="mt-2 text-xl font-black leading-tight lg:text-4xl">
               {portalTitle}
             </h2>
             <p className="mt-2 max-w-3xl text-sm font-semibold text-slate-500">
@@ -3760,7 +3791,7 @@ FE-SERVICE`,
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--fe-green)]">
                   FE-SERVICE
                 </p>
-                <h2 className="mt-1 text-2xl font-black leading-tight text-white">
+                <h2 className="mt-1 text-xl font-black leading-tight text-white">
                   {portalTitle}
                 </h2>
                 <p className="mt-1 max-w-[260px] truncate text-xs font-semibold text-slate-300">
@@ -3823,10 +3854,11 @@ FE-SERVICE`,
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
+                <div className="mb-5"><FeServiceLogo dark /></div>
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
                   Admin-Zentrale
                 </p>
@@ -3888,10 +3920,10 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-2">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-2xl font-black">Offene Tickets</h3>
+                      <h3 className="text-xl font-black">Offene Tickets</h3>
                       <p className="mt-1 text-sm font-semibold text-slate-500">
                         Alles, was noch nicht abgeschlossen ist.
                       </p>
@@ -3937,10 +3969,10 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-2xl font-black">Heutige Einsätze</h3>
+                      <h3 className="text-xl font-black">Heutige Einsätze</h3>
                       <p className="mt-1 text-sm font-semibold text-slate-500">
                         Alle Tickets mit Termin heute.
                       </p>
@@ -3981,8 +4013,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-3">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Überfällige Wartungen</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Überfällige Wartungen</h3>
                   <div className="mt-5 space-y-3">
                     {overdueAdminMaintenancePlans.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -4009,8 +4041,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Teilebestand</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Teilebestand</h3>
                   <div className="mt-5 space-y-3">
                     {lowStockParts.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -4032,8 +4064,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Letzte Serviceberichte</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Letzte Serviceberichte</h3>
                   <div className="mt-5 space-y-3">
                     {recentServiceReports.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -4069,7 +4101,7 @@ FE-SERVICE`,
           {activePage === "Kalender" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4108,7 +4140,7 @@ FE-SERVICE`,
                     <p className="text-xs font-bold text-slate-300">
                       Einträge am Tag
                     </p>
-                    <p className="text-3xl font-black text-green-400">
+                    <p className="text-xl font-black text-green-400">
                       {calendarItemsCount}
                     </p>
                   </div>
@@ -4144,10 +4176,10 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-2xl font-black">Service-Einsätze</h3>
+                      <h3 className="text-xl font-black">Service-Einsätze</h3>
                       <p className="mt-1 text-sm font-semibold text-slate-500">
                         Tickets mit Servicedatum am gewählten Tag.
                       </p>
@@ -4175,7 +4207,7 @@ FE-SERVICE`,
                         .map((ticket) => (
                           <div
                             key={ticket.id}
-                            className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                            className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                           >
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
@@ -4211,10 +4243,10 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-2xl font-black">Wartungen</h3>
+                      <h3 className="text-xl font-black">Wartungen</h3>
                       <p className="mt-1 text-sm font-semibold text-slate-500">
                         Wartungspläne mit Fälligkeit am gewählten Tag.
                       </p>
@@ -4241,7 +4273,7 @@ FE-SERVICE`,
                         return (
                           <div
                             key={plan.id}
-                            className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                            className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                           >
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
@@ -4279,7 +4311,7 @@ FE-SERVICE`,
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4294,8 +4326,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Benachrichtigung erstellen</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Benachrichtigung erstellen</h3>
 
                   <div className="mt-5 space-y-4">
                     <select
@@ -4353,8 +4385,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Kommunikationszentrale</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Kommunikationszentrale</h3>
 
                   <div className="mt-5 space-y-3">
                     {notifications.length === 0 ? (
@@ -4365,7 +4397,7 @@ FE-SERVICE`,
                       notifications.map((item) => (
                         <div
                           key={item.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div>
@@ -4412,7 +4444,7 @@ FE-SERVICE`,
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4423,8 +4455,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Rechnung / Angebot erstellen</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Rechnung / Angebot erstellen</h3>
                   <p className="mt-2 text-slate-600">
                     Erstelle Angebote oder Rechnungen auf Basis eines Tickets oder frei als Admin.
                   </p>
@@ -4516,8 +4548,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Rechnungen & Angebote</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Rechnungen & Angebote</h3>
 
                   <div className="mt-5 space-y-3">
                     {invoices.length === 0 ? (
@@ -4528,7 +4560,7 @@ FE-SERVICE`,
                       invoices.map((item) => (
                         <div
                           key={item.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div>
@@ -4600,7 +4632,7 @@ FE-SERVICE`,
                         : "bg-white text-slate-900 hover:bg-slate-50"
                     }`}
                   >
-                    <p className="text-3xl font-black">
+                    <p className="text-xl font-black">
                       {categoryCount(category)}
                     </p>
 
@@ -4615,10 +4647,10 @@ FE-SERVICE`,
                 ))}
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                   <div>
-                    <h3 className="text-2xl font-black">Dokumente</h3>
+                    <h3 className="text-xl font-black">Dokumente</h3>
 
                     <p className="mt-2 text-slate-600">
                       Kategorie und Gerät wählen, Datei hochladen und
@@ -4723,7 +4755,7 @@ FE-SERVICE`,
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4741,28 +4773,28 @@ FE-SERVICE`,
               <div className="grid gap-4 md:grid-cols-4">
                 <div className="rounded-3xl bg-white p-6 shadow-sm">
                   <p className="text-sm font-bold text-slate-500">Umsatz bezahlt</p>
-                  <p className="mt-2 text-3xl font-black text-green-700">
+                  <p className="mt-2 text-xl font-black text-green-700">
                     {euro(invoiceRevenueGross)}
                   </p>
                 </div>
 
                 <div className="rounded-3xl bg-white p-6 shadow-sm">
                   <p className="text-sm font-bold text-slate-500">Offene Beträge</p>
-                  <p className="mt-2 text-3xl font-black text-yellow-700">
+                  <p className="mt-2 text-xl font-black text-yellow-700">
                     {euro(openInvoiceGross)}
                   </p>
                 </div>
 
                 <div className="rounded-3xl bg-white p-6 shadow-sm">
                   <p className="text-sm font-bold text-slate-500">Ticketquote</p>
-                  <p className="mt-2 text-3xl font-black text-blue-700">
+                  <p className="mt-2 text-xl font-black text-blue-700">
                     {completionRate}%
                   </p>
                 </div>
 
                 <div className="rounded-3xl bg-white p-6 shadow-sm">
                   <p className="text-sm font-bold text-slate-500">Wartungsquote</p>
-                  <p className="mt-2 text-3xl font-black text-purple-700">
+                  <p className="mt-2 text-xl font-black text-purple-700">
                     {maintenanceCompletionRate}%
                   </p>
                 </div>
@@ -4776,8 +4808,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-2">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Technikerleistung</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Technikerleistung</h3>
                   <p className="mt-1 text-sm font-semibold text-slate-500">
                     Zugewiesene und abgeschlossene Tickets je Techniker.
                   </p>
@@ -4803,7 +4835,7 @@ FE-SERVICE`,
                               </p>
                             </div>
                             <div className="rounded-2xl bg-green-100 px-4 py-3 text-center">
-                              <p className="text-2xl font-black text-green-700">
+                              <p className="text-xl font-black text-green-700">
                                 {item.completed}
                               </p>
                               <p className="text-xs font-bold text-green-700">
@@ -4817,8 +4849,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Häufige Gerätefälle</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Häufige Gerätefälle</h3>
                   <p className="mt-1 text-sm font-semibold text-slate-500">
                     Geräte mit den meisten Tickets.
                   </p>
@@ -4842,7 +4874,7 @@ FE-SERVICE`,
                               </p>
                             </div>
                             <div className="rounded-2xl bg-blue-100 px-4 py-3 text-center">
-                              <p className="text-2xl font-black text-blue-700">
+                              <p className="text-xl font-black text-blue-700">
                                 {item.count}
                               </p>
                               <p className="text-xs font-bold text-blue-700">
@@ -4858,8 +4890,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-3">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Top Kunden</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Top Kunden</h3>
                   <div className="mt-5 space-y-3">
                     {topCustomersByTickets.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -4881,8 +4913,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Rechnungsstatus</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Rechnungsstatus</h3>
                   <div className="mt-5 space-y-3">
                     {["Entwurf", "Offen", "Gesendet", "Bezahlt", "Storniert"].map((status) => (
                       <div
@@ -4898,8 +4930,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Serviceberichte</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Serviceberichte</h3>
                   <div className="mt-5 space-y-3">
                     <div className="rounded-2xl bg-slate-50 p-4">
                       <p className="text-4xl font-black">
@@ -4927,11 +4959,11 @@ FE-SERVICE`,
           {activePage === "Kunden" && (
             <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <div
-                className={`rounded-[32px] bg-white p-6 shadow-sm ${
+                className={`rounded-[24px] bg-white p-4 shadow-sm ${
                   editingCustomer ? "ring-4 ring-green-200" : ""
                 }`}
               >
-                <h3 className="text-2xl font-black">
+                <h3 className="text-xl font-black">
                   {editingCustomer ? "Kunde bearbeiten" : "Neuer Kunde"}
                 </h3>
 
@@ -5049,8 +5081,8 @@ FE-SERVICE`,
                 </div>
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black">Kundenliste</h3>
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Kundenliste</h3>
 
                 <div className="mt-5 space-y-3">
                   {customers.length === 0 ? (
@@ -5061,7 +5093,7 @@ FE-SERVICE`,
                     customers.map((item) => (
                       <div
                         key={item.id}
-                        className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
@@ -5118,7 +5150,7 @@ FE-SERVICE`,
           )}
 
           {activePage === "Geräte" && selectedDeviceView && (
-            <div className="mb-6 rounded-[32px] bg-white p-6 shadow-sm">
+            <div className="mb-6 rounded-[24px] bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <p className="text-sm font-bold text-green-600">
@@ -5272,7 +5304,7 @@ FE-SERVICE`,
               </div>
 
               <div className="mt-10">
-                <h4 className="text-2xl font-black">Wartungsplanung</h4>
+                <h4 className="text-xl font-black">Wartungsplanung</h4>
 
                 {getMaintenancePlanForDevice(selectedDeviceView.id) ? (
                   <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -5321,7 +5353,7 @@ FE-SERVICE`,
               </div>
 
               <div className="mt-10">
-                <h4 className="text-2xl font-black">Zugeordnete Dokumente</h4>
+                <h4 className="text-xl font-black">Zugeordnete Dokumente</h4>
 
                 <div className="mt-4 space-y-3">
                   {documents.filter(
@@ -5359,7 +5391,7 @@ FE-SERVICE`,
               </div>
 
               <div className="mt-10">
-                <h4 className="text-2xl font-black">Tickets zu diesem Gerät</h4>
+                <h4 className="text-xl font-black">Tickets zu diesem Gerät</h4>
 
                 <div className="mt-4 space-y-3">
                   {tickets.filter(
@@ -5424,7 +5456,7 @@ FE-SERVICE`,
                 </div>
               </div>
               <div className="mt-10">
-                <h4 className="text-2xl font-black">Gerätehistorie</h4>
+                <h4 className="text-xl font-black">Gerätehistorie</h4>
 
                 <div className="mt-4 space-y-3">
                   {deviceHistory.filter(
@@ -5472,11 +5504,11 @@ FE-SERVICE`,
           {activePage === "Geräte" && !selectedDeviceView && (
             <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <div
-                className={`rounded-[32px] bg-white p-6 shadow-sm ${
+                className={`rounded-[24px] bg-white p-4 shadow-sm ${
                   editingDevice ? "ring-4 ring-green-200" : ""
                 }`}
               >
-                <h3 className="text-2xl font-black">
+                <h3 className="text-xl font-black">
                   {editingDevice ? "Gerät bearbeiten" : "Neues Gerät"}
                 </h3>
 
@@ -5561,8 +5593,8 @@ FE-SERVICE`,
                 </div>
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black">Geräteliste</h3>
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Geräteliste</h3>
 
                 <div className="mt-5 space-y-3">
                   {devices.length === 0 ? (
@@ -5573,7 +5605,7 @@ FE-SERVICE`,
                     devices.map((item) => (
                       <div
                         key={item.id}
-                        className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
@@ -5647,7 +5679,7 @@ FE-SERVICE`,
           {activePage === "Verträge" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -5664,8 +5696,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">
                     Vertrag erstellen
                   </h3>
 
@@ -5775,8 +5807,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">
                     Vertragsübersicht
                   </h3>
 
@@ -5789,7 +5821,7 @@ FE-SERVICE`,
                       contracts.map((item) => (
                         <div
                           key={item.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div>
@@ -5863,7 +5895,7 @@ FE-SERVICE`,
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -5883,8 +5915,8 @@ FE-SERVICE`,
               </div>
 
               {(isAdmin || isTechnician) && (
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Wartung planen</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Wartung planen</h3>
                   <p className="mt-2 text-slate-600">
                     Plane Wartungen zuerst kundenbezogen und danach nur für Geräte dieses Kunden.
                   </p>
@@ -6003,8 +6035,8 @@ FE-SERVICE`,
                 </div>
               )}
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black">
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">
                   {isTechnician ? "Meine Wartungen" : isCustomer ? "Meine kommenden Wartungen" : "Wartungsübersicht"}
                 </h3>
                 <p className="mt-2 text-slate-600">
@@ -6024,7 +6056,7 @@ FE-SERVICE`,
                       return (
                         <div
                           key={plan.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div className="flex-1">
@@ -6095,12 +6127,12 @@ FE-SERVICE`,
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
                 <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                  SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
                 </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h3 className="text-3xl font-black">Mobiler Einsatzmodus</h3>
+                    <h3 className="text-xl font-black">Mobiler Einsatzmodus</h3>
                     <p className="mt-2 text-slate-600">
                       Optimiert für Arbeiten vor Ort: große Touch-Flächen, schnelle Aktionen,
                       Fotos, Servicebericht, Prüfsiegel und Kundenabnahme.
@@ -6109,15 +6141,15 @@ FE-SERVICE`,
 
                   <div className="grid grid-cols-3 gap-2 rounded-3xl bg-slate-100 p-3 text-center">
                     <div>
-                      <p className="text-2xl font-black">{technicianOpenTickets.length}</p>
+                      <p className="text-xl font-black">{technicianOpenTickets.length}</p>
                       <p className="text-xs font-bold text-slate-500">Offen</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-black">{technicianTodayTickets.length}</p>
+                      <p className="text-xl font-black">{technicianTodayTickets.length}</p>
                       <p className="text-xs font-bold text-slate-500">Heute</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-black">{technicianWaitingParts.length}</p>
+                      <p className="text-xl font-black">{technicianWaitingParts.length}</p>
                       <p className="text-xs font-bold text-slate-500">Teile</p>
                     </div>
                   </div>
@@ -6126,7 +6158,7 @@ FE-SERVICE`,
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <button
                     onClick={() => setActivePage("Service-Tickets")}
-                    className="min-h-[84px] rounded-3xl bg-green-600 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
+                    className="min-h-[56px] rounded-3xl bg-green-600 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
                   >
                     + Ticket
                     <span className="mt-1 block text-sm font-bold opacity-80">
@@ -6136,7 +6168,7 @@ FE-SERVICE`,
 
                   <button
                     onClick={() => setActivePage("Geräte")}
-                    className="min-h-[84px] rounded-3xl bg-slate-900 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
+                    className="min-h-[56px] rounded-3xl bg-slate-900 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
                   >
                     Geräte
                     <span className="mt-1 block text-sm font-bold opacity-80">
@@ -6146,7 +6178,7 @@ FE-SERVICE`,
 
                   <button
                     onClick={() => setActivePage("Dokumente")}
-                    className="min-h-[84px] rounded-3xl bg-blue-600 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
+                    className="min-h-[56px] rounded-3xl bg-blue-600 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
                   >
                     Fotos
                     <span className="mt-1 block text-sm font-bold opacity-80">
@@ -6156,7 +6188,7 @@ FE-SERVICE`,
 
                   <button
                     onClick={() => setActivePage("Ersatzteile")}
-                    className="min-h-[84px] rounded-3xl bg-yellow-100 px-5 py-5 text-left text-lg font-black text-yellow-800 active:scale-[0.99]"
+                    className="min-h-[56px] rounded-3xl bg-yellow-100 px-5 py-5 text-left text-lg font-black text-yellow-800 active:scale-[0.99]"
                   >
                     Teile
                     <span className="mt-1 block text-sm font-bold opacity-80">
@@ -6187,7 +6219,7 @@ FE-SERVICE`,
                       <p className="text-xs font-bold text-green-600">
                         {ticket.ticket_number} · {ticket.customer}
                       </p>
-                      <h4 className="mt-1 text-2xl font-black">
+                      <h4 className="mt-1 text-xl font-black">
                         {ticket.issue}
                       </h4>
                       <p className="mt-2 text-sm text-slate-600">
@@ -6226,7 +6258,7 @@ FE-SERVICE`,
                           onClick={() =>
                             updateServiceStatus(ticket.id, "Gestartet")
                           }
-                          className="min-h-[64px] rounded-3xl bg-yellow-100 px-5 py-4 text-lg font-black text-yellow-800 active:scale-[0.99]"
+                          className="min-h-[56px] rounded-3xl bg-yellow-100 px-4 py-3 text-sm font-black text-yellow-800 active:scale-[0.99]"
                         >
                           Starten
                         </button>
@@ -6240,7 +6272,7 @@ FE-SERVICE`,
                               setActivePage("Service-Tickets");
                             }
                           }}
-                          className="min-h-[64px] rounded-3xl bg-slate-900 px-5 py-4 text-lg font-black text-white active:scale-[0.99]"
+                          className="min-h-[56px] rounded-3xl bg-slate-900 px-4 py-3 text-sm font-black text-white active:scale-[0.99]"
                         >
                           Gerät / Details
                         </button>
@@ -6249,13 +6281,13 @@ FE-SERVICE`,
                           onClick={() =>
                             updateServiceStatus(ticket.id, "Abgeschlossen")
                           }
-                          className="min-h-[64px] rounded-3xl bg-green-600 px-5 py-4 text-lg font-black text-white active:scale-[0.99]"
+                          className="min-h-[56px] rounded-3xl bg-green-600 px-4 py-3 text-sm font-black text-white active:scale-[0.99]"
                         >
                           Abschließen
 
                           {/* TECHNIKER DATEI-UPLOAD */}
                           <div className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-5">
-                            <h4 className="text-2xl font-black text-blue-800">
+                            <h4 className="text-xl font-black text-blue-800">
                               Fotos & Dokumente zum Einsatz
                             </h4>
 
@@ -6339,8 +6371,8 @@ FE-SERVICE`,
                 <StatCard label="Ohne Datum" value={inspectionStats.missing} />
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black">Prüfungen & Prüfsiegel</h3>
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Prüfungen & Prüfsiegel</h3>
                 {(isAdmin || isTechnician) && (
                   <div className="mt-5 rounded-[28px] border border-green-200 bg-green-50 p-5">
                     <h4 className="text-xl font-black text-slate-900">
@@ -6427,7 +6459,7 @@ FE-SERVICE`,
                       return (
                         <div
                           key={item.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
                             <div>
@@ -6501,7 +6533,7 @@ FE-SERVICE`,
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
+                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -6564,10 +6596,10 @@ FE-SERVICE`,
                 />
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h3 className="text-2xl font-black">QR-Geräteliste</h3>
+                    <h3 className="text-xl font-black">QR-Geräteliste</h3>
                     <p className="mt-2 text-slate-600">
                       QR-Code öffnen, Etikett drucken oder direkt Service starten.
                     </p>
@@ -6602,7 +6634,7 @@ FE-SERVICE`,
                       return (
                         <div
                           key={item.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col gap-5 md:flex-row md:items-start">
                             <div className="rounded-2xl bg-white p-3">
@@ -6702,11 +6734,11 @@ FE-SERVICE`,
 
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 <div
-                  className={`rounded-[32px] bg-white p-6 shadow-sm ${
+                  className={`rounded-[24px] bg-white p-4 shadow-sm ${
                     editingTicket ? "ring-4 ring-green-200" : ""
                   }`}
                 >
-                  <h3 className="text-2xl font-black">
+                  <h3 className="text-xl font-black">
                     {editingTicket
                       ? "Ticket bearbeiten"
                       : "Neues Service-Ticket"}
@@ -6825,8 +6857,8 @@ FE-SERVICE`,
                   </div>
                 </div>
 
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">Ticketliste</h3>
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Ticketliste</h3>
 
                   <div className="mt-5 rounded-3xl bg-slate-50 p-4">
                     <input
@@ -6879,7 +6911,7 @@ FE-SERVICE`,
                       filteredTickets.map((ticket) => (
                         <div
                           key={ticket.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
@@ -7064,11 +7096,11 @@ FE-SERVICE`,
 
           {activePage === "Kundenportal" && (
             <div className="space-y-6">
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
                 <p className="text-sm font-black uppercase tracking-[0.18em] text-green-600">
                   Kundenportal
                 </p>
-                <h3 className="mt-2 text-3xl font-black leading-tight">
+                <h3 className="mt-2 text-xl font-black leading-tight">
                   {profileCustomer?.company ||
                     userProfile?.company ||
                     "Mein Servicebereich"}
@@ -7109,8 +7141,8 @@ FE-SERVICE`,
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-                <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                  <h3 className="text-2xl font-black">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">
                     Gerät melden & Service anfragen
                   </h3>
                   <p className="mt-2 text-base text-slate-700">
@@ -7201,8 +7233,8 @@ FE-SERVICE`,
                 </div>
 
                 <div className="space-y-6">
-                  <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                    <h3 className="text-2xl font-black">Meine Geräte</h3>
+                  <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                    <h3 className="text-xl font-black">Meine Geräte</h3>
                     <div className="mt-4 space-y-3">
                       {devices.filter(
                         (item) => item.customer_id === userProfile?.customer_id,
@@ -7237,8 +7269,8 @@ FE-SERVICE`,
                     </div>
                   </div>
 
-                  <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                    <h3 className="text-2xl font-black">Meine Wartungen</h3>
+                  <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                    <h3 className="text-xl font-black">Meine Wartungen</h3>
                     <div className="mt-4 space-y-3">
                       {assignedMaintenancePlans.length === 0 ? (
                         <div className="rounded-2xl bg-slate-100 p-4 text-base text-slate-600">
@@ -7268,8 +7300,8 @@ FE-SERVICE`,
                     </div>
                   </div>
 
-                  <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                    <h3 className="text-2xl font-black">Meine Tickets</h3>
+                  <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                    <h3 className="text-xl font-black">Meine Tickets</h3>
                     <div className="mt-4 space-y-3">
                       {filteredTickets.length === 0 ? (
                         <div className="rounded-2xl bg-slate-100 p-4 text-base text-slate-600">
@@ -7337,9 +7369,9 @@ FE-SERVICE`,
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 {isAdmin && (
                   <div
-                    className={`rounded-[32px] bg-white p-6 shadow-sm ${editingPart ? "ring-4 ring-green-200" : ""}`}
+                    className={`rounded-[24px] bg-white p-4 shadow-sm ${editingPart ? "ring-4 ring-green-200" : ""}`}
                   >
-                    <h3 className="text-2xl font-black">
+                    <h3 className="text-xl font-black">
                       {editingPart
                         ? "Ersatzteil bearbeiten"
                         : "Neues Ersatzteil"}
@@ -7431,9 +7463,9 @@ FE-SERVICE`,
                 )}
 
                 <div
-                  className={`rounded-[32px] bg-white p-6 shadow-sm ${isAdmin ? "" : "xl:col-span-2"}`}
+                  className={`rounded-[24px] bg-white p-4 shadow-sm ${isAdmin ? "" : "xl:col-span-2"}`}
                 >
-                  <h3 className="text-2xl font-black">Verbrauch buchen</h3>
+                  <h3 className="text-xl font-black">Verbrauch buchen</h3>
                   <p className="mt-2 text-slate-600">
                     Techniker und Admin können Teile einem Gerät, Ticket oder
                     Einsatzhinweis zuordnen.
@@ -7507,8 +7539,8 @@ FE-SERVICE`,
                 </div>
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black">Lagerbestand</h3>
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Lagerbestand</h3>
                 <div className="mt-5 space-y-3">
                   {serviceParts.length === 0 ? (
                     <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -7521,7 +7553,7 @@ FE-SERVICE`,
                       return (
                         <div
                           key={part.id}
-                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                             <div>
@@ -7548,7 +7580,7 @@ FE-SERVICE`,
                                 <p className="text-xs text-slate-500">
                                   Bestand
                                 </p>
-                                <p className="text-2xl font-black">
+                                <p className="text-xl font-black">
                                   {part.stock ?? 0}
                                 </p>
                               </div>
@@ -7582,8 +7614,8 @@ FE-SERVICE`,
                 </div>
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black">Letzte Buchungen</h3>
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Letzte Buchungen</h3>
                 <div className="mt-5 space-y-3">
                   {partUsages.length === 0 ? (
                     <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
