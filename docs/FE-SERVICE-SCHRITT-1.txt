@@ -1,0 +1,20 @@
+FE-SERVICE Schritt 1
+
+Änderungen:
+1. Techniker-Tickets speichern stabilisiert.
+   - Gerät, Betreff und Beschreibung reichen jetzt aus.
+   - Wenn das Gerät einem Kunden zugeordnet ist, wird der Kunde automatisch übernommen.
+   - Wenn kein Kunde gefunden wird, wird "Vor-Ort / nicht zugeordnet" gespeichert.
+   - Techniker-Tickets werden mit assigned_to = aktuelle User-ID gespeichert.
+   - Supabase-Fehler werden jetzt mit genauer Meldung angezeigt.
+
+2. Ticket aus Gerätekarte verbessert.
+   - Beim Klick auf "Ticket" wird der zum Gerät passende Kunde automatisch vorausgefüllt.
+   - customDeviceName wird zurückgesetzt, damit nicht versehentlich ein altes Freitext-Gerät gespeichert wird.
+
+3. Mobile Header bereinigt.
+   - Statt raw role wie "technician" wird jetzt "Techniker" angezeigt.
+
+Wichtig:
+Keine Rollenlogik wurde grundsätzlich umgebaut.
+Die stabile Basis bleibt erhalten.

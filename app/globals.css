@@ -3,6 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* FE-Service Markenfarben */
+  --fe-green: #00a651;
+  --fe-green-dark: #008f45;
+  --fe-green-soft: #e7fff1;
+  --fe-black: #07130d;
 }
 
 @theme inline {
@@ -24,3 +29,49 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+::selection {
+  background: var(--fe-green);
+  color: var(--fe-black);
+}
+
+/* Erzwingt das FE-Service-Grün auch für vorhandene Tailwind-green-Klassen. */
+.text-green-400,
+.text-green-500,
+.text-green-600,
+.text-green-700 {
+  color: var(--fe-green) !important;
+}
+
+.bg-green-500,
+.bg-green-600,
+.hover\:bg-green-700:hover {
+  background-color: var(--fe-green-dark) !important;
+}
+
+.bg-green-50,
+.bg-green-100 {
+  background-color: var(--fe-green-soft) !important;
+}
+
+.border-green-200,
+.border-green-500\/10,
+.border-green-500\/15,
+.border-green-500\/20 {
+  border-color: color-mix(in srgb, var(--fe-green) 30%, transparent) !important;
+}
+
+.ring-green-200 {
+  --tw-ring-color: color-mix(in srgb, var(--fe-green) 35%, transparent) !important;
+}
+
+.fe-brand-gradient {
+  background: linear-gradient(135deg, var(--fe-green), var(--fe-green-dark));
+}
+
+
+/* Schritt 9: harte Vereinheitlichung aller FE-Service-Grünflächen */
+.text-emerald-700, .text-emerald-600, .text-lime-600 { color: var(--fe-green) !important; }
+.bg-emerald-100, .bg-lime-100 { background-color: var(--fe-green-soft) !important; }
+.bg-emerald-600, .bg-lime-600 { background-color: var(--fe-green-dark) !important; }
+.border-emerald-200, .border-lime-200 { border-color: color-mix(in srgb, var(--fe-green) 30%, transparent) !important; }

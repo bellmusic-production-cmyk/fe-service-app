@@ -91,7 +91,7 @@ const navItems = [
   "Prüfungen",
   "Wartungsplanung",
   "Dokumente",
-  "Techniker",
+  "Einsatz",
   "Rollen",
   "Kundenportal",
   "Offline",
@@ -383,7 +383,7 @@ export default function Home() {
     }
 
     if (data.role === "technician") {
-      setActivePage("Techniker");
+      setActivePage("Einsatz");
     }
 
     if (data.role === "customer") {
@@ -748,40 +748,58 @@ export default function Home() {
   }
 
   async function createTicket() {
+    const currentDeviceName = customDeviceName.trim() || device;
+    const relatedDevice = devices.find((item) => item.name === currentDeviceName);
+    const customerFromDevice = relatedDevice?.customer_id
+      ? customers.find((item) => item.id === relatedDevice.customer_id)
+      : null;
+
     const currentCustomerName = isCustomer
       ? profileCustomer?.company || userProfile?.company || ""
-      : customer;
+      : customer || customerFromDevice?.company || "Vor-Ort / nicht zugeordnet";
 
     const currentCustomerId = isCustomer
       ? userProfile?.customer_id || null
-      : customers.find((item) => item.company === customer)?.id || null;
+      : customers.find((item) => item.company === currentCustomerName)?.id ||
+        customerFromDevice?.id ||
+        null;
 
-    const currentDeviceName = customDeviceName.trim() || device;
-
-    if (!currentCustomerName || !currentDeviceName || !issue || !description) {
-      alert("Bitte Kunde, Gerät, Betreff und Beschreibung ausfüllen.");
+    if (!currentDeviceName || !issue || !description) {
+      alert("Bitte Gerät, Betreff und Beschreibung ausfüllen.");
       return;
     }
 
-    const { error } = await supabase.from("tickets").insert([
-      {
-        ticket_number: `T-${Math.floor(Math.random() * 9000) + 1000}`,
-        customer: currentCustomerName,
-        customer_id: currentCustomerId,
-        device: currentDeviceName,
-        issue,
-        description,
-        priority,
-        status: "Offen",
-      },
-    ]);
+    const baseTicketPayload = {
+      ticket_number: `T-${Math.floor(Math.random() * 9000) + 1000}`,
+      customer: currentCustomerName,
+      customer_id: currentCustomerId,
+      device: currentDeviceName,
+      issue,
+      description,
+      priority,
+      status: "Offen",
+    };
 
-    if (error) {
-      alert("Fehler beim Speichern.");
-      return;
+    const ticketPayload = isTechnician
+      ? {
+          ...baseTicketPayload,
+          assigned_to: userProfile?.id || null,
+        }
+      : baseTicketPayload;
+
+    let insertResult = await supabase.from("tickets").insert([ticketPayload]);
+
+    if (insertResult.error && insertResult.error.code === "42703") {
+      insertResult = await supabase.from("tickets").insert([baseTicketPayload]);
     }
 
-    const relatedDevice = devices.find((item) => item.name === currentDeviceName);
+    if (insertResult.error) {
+      console.error("Ticket konnte nicht gespeichert werden:", insertResult.error);
+      alert(
+        `Ticket konnte nicht gespeichert werden.\n\nSupabase meldet: ${insertResult.error.message}\n\nWenn hier row-level security / RLS steht: Bitte die Datei supabase-ticket-fix.sql im Supabase SQL Editor ausführen.`
+      );
+      return;
+    }
 
     await createDeviceHistory(
       relatedDevice?.id || null,
@@ -792,6 +810,7 @@ export default function Home() {
 
     resetTicketForm();
     await loadTickets();
+    alert("Ticket wurde gespeichert.");
   }
 
   async function updateTicket() {
@@ -1046,8 +1065,14 @@ export default function Home() {
   }
 
   function createTicketFromDevice(item: Device) {
+    const linkedCustomer = item.customer_id
+      ? customers.find((customerItem) => customerItem.id === item.customer_id)
+      : null;
+
     setActivePage("Service-Tickets");
+    setCustomer(linkedCustomer?.company || "");
     setDevice(item.name);
+    setCustomDeviceName("");
     setIssue(`Service für ${item.name}`);
     setDescription(item.note || "");
     setPriority(item.status === "Prüfung erforderlich" ? "Hoch" : "Mittel");
@@ -1421,11 +1446,64 @@ FE-SERVICE`
   const profileCustomer = userProfile?.customer_id
     ? customers.find((item) => item.id === userProfile.customer_id)
     : null;
+  const portalTitle = isAdmin
+    ? "Admin Portal"
+    : isTechnician
+      ? "Techniker Portal"
+      : "Kundenportal";
+
+  const portalSubtitle = isAdmin
+    ? "Vollzugriff auf Kunden, Geräte, Tickets, Dokumente und Verwaltung."
+    : isTechnician
+      ? "Einsatzbereich für Tickets, Geräte, Prüfungen, Fotos und Serviceberichte."
+      : "Eigene Geräte, Tickets und Dokumente im Überblick.";
+
+  const primaryActionLabel = isAdmin
+    ? "Verwaltung öffnen"
+    : isTechnician
+      ? "Einsatz öffnen"
+      : "Portal öffnen";
   const visibleNavItems = isAdmin
     ? navItems
     : isTechnician
-      ? ["Techniker", "Service-Tickets", "Geräte", "Dokumente"]
+      ? ["Einsatz", "Service-Tickets", "Geräte", "Dokumente"]
       : ["Kundenportal", "Service-Tickets", "Dokumente"];
+
+  function navItemLabel(item: string) {
+    const labels: Record<string, string> = {
+      Dashboard: "Start",
+      Kunden: "Kunden",
+      Geräte: "Geräte",
+      "Service-Tickets": "Tickets",
+      Prüfungen: "Prüfungen",
+      Wartungsplanung: "Wartung",
+      Dokumente: "Dokumente",
+      Einsatz: "Einsatz",
+      Rollen: "Rollen",
+      Kundenportal: "Portal",
+      Offline: "Offline",
+      Ersatzteile: "Teile",
+      Rechnungen: "Rechnungen",
+      "KI-Analyse": "KI",
+    };
+
+    return labels[item] || item;
+  }
+
+  const pageTitle = navItemLabel(activePage);
+
+  function openPage(item: string) {
+    setActivePage(item);
+    resetTicketForm();
+    resetDeviceForm();
+    resetCustomerForm();
+    setSelectedDeviceView(null);
+
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
   const availableTicketDevices = isCustomer && userProfile?.customer_id
     ? devices.filter((item) => item.customer_id === userProfile.customer_id)
     : devices;
@@ -1543,7 +1621,7 @@ FE-SERVICE`
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-100 pb-28 text-slate-900 lg:pb-0">
+    <main className="min-h-screen overflow-x-hidden bg-slate-100 pb-8 text-slate-900 lg:pb-0">
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
         <aside className="hidden w-72 bg-[#07130d] p-6 text-white lg:flex lg:flex-col">
           <div className="flex flex-col items-center">
@@ -1566,19 +1644,14 @@ FE-SERVICE`
             {visibleNavItems.map((item) => (
               <button
                 key={item}
-                onClick={() => {
-                  setActivePage(item);
-                  resetTicketForm();
-                  resetDeviceForm();
-                  resetCustomerForm();
-                }}
+                onClick={() => openPage(item)}
                 className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
                   activePage === item
                     ? "bg-green-600 text-white"
                     : "text-slate-300 hover:bg-white/5"
                 }`}
               >
-                {item}
+                {navItemLabel(item)}
               </button>
             ))}
           </nav>
@@ -1592,44 +1665,41 @@ FE-SERVICE`
         </aside>
 
         <section className="w-full min-w-0 flex-1 overflow-x-hidden p-5 lg:p-10">
-          <div className="mb-6 rounded-[32px] bg-white p-6 shadow-sm">
-            <p className="font-bold text-green-600">{isAdmin ? "Admin-Ansicht" : isTechnician ? "Techniker-Ansicht" : "Kundenportal"}</p>
-            <h2 className="mt-2 text-3xl font-black leading-tight lg:text-4xl">{activePage}</h2>
-            <p className="mt-3 text-slate-600">
-           
-            </p>
+          <div className="mb-6 hidden rounded-[32px] bg-white p-6 shadow-sm lg:block">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-green-600">FE-SERVICE</p>
+            <h2 className="mt-2 text-3xl font-black leading-tight lg:text-4xl">{portalTitle}</h2>
+            <p className="mt-2 max-w-3xl text-sm font-semibold text-slate-500">{portalSubtitle}</p>
           </div>
 
-          <div className="mb-6 w-full max-w-full overflow-hidden rounded-[28px] bg-[#07130d] p-4 shadow-sm lg:hidden">
-            <div className="mb-3 flex min-w-0 items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-green-400">FE-SERVICE</p>
-                <p className="mt-1 max-w-[220px] truncate text-sm text-slate-300">{session.user.email}</p>
+          <div className="sticky top-0 z-30 -mx-5 mb-5 border-b border-[var(--fe-green)]/20 bg-[var(--fe-black)] px-4 py-3 shadow-lg lg:hidden">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[var(--fe-green)]">FE-SERVICE</p>
+                <h2 className="mt-1 text-2xl font-black leading-tight text-white">{portalTitle}</h2>
+                <p className="mt-1 max-w-[260px] truncate text-xs font-semibold text-slate-300">{session.user.email}</p>
               </div>
-              <span className="rounded-full bg-green-500/10 px-3 py-2 text-xs font-bold text-green-400">
-                {role}
-              </span>
+
+              <button
+                onClick={logout}
+                className="rounded-full bg-black px-4 py-2 text-xs font-black text-[var(--fe-green)]"
+              >
+                Logout
+              </button>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-              {visibleNavItems.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => {
-                    setActivePage(item);
-                    resetTicketForm();
-                    resetDeviceForm();
-                    resetCustomerForm();
-                  }}
-                  className={`min-w-0 rounded-2xl px-4 py-4 text-center text-base font-black ${
-                    activePage === item
-                      ? "bg-green-500 text-[#07130d]"
-                      : "bg-white/10 text-green-300"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
+            <div className="mt-3 rounded-[24px] border border-white/10 bg-white/5 p-3">
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-[var(--fe-green)]">Bereich</label>
+              <select
+                value={activePage}
+                onChange={(e) => openPage(e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-base font-black text-slate-900"
+              >
+                {visibleNavItems.map((item) => (
+                  <option key={item} value={item}>
+                    {navItemLabel(item)}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -2019,7 +2089,7 @@ FE-SERVICE`
             </div>
           )}
 
-{selectedDeviceView && (
+{activePage === "Geräte" && selectedDeviceView && (
   <div className="mb-6 rounded-[32px] bg-white p-6 shadow-sm">
     <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
       <div>
@@ -2170,9 +2240,12 @@ FE-SERVICE`
         </div>
 
         <button
-          onClick={() =>
-            setSelectedDeviceView(null)
-          }
+          onClick={() => {
+            setSelectedDeviceView(null);
+            if (typeof window !== "undefined") {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
           className="rounded-2xl border border-slate-300 bg-white px-4 py-4 font-bold"
         >
           Schließen
@@ -2368,7 +2441,7 @@ FE-SERVICE`
     </div>
   </div>
 )}
-          {activePage === "Geräte" && (
+          {activePage === "Geräte" && !selectedDeviceView && (
             <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <div
                 className={`rounded-[32px] bg-white p-6 shadow-sm ${
@@ -2606,13 +2679,47 @@ FE-SERVICE`
             </div>
           )}
 
-          {activePage === "Techniker" && (
+          {activePage === "Einsatz" && (
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-6 shadow-sm">
-                <h3 className="text-3xl font-black">Techniker-Modus</h3>
+                <h3 className="text-3xl font-black">Einsatzübersicht</h3>
                 <p className="mt-2 text-slate-600">
-                  Mobile Schnellansicht für Serviceeinsätze, Fotos, Tickets und QR-Gerätezugriff.
+                  Klare Einsatzansicht: Gerät öffnen, Ticket starten, Dokumente hochladen und Prüfung dokumentieren.
                 </p>
+
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  <button
+                    onClick={() => setActivePage("Service-Tickets")}
+                    className="rounded-2xl bg-green-600 px-4 py-4 text-left font-black text-white"
+                  >
+                    Neues Ticket
+                    <span className="mt-1 block text-xs font-bold opacity-80">Servicefall anlegen</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActivePage("Geräte")}
+                    className="rounded-2xl bg-slate-900 px-4 py-4 text-left font-black text-white"
+                  >
+                    Geräte
+                    <span className="mt-1 block text-xs font-bold opacity-80">Details & QR öffnen</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActivePage("Dokumente")}
+                    className="rounded-2xl bg-blue-600 px-4 py-4 text-left font-black text-white"
+                  >
+                    Fotos / Dokumente
+                    <span className="mt-1 block text-xs font-bold opacity-80">Nachweis hochladen</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActivePage("Service-Tickets")}
+                    className="rounded-2xl bg-yellow-100 px-4 py-4 text-left font-black text-yellow-800"
+                  >
+                    Abschluss
+                    <span className="mt-1 block text-xs font-bold opacity-80">Status erledigen</span>
+                  </button>
+                </div>
               </div>
 
               {devices.map((item) => {
@@ -3050,7 +3157,7 @@ FE-SERVICE`
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
                   {[
                     { role: "Admin", text: "Voller Zugriff auf Kunden, Geräte, Tickets und Dokumente." },
-                    { role: "Techniker", text: "Mobile Einsatzansicht, Uploads, Prüfungen und Tickets." },
+                    { role: "Einsatz", text: "Mobile Einsatzansicht, Uploads, Prüfungen und Tickets." },
                     { role: "Kunde", text: "Späteres Kundenportal mit eigenen Dokumenten und Tickets." },
                   ].map((item) => (
                     <div key={item.role} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
@@ -3356,14 +3463,7 @@ FE-SERVICE`
         </section>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-green-500/20 bg-[#07130d] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
-        <button
-          onClick={logout}
-          className="w-full rounded-2xl bg-black px-5 py-4 text-base font-black text-green-400 shadow-lg"
-        >
-          Logout
-        </button>
-      </div>
+      <div className="hidden" />
     </main>
   );
 }
