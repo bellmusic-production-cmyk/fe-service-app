@@ -2148,7 +2148,7 @@ export default function Home() {
       </html>
     `;
 
-    archiveInvoiceDocument(item, html);
+    
 
     const printWindow = window.open("", "_blank");
 
@@ -3823,7 +3823,7 @@ FE-SERVICE`,
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4069,7 +4069,7 @@ FE-SERVICE`,
           {activePage === "Kalender" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4279,7 +4279,7 @@ FE-SERVICE`,
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4412,7 +4412,7 @@ FE-SERVICE`,
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4723,7 +4723,7 @@ FE-SERVICE`,
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -5647,7 +5647,7 @@ FE-SERVICE`,
           {activePage === "Verträge" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -5863,7 +5863,7 @@ FE-SERVICE`,
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6095,7 +6095,7 @@ FE-SERVICE`,
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
                 <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                  SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
                 </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -6501,7 +6501,7 @@ FE-SERVICE`,
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 39 AKTIV · AUTOMATISCHE WARTUNGEN AUS VERTRÄGEN
+                SCHRITT 39B AKTIV · VERCEL BUILD HOTFIX
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
