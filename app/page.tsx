@@ -359,6 +359,7 @@ export default function Home() {
   const [contractEndDate, setContractEndDate] = useState("");
   const [contractStatus, setContractStatus] = useState("Aktiv");
   const [contractNote, setContractNote] = useState("");
+  const [editingContractId, setEditingContractId] = useState<number | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Alle");
@@ -2379,7 +2380,17 @@ export default function Home() {
 
   function getCustomerNameById(customerId?: number | null) {
     if (!customerId) return "Nicht zugeordnet";
-    return customers.find((item) => item.id === customerId)?.company || "Kunde nicht gefunden";
+    const customer = customers.find((item) => item.id === customerId);
+    return customer?.company || customer?.contact_person || `Kunde ${customerId}`;
+  }
+
+  function getCustomerLabel(customer: Customer) {
+    return (
+      customer.company ||
+      customer.contact_person ||
+      customer.email ||
+      `Kunde ${customer.id}`
+    );
   }
 
   const maintenanceFilteredDevices = maintenanceCustomerId
@@ -3082,6 +3093,7 @@ FE-SERVICE`,
   }
 
   function resetContractForm() {
+    setEditingContractId(null);
     setContractCustomerId("");
     setContractTitle("");
     setContractType("Wartungsvertrag");
@@ -3094,6 +3106,24 @@ FE-SERVICE`,
     setContractNote("");
   }
 
+  function startEditContract(contract: ServiceContract) {
+    setEditingContractId(contract.id);
+    setContractCustomerId(contract.customer_id ? String(contract.customer_id) : "");
+    setContractTitle(contract.title || "");
+    setContractType(contract.contract_type || "Wartungsvertrag");
+    setContractSlaHours(String(contract.sla_hours || 24));
+    setContractMonthlyAmount(String(contract.monthly_amount || ""));
+    setContractMaintenanceInterval(String(contract.maintenance_interval_months || 6));
+    setContractStartDate(contract.start_date || "");
+    setContractEndDate(contract.end_date || "");
+    setContractStatus(contract.status || "Aktiv");
+    setContractNote(contract.note || "");
+
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
   async function saveContract() {
     if (!contractCustomerId || !contractTitle.trim()) {
       alert("Bitte Kunde und Vertragstitel auswählen.");
@@ -3103,7 +3133,6 @@ FE-SERVICE`,
     const payload = {
       customer_id: Number(contractCustomerId),
       title: contractTitle.trim(),
-      contract_number: `SV-${Date.now().toString().slice(-6)}`,
       contract_type: contractType,
       sla_hours: Number(contractSlaHours || 0),
       monthly_amount: Number(contractMonthlyAmount || 0),
@@ -3114,9 +3143,31 @@ FE-SERVICE`,
       note: contractNote.trim() || null,
     };
 
+    if (editingContractId) {
+      const { error } = await supabase
+        .from("service_contracts")
+        .update(payload)
+        .eq("id", editingContractId);
+
+      if (error) {
+        alert(`Vertrag konnte nicht aktualisiert werden: ${error.message}`);
+        return;
+      }
+
+      resetContractForm();
+      await loadContracts();
+      alert("Vertrag wurde aktualisiert.");
+      return;
+    }
+
     const { error } = await supabase
       .from("service_contracts")
-      .insert([payload]);
+      .insert([
+        {
+          ...payload,
+          contract_number: `SV-${Date.now().toString().slice(-6)}`,
+        },
+      ]);
 
     if (error) {
       alert(`Vertrag konnte nicht gespeichert werden: ${error.message}`);
@@ -3127,6 +3178,36 @@ FE-SERVICE`,
     await loadContracts();
 
     alert("Vertrag gespeichert.");
+  }
+
+  async function deleteContract(contractId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Verträge löschen.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Diesen Vertrag wirklich löschen? Bereits erzeugte Wartungen bleiben erhalten.",
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("service_contracts")
+      .delete()
+      .eq("id", contractId);
+
+    if (error) {
+      alert(`Vertrag konnte nicht gelöscht werden: ${error.message}`);
+      return;
+    }
+
+    if (editingContractId === contractId) {
+      resetContractForm();
+    }
+
+    setContracts((prev) => prev.filter((item) => item.id !== contractId));
+    alert("Vertrag wurde gelöscht.");
   }
 
   async function updateContractStatus(
@@ -3300,6 +3381,32 @@ FE-SERVICE`,
         item.id === invoiceId ? { ...item, status: nextStatus } : item,
       ),
     );
+  }
+
+  async function deleteInvoice(invoiceId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Rechnungen und Angebote löschen.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Diese Rechnung / dieses Angebot wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("invoices")
+      .delete()
+      .eq("id", invoiceId);
+
+    if (error) {
+      alert(`Rechnung/Angebot konnte nicht gelöscht werden: ${error.message}`);
+      return;
+    }
+
+    setInvoices((prev) => prev.filter((item) => item.id !== invoiceId));
+    alert("Rechnung/Angebot wurde gelöscht.");
   }
 
   async function archiveInvoiceDocument(
@@ -3971,7 +4078,7 @@ FE-SERVICE`,
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4218,7 +4325,7 @@ FE-SERVICE`,
           {activePage === "Kalender" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4428,7 +4535,7 @@ FE-SERVICE`,
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4561,7 +4668,7 @@ FE-SERVICE`,
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4719,6 +4826,13 @@ FE-SERVICE`,
                               >
                                 PDF / Druck
                               </button>
+
+                              <button
+                                onClick={() => deleteInvoice(item.id)}
+                                className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-black text-red-700"
+                              >
+                                Löschen
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -4872,7 +4986,7 @@ FE-SERVICE`,
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -5796,7 +5910,7 @@ FE-SERVICE`,
           {activePage === "Verträge" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -5825,11 +5939,17 @@ FE-SERVICE`,
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
                       <option value="">Kunde auswählen</option>
-                      {customers.map((customerItem) => (
-                        <option key={customerItem.id} value={customerItem.id}>
-                          {customerItem.company}
+                      {customers.length === 0 ? (
+                        <option value="" disabled>
+                          Keine Kunden geladen
                         </option>
-                      ))}
+                      ) : (
+                        customers.map((customerItem) => (
+                          <option key={customerItem.id} value={customerItem.id}>
+                            {getCustomerLabel(customerItem)}
+                          </option>
+                        ))
+                      )}
                     </select>
 
                     <input
@@ -5919,7 +6039,7 @@ FE-SERVICE`,
                       onClick={saveContract}
                       className="w-full rounded-2xl bg-green-600 py-4 font-black text-white"
                     >
-                      Vertrag speichern
+                      {editingContractId ? "Vertrag aktualisieren" : "Vertrag speichern"}
                     </button>
                   </div>
                 </div>
@@ -5993,10 +6113,24 @@ FE-SERVICE`,
                               </select>
 
                               <button
+                                onClick={() => startEditContract(item)}
+                                className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-black text-blue-700"
+                              >
+                                Bearbeiten
+                              </button>
+
+                              <button
                                 onClick={() => generateMaintenanceFromContract(item)}
                                 className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
                               >
                                 Wartungen erzeugen
+                              </button>
+
+                              <button
+                                onClick={() => deleteContract(item.id)}
+                                className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-black text-red-700"
+                              >
+                                Löschen
                               </button>
                             </div>
                           </div>
@@ -6012,7 +6146,7 @@ FE-SERVICE`,
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6244,7 +6378,7 @@ FE-SERVICE`,
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
                 <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                  SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
                 </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -6650,7 +6784,7 @@ FE-SERVICE`,
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 42C AKTIV · STABILER QR-SCANNER BUILD-FIX
+                SCHRITT 44 AKTIV · VERTRÄGE BEARBEITEN + LÖSCHEN
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
