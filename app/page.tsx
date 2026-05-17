@@ -1,7 +1,7 @@
 
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 type Ticket = {
@@ -373,6 +373,10 @@ export default function Home() {
   );
   const [qrSearchTerm, setQrSearchTerm] = useState("");
   const [qrSelectedDeviceId, setQrSelectedDeviceId] = useState("");
+  const [qrManualCode, setQrManualCode] = useState("");
+  const [qrScanStatus, setQrScanStatus] = useState("Scanner bereit.");
+  const [qrScannerActive, setQrScannerActive] = useState(false);
+  const qrScannerRef = useRef<any>(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewName, setPreviewName] = useState("");
 
@@ -2192,6 +2196,133 @@ export default function Home() {
     );
   }
 
+  function findDeviceFromQrInput(input: string) {
+    const raw = input.trim();
+
+    if (!raw) return null;
+
+    let normalized = raw.toLowerCase();
+
+    try {
+      const parsedUrl = new URL(raw);
+      normalized =
+        parsedUrl.searchParams.get("device")?.toLowerCase() ||
+        parsedUrl.searchParams.get("deviceId")?.toLowerCase() ||
+        parsedUrl.pathname.split("/").filter(Boolean).pop()?.toLowerCase() ||
+        normalized;
+    } catch {
+      // Eingabe ist kein URL, dann normal weiter suchen.
+    }
+
+    return (
+      devices.find((item) => String(item.id).toLowerCase() === normalized) ||
+      devices.find((item) =>
+        String(item.serial_number || "").toLowerCase() === normalized,
+      ) ||
+      devices.find((item) =>
+        String(item.name || "").toLowerCase() === normalized,
+      ) ||
+      devices.find((item) =>
+        String(item.name || "").toLowerCase().includes(normalized),
+      ) ||
+      devices.find((item) =>
+        String(item.serial_number || "").toLowerCase().includes(normalized),
+      ) ||
+      null
+    );
+  }
+
+  function openDeviceFromScanValue(value: string) {
+    const foundDevice = findDeviceFromQrInput(value);
+
+    if (!foundDevice) {
+      setQrScanStatus(
+        "Kein passendes Gerät gefunden. Bitte Geräte-ID, Seriennummer oder QR-Link prüfen.",
+      );
+      return;
+    }
+
+    setQrScanStatus(`Gerät gefunden: ${foundDevice.name}`);
+    stopQrScanner();
+    openDeviceFromQr(foundDevice);
+  }
+
+  async function startQrScanner() {
+    if (typeof window === "undefined") return;
+
+    try {
+      setQrScannerActive(true);
+      setQrScanStatus("Scanner wird vorbereitet...");
+
+      // Wichtig: React muss erst den QR-Container rendern,
+      // sonst findet html5-qrcode das Element nicht.
+      await new Promise((resolve) => setTimeout(resolve, 350));
+
+      const readerElement = document.getElementById("fe-service-qr-reader");
+
+      if (!readerElement) {
+        setQrScanStatus("Scanner-Feld wurde noch nicht geladen. Bitte erneut auf QR-Scan starten tippen.");
+        return;
+      }
+
+      const { Html5Qrcode } = await import("html5-qrcode");
+
+      if (qrScannerRef.current) {
+        try {
+          await qrScannerRef.current.stop();
+          await qrScannerRef.current.clear();
+        } catch {
+          // Scanner war noch nicht aktiv.
+        }
+      }
+
+      const scanner = new Html5Qrcode("fe-service-qr-reader");
+      qrScannerRef.current = scanner;
+
+      setQrScanStatus("Kamera-Berechtigung wird angefragt...");
+
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 260, height: 260 },
+          aspectRatio: 1.0,
+        },
+        (decodedText: string) => {
+          openDeviceFromScanValue(decodedText);
+        },
+        () => {
+          // Während Live-Scan keine Fehlermeldungen anzeigen.
+        },
+      );
+
+      setQrScanStatus("Kamera aktiv. QR-Code am Gerät in den Rahmen halten.");
+    } catch (error: any) {
+      console.error(error);
+      setQrScannerActive(false);
+      setQrScanStatus(
+        "Kamera konnte nicht geöffnet werden. Bitte HTTPS, Kamera-Berechtigung und Browser-Einstellungen prüfen. Auf iPhone Safari muss die Seite über die echte Vercel-HTTPS-Adresse geöffnet sein, nicht über localhost.",
+      );
+    }
+  }
+
+  async function stopQrScanner() {
+    try {
+      if (qrScannerRef.current) {
+        await qrScannerRef.current.stop();
+        await qrScannerRef.current.clear();
+        qrScannerRef.current = null;
+      }
+    } catch {
+      qrScannerRef.current = null;
+    }
+
+    setQrScannerActive(false);
+  }
+
+    setQrScannerActive(false);
+  }
+
   function getDeviceDirectUrl(item: Device) {
     if (typeof window === "undefined") {
       return `FE-SERVICE Gerät ${item.id}`;
@@ -3435,23 +3566,25 @@ FE-SERVICE`,
   );
 
   const filteredQrDevices = devices.filter((item) => {
-    const search = qrSearchTerm.toLowerCase();
+    const search = qrSearchTerm.trim().toLowerCase();
 
     const linkedCustomer = item.customer_id
       ? customers.find((customerItem) => customerItem.id === item.customer_id)
       : null;
 
-    const matchesSearch =
-      item.name?.toLowerCase().includes(search) ||
-      item.serial_number?.toLowerCase().includes(search) ||
-      item.location?.toLowerCase().includes(search) ||
-      linkedCustomer?.company?.toLowerCase().includes(search);
-
     if (isCustomer && userProfile?.customer_id) {
-      return item.customer_id === userProfile.customer_id && matchesSearch;
+      if (item.customer_id !== userProfile.customer_id) return false;
     }
 
-    return matchesSearch;
+    if (!search) return true;
+
+    return (
+      String(item.id).includes(search) ||
+      String(item.name || "").toLowerCase().includes(search) ||
+      String(item.serial_number || "").toLowerCase().includes(search) ||
+      String(item.location || "").toLowerCase().includes(search) ||
+      String(linkedCustomer?.company || "").toLowerCase().includes(search)
+    );
   });
 
   const invoiceRevenueGross = invoices
@@ -3855,7 +3988,7 @@ FE-SERVICE`,
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4102,7 +4235,7 @@ FE-SERVICE`,
           {activePage === "Kalender" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4312,7 +4445,7 @@ FE-SERVICE`,
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4445,7 +4578,7 @@ FE-SERVICE`,
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4756,7 +4889,7 @@ FE-SERVICE`,
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -5680,7 +5813,7 @@ FE-SERVICE`,
           {activePage === "Verträge" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -5896,7 +6029,7 @@ FE-SERVICE`,
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6128,7 +6261,7 @@ FE-SERVICE`,
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
                 <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                  SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
                 </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -6534,45 +6667,77 @@ FE-SERVICE`,
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
+                SCHRITT 42B AKTIV · QR-KAMERA-STARTBUTTON FIX
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
+                <div className="mb-5">
+                  <FeServiceLogo dark />
+                </div>
+
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
                   Geräte-Scan
                 </p>
+
                 <h3 className="mt-2 text-4xl font-black">
-                  QR-Code & Geräteakte
+                  QR-Code scannen oder Gerät suchen
                 </h3>
+
                 <p className="mt-3 max-w-3xl text-sm font-semibold text-slate-300">
-                  Gerät suchen, QR-Code drucken oder direkt die Geräteakte öffnen. Ideal für den Techniker vor Ort.
+                  Der Techniker scannt den QR-Code am Gerät mit einem stabilen Scanner für iOS, Safari, Chrome, macOS und Windows. Wenn die Kamera nicht verfügbar ist,
+                  kann der QR-Link, die Geräte-ID, Seriennummer oder der Gerätename manuell eingefügt werden.
                 </p>
 
-                <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
+                <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_auto_auto]">
                   <input
-                    value={qrSearchTerm}
-                    onChange={(e) => setQrSearchTerm(e.target.value)}
-                    placeholder="Gerät, Seriennummer, Standort oder Kunde suchen..."
+                    value={qrManualCode}
+                    onChange={(e) => setQrManualCode(e.target.value)}
+                    placeholder="QR-Link, Geräte-ID, Seriennummer oder Gerätename einfügen..."
                     className="rounded-2xl border border-white/10 bg-white px-5 py-4 font-bold text-slate-900"
                   />
 
                   <button
-                    onClick={() => {
-                      const foundDevice = devices.find(
-                        (item) => String(item.id) === qrSelectedDeviceId,
-                      );
-
-                      if (foundDevice) {
-                        openDeviceFromQr(foundDevice);
-                      } else {
-                        alert("Bitte ein Gerät auswählen.");
-                      }
-                    }}
+                    onClick={() => openDeviceFromScanValue(qrManualCode)}
                     className="rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
                   >
-                    Geräteakte öffnen
+                    Gerät öffnen
+                  </button>
+
+                  <div className="rounded-2xl bg-white/10 px-6 py-4 text-sm font-bold text-slate-200">
+                    Kamera unten über „QR-Scan starten“ öffnen.
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl bg-white/10 p-4 text-sm font-bold text-slate-200">
+                  {qrScanStatus}
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <button
+                    onClick={startQrScanner}
+                    disabled={qrScannerActive}
+                    className="rounded-2xl bg-green-600 px-6 py-5 text-lg font-black text-white disabled:opacity-50"
+                  >
+                    QR-Scan starten
+                  </button>
+
+                  <button
+                    onClick={stopQrScanner}
+                    disabled={!qrScannerActive}
+                    className="rounded-2xl bg-white/10 px-6 py-5 text-lg font-black text-white disabled:opacity-50"
+                  >
+                    Scanner stoppen
                   </button>
                 </div>
+
+                {qrScannerActive && (
+                  <div className="mt-5 overflow-hidden rounded-3xl border border-white/10 bg-black p-3">
+                    <div
+                      id="fe-service-qr-reader"
+                      className="min-h-[320px] w-full overflow-hidden rounded-2xl bg-black"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6597,33 +6762,27 @@ FE-SERVICE`,
                 />
               </div>
 
-              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+              <div className="rounded-[32px] bg-white p-6 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h3 className="text-xl font-black">QR-Geräteliste</h3>
+                    <h3 className="text-2xl font-black">Gerätesuche</h3>
                     <p className="mt-2 text-slate-600">
-                      QR-Code öffnen, Etikett drucken oder direkt Service starten.
+                      Suche nach Kunde, Gerät, Seriennummer, Standort oder Geräte-ID.
                     </p>
                   </div>
 
-                  <select
-                    value={qrSelectedDeviceId}
-                    onChange={(e) => setQrSelectedDeviceId(e.target.value)}
+                  <input
+                    value={qrSearchTerm}
+                    onChange={(e) => setQrSearchTerm(e.target.value)}
+                    placeholder="Gerät suchen..."
                     className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
-                  >
-                    <option value="">Gerät auswählen</option>
-                    {filteredQrDevices.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} · {item.serial_number || "ohne Seriennummer"}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <div className="mt-6 grid gap-4 xl:grid-cols-2">
                   {filteredQrDevices.length === 0 ? (
                     <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
-                      Keine Geräte gefunden.
+                      Keine Geräte gefunden. Bitte prüfen, ob Geräte angelegt und einem Kunden zugeordnet sind.
                     </div>
                   ) : (
                     filteredQrDevices.map((item) => {
@@ -6635,7 +6794,7 @@ FE-SERVICE`,
                       return (
                         <div
                           key={item.id}
-                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                          className="rounded-3xl border border-slate-200 bg-slate-50 p-5"
                         >
                           <div className="flex flex-col gap-5 md:flex-row md:items-start">
                             <div className="rounded-2xl bg-white p-3">
@@ -6648,11 +6807,11 @@ FE-SERVICE`,
 
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-black text-green-600">
-                                {linkedCustomer?.company || "Kein Kunde"} · {item.serial_number || "Keine Seriennummer"}
+                                ID {item.id} · {linkedCustomer?.company || "Kein Kunde"} · {item.serial_number || "Keine Seriennummer"}
                               </p>
 
                               <h4 className="mt-1 text-xl font-black">
-                                {item.name}
+                                {item.name || "Unbenanntes Gerät"}
                               </h4>
 
                               <p className="mt-2 text-sm text-slate-600">
@@ -6663,6 +6822,7 @@ FE-SERVICE`,
                                 <span className={`rounded-full px-3 py-2 text-xs font-black ${inspection.className}`}>
                                   Prüfung: {inspection.label}
                                 </span>
+
                                 <span className={`rounded-full px-3 py-2 text-xs font-black ${deviceStatusClass(item.status)}`}>
                                   {item.status || "Aktiv"}
                                 </span>
