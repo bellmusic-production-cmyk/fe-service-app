@@ -179,20 +179,20 @@ const fallbackDevices = [
 
 const navItems = [
   "Dashboard",
-  "Auswertungen",
+  "Einsatz",
+  "Kalender",
+  "Service-Tickets",
   "Kunden",
   "Geräte",
   "QR-Scan",
-  "Service-Tickets",
-  "Verträge",
   "Wartungsplanung",
-  "Kalender",
-  "Benachrichtigungen",
   "Prüfungen",
-  "Einsatz",
   "Ersatzteile",
-  "Rechnungen",
   "Dokumente",
+  "Rechnungen",
+  "Verträge",
+  "Benachrichtigungen",
+  "Auswertungen",
 ];
 
 const statusOptions = [
@@ -3789,8 +3789,8 @@ FE-SERVICE`,
   const visibleNavItems = isAdmin
     ? navItems
     : isTechnician
-      ? ["Einsatz", "QR-Scan", "Service-Tickets", "Geräte", "Wartungsplanung", "Prüfungen", "Ersatzteile", "Dokumente"]
-      : ["Kundenportal", "Service-Tickets", "Dokumente"];
+      ? ["Einsatz", "Kalender", "QR-Scan", "Service-Tickets", "Geräte", "Wartungsplanung", "Prüfungen", "Ersatzteile", "Dokumente"]
+      : ["Kundenportal", "Service-Tickets", "Geräte", "Dokumente", "Rechnungen"];
 
   function navItemLabel(item: string) {
     const labels: Record<string, string> = {
@@ -4078,7 +4078,7 @@ FE-SERVICE`,
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                FE-SERVICE · Betriebsbereit · Menü logisch nach Tagesablauf sortiert.
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4325,7 +4325,7 @@ FE-SERVICE`,
           {activePage === "Kalender" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4535,7 +4535,7 @@ FE-SERVICE`,
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4668,7 +4668,7 @@ FE-SERVICE`,
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4986,7 +4986,7 @@ FE-SERVICE`,
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -5910,7 +5910,7 @@ FE-SERVICE`,
           {activePage === "Verträge" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6146,7 +6146,7 @@ FE-SERVICE`,
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6378,7 +6378,7 @@ FE-SERVICE`,
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
                 <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                  FE-SERVICE · Betriebsbereit
                 </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -6784,7 +6784,7 @@ FE-SERVICE`,
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 45 AKTIV · MOBILE HEADER OHNE WEISSEN RAND
+                FE-SERVICE · Betriebsbereit
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
