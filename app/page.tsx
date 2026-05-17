@@ -3345,6 +3345,11 @@ FE-SERVICE`,
     return tickets.filter((ticket) => ticket.assigned_to);
   }, [tickets, userProfile]);
 
+  const role = userProfile?.role || null;
+  const isAdmin = role === "admin";
+  const isTechnician = role === "technician";
+  const isCustomer = role === "customer";
+
   const todayDateString = new Date().toISOString().split("T")[0];
 
   const openAdminTickets = tickets.filter(
@@ -3538,10 +3543,6 @@ FE-SERVICE`,
     });
   }
 
-  const role = userProfile?.role || null;
-  const isAdmin = role === "admin";
-  const isTechnician = role === "technician";
-  const isCustomer = role === "customer";
   const profileCustomer = userProfile?.customer_id
     ? customers.find((item) => item.id === userProfile.customer_id)
     : null;
@@ -3854,7 +3855,7 @@ FE-SERVICE`,
           {activePage === "Dashboard" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4101,7 +4102,7 @@ FE-SERVICE`,
           {activePage === "Kalender" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -4311,7 +4312,7 @@ FE-SERVICE`,
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4444,7 +4445,7 @@ FE-SERVICE`,
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -4755,7 +4756,7 @@ FE-SERVICE`,
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
@@ -5679,7 +5680,7 @@ FE-SERVICE`,
           {activePage === "Verträge" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -5895,7 +5896,7 @@ FE-SERVICE`,
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN · Struktur bereinigt, Demo-Bereiche entfernt, Admin-Menü logisch sortiert.
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -6127,7 +6128,7 @@ FE-SERVICE`,
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
                 <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                  SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
                 </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -6533,7 +6534,7 @@ FE-SERVICE`,
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
               <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                SCHRITT 40 AKTIV · LOGO + KOMPAKTERE EINSATZANSICHT
+                SCHRITT 40B AKTIV · GERÄTE-FEHLER BEHOBEN
               </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
