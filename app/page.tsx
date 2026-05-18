@@ -490,16 +490,17 @@ export default function Home() {
   ]);
 
   const filteredDocuments = useMemo(() => {
-    const customerFilteredDocuments = isCustomer
-      ? documents.filter((item) => item.customer_id === userProfile?.customer_id)
-      : documents;
+    const customerFilteredDocuments =
+      userProfile?.role === "customer"
+        ? documents.filter((item) => item.customer_id === userProfile?.customer_id)
+        : documents;
 
     if (activeDocumentCategory === "Alle") return customerFilteredDocuments;
 
     return customerFilteredDocuments.filter(
       (item) => item.category === activeDocumentCategory,
     );
-  }, [documents, activeDocumentCategory, isCustomer, userProfile]);
+  }, [documents, activeDocumentCategory, userProfile]);
 
   const inspectionStats = useMemo(() => {
     const ok = devices.filter(
