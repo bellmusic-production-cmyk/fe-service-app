@@ -2176,31 +2176,31 @@ export default function Home() {
 
   function FeServiceLogo({ dark = false }: { dark?: boolean }) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex w-full flex-col items-center justify-center text-center">
         <img
           src="/fe-service-logo.png"
-          alt="FE-Service"
-          className="mx-auto h-auto w-full max-w-[320px] object-contain drop-shadow-xl"
+          alt="Fitness Equipment Service"
+          className="h-auto w-full max-w-[280px] object-contain drop-shadow-xl"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
         />
-        <div>
-          <p
-            className={`text-lg font-black tracking-[0.18em] ${
-              dark ? "text-white" : "text-slate-950"
-            }`}
-          >
-            FE-SERVICE
-          </p>
-          <p
-            className={`-mt-1 text-[10px] font-bold uppercase tracking-[0.22em] ${
-              dark ? "text-green-400" : "text-green-600"
-            }`}
-          >
-            Serviceplattform
-          </p>
-        </div>
+
+        <p
+          className={`mt-4 text-sm font-black uppercase tracking-[0.28em] ${
+            dark ? "text-[var(--fe-green)]" : "text-green-600"
+          }`}
+        >
+          FE-SERVICE
+        </p>
+
+        <p
+          className={`mt-1 text-[10px] font-bold uppercase tracking-[0.22em] ${
+            dark ? "text-green-400" : "text-green-600"
+          }`}
+        >
+          Serviceplattform
+        </p>
       </div>
     );
   }
@@ -3857,54 +3857,43 @@ FE-SERVICE`,
 
   if (!session) {
     return (
-      <main className="grid min-h-screen bg-slate-100 lg:grid-cols-2">
-        <section className="hidden bg-[#07130d] p-12 text-white lg:flex lg:flex-col lg:justify-between">
-          <div className="flex flex-col items-center">
-            <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-500">
-              FE-SERVICE
-            </h1>
-
-            <img
-              src="/fe-service-logo.png"
-              alt="Fitness Equipment Service"
-              className="mt-5 w-64 object-contain"
-            />
-
-            <h2 className="mt-12 text-5xl font-black">Business Portal</h2>
-
-            <p className="mt-6 max-w-xl text-center text-lg text-slate-300">
-              Service-Tickets, UVV-Wartungen und Kundenanfragen sicher verwalten.
-            </p>
-          </div>
-
-          <p className="text-sm text-slate-400">
-            Echte Supabase-Authentifizierung aktiv.
-          </p>
-        </section>
-
-        <section className="flex items-center justify-center p-6">
-          <div className="w-full max-w-xl rounded-[36px] bg-white p-10 shadow-2xl">
-            <div className="mb-8 text-center">
-              <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-600">
+      <main className="min-h-screen bg-[#07130d] text-white">
+        <div className="flex min-h-screen min-h-[100dvh] items-center justify-center px-5 py-8">
+          <div className="w-full max-w-md rounded-[36px] border border-green-500/25 bg-[#07130d] p-7 text-white shadow-2xl shadow-black/50">
+            <div className="text-center">
+              <p className="text-2xl font-black uppercase tracking-[0.35em] text-green-500">
                 FE-SERVICE
-              </h1>
+              </p>
+
+              <p className="mt-1 text-xs font-bold uppercase tracking-[0.22em] text-green-400">
+                Serviceplattform
+              </p>
 
               <img
                 src="/fe-service-logo.png"
                 alt="Fitness Equipment Service"
-                className="mx-auto mt-5 w-56 object-contain"
+                className="mx-auto mt-6 h-auto w-full max-w-[300px] object-contain drop-shadow-xl"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
               />
 
-              <h2 className="mt-8 text-5xl font-black">Business Portal</h2>
+              <h2 className="mt-8 text-5xl font-black tracking-tight text-white">
+                Business Portal
+              </h2>
+
+              <p className="mx-auto mt-5 max-w-sm text-base font-semibold leading-relaxed text-slate-300">
+                Service-Tickets, UVV-Wartungen und Kundenanfragen sicher verwalten.
+              </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="mt-8 space-y-4">
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="E-Mail-Adresse"
                 type="email"
-                className="w-full rounded-2xl border border-slate-300 px-5 py-4 text-lg text-slate-900 placeholder:text-slate-500"
+                className="h-14 w-full rounded-2xl border border-green-500/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-green-500"
               />
 
               <input
@@ -3912,16 +3901,18 @@ FE-SERVICE`,
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Passwort"
                 type="password"
-                className="w-full rounded-2xl border border-slate-300 px-5 py-4 text-lg text-slate-900 placeholder:text-slate-500"
+                className="h-14 w-full rounded-2xl border border-green-500/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-green-500"
               />
 
               <button
                 onClick={login}
-                className="w-full rounded-2xl bg-green-600 py-4 text-lg font-bold text-white hover:bg-green-700"
-              >Business Portal</button>
+                className="h-14 w-full rounded-2xl bg-green-600 text-lg font-black text-white shadow-lg shadow-green-900/30 transition hover:bg-green-700 active:scale-[0.99]"
+              >
+                Einloggen
+              </button>
             </div>
           </div>
-        </section>
+        </div>
       </main>
     );
   }
@@ -4084,12 +4075,8 @@ FE-SERVICE`,
 
           {activePage === "Dashboard" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit · Menü logisch nach Tagesablauf sortiert.
-              </div>
-
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <div className="mb-5"><FeServiceLogo dark /></div>
+<div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
+                <div className="mb-5 flex w-full justify-center overflow-hidden"><FeServiceLogo dark /></div>
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
                   Admin-Zentrale
                 </p>
