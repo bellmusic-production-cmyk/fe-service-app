@@ -3855,66 +3855,73 @@ FE-SERVICE`,
     );
   }
 
-
-  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
-    await login(event);
-  }
-
   if (!session) {
     return (
-      <main className="min-h-screen bg-[#07130d] text-white">
-        <div className="flex min-h-screen min-h-[100dvh] items-center justify-center px-5 py-8">
-          <div className="w-full max-w-md rounded-[36px] border border-green-500/25 bg-[#07130d] p-7 text-white shadow-2xl shadow-black/50">
-            <div className="text-center">
-              <p className="text-2xl font-black uppercase tracking-[0.35em] text-green-500">
+      <main className="grid min-h-screen bg-slate-100 lg:grid-cols-2">
+        <section className="hidden bg-[#07130d] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="flex flex-col items-center">
+            <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-500">
+              FE-SERVICE
+            </h1>
+
+            <img
+              src="/fe-service-logo.png"
+              alt="Fitness Equipment Service"
+              className="mt-5 w-64 object-contain"
+            />
+
+            <h2 className="mt-12 text-5xl font-black">Business Portal</h2>
+
+            <p className="mt-6 max-w-xl text-center text-lg text-slate-300">
+              Service-Tickets, UVV-Wartungen und Kundenanfragen sicher verwalten.
+            </p>
+          </div>
+
+          <p className="text-sm text-slate-400">
+            Echte Supabase-Authentifizierung aktiv.
+          </p>
+        </section>
+
+        <section className="flex items-center justify-center p-6">
+          <div className="w-full max-w-xl rounded-[36px] bg-white p-10 shadow-2xl">
+            <div className="mb-8 text-center">
+              <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-600">
                 FE-SERVICE
-              </p>
+              </h1>
 
               <img
                 src="/fe-service-logo.png"
-                alt="FE-Service Logo"
-                className="mx-auto mt-5 h-auto w-full max-w-[300px] object-contain drop-shadow-xl"
-                onError={(event) => {
-                  event.currentTarget.style.display = "none";
-                }}
+                alt="Fitness Equipment Service"
+                className="mx-auto mt-5 w-56 object-contain"
               />
 
-              <h1 className="mt-8 text-5xl font-black tracking-tight text-white">
-                Business Portal
-              </h1>
-
-              <p className="mx-auto mt-5 max-w-sm text-base font-semibold leading-relaxed text-slate-300">
-                Service-Tickets, UVV-Wartungen und Kundenanfragen sicher verwalten.
-              </p>
+              <h2 className="mt-8 text-5xl font-black">Business Portal</h2>
             </div>
 
-            <form onSubmit={handleLogin} className="mt-8 space-y-4">
+            <div className="space-y-4">
               <input
-                type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="E-Mail-Adresse"
-                className="h-14 w-full rounded-2xl border border-green-500/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-green-500"
+                type="email"
+                className="w-full rounded-2xl border border-slate-300 px-5 py-4 text-lg text-slate-900 placeholder:text-slate-500"
               />
 
               <input
-                type="password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Passwort"
-                className="h-14 w-full rounded-2xl border border-green-500/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-green-500"
+                type="password"
+                className="w-full rounded-2xl border border-slate-300 px-5 py-4 text-lg text-slate-900 placeholder:text-slate-500"
               />
 
               <button
-                type="submit"
-                disabled={loading}
-                className="h-14 w-full rounded-2xl bg-green-600 text-lg font-black text-white shadow-lg shadow-green-900/30 transition hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
-              >
-                {loading ? "Wird angemeldet..." : "Einloggen"}
-              </button>
-            </form>
+                onClick={login}
+                className="w-full rounded-2xl bg-green-600 py-4 text-lg font-bold text-white hover:bg-green-700"
+              >Business Portal</button>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
     );
   }
@@ -4077,6 +4084,9 @@ FE-SERVICE`,
 
           {activePage === "Dashboard" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit · Menü logisch nach Tagesablauf sortiert.
+              </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
                 <div className="mb-5"><FeServiceLogo dark /></div>
@@ -4321,6 +4331,9 @@ FE-SERVICE`,
 
           {activePage === "Kalender" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
@@ -4528,6 +4541,9 @@ FE-SERVICE`,
 
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="grid gap-4 md:grid-cols-4">
                 <StatCard label="Gesamt" value={notifications.length} />
@@ -4658,6 +4674,9 @@ FE-SERVICE`,
 
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="grid gap-4 md:grid-cols-4">
                 <StatCard label="Gesamt" value={invoices.length} />
@@ -4973,6 +4992,9 @@ FE-SERVICE`,
 
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
@@ -5894,6 +5916,9 @@ FE-SERVICE`,
 
           {activePage === "Verträge" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="grid gap-4 md:grid-cols-4">
                 <StatCard label="Verträge gesamt" value={contracts.length} />
@@ -6128,6 +6153,9 @@ FE-SERVICE`,
 
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="grid gap-4 md:grid-cols-4">
                 <StatCard label="UVV/Wartungen gesamt" value={maintenancePlans.length} />
@@ -6358,6 +6386,9 @@ FE-SERVICE`,
           {activePage === "Einsatz" && (
             <div className="space-y-4 pb-24">
               <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
+                <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                  FE-SERVICE · Betriebsbereit
+                </div>
 
                 <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
@@ -6761,6 +6792,9 @@ FE-SERVICE`,
 
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
+              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
+                FE-SERVICE · Betriebsbereit
+              </div>
 
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
                 <div className="mb-5">
