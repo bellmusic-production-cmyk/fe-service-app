@@ -2,6 +2,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabase";
 
 type Ticket = {
@@ -3968,15 +3969,7 @@ FE-SERVICE`,
   }
 
   async function createAbnahmeProtocolPdfBlob() {
-    const jspdfModule: any = await new Function("return import('jspdf')")();
-    const JsPDFConstructor =
-      jspdfModule.jsPDF || jspdfModule.default?.jsPDF || jspdfModule.default;
-
-    if (!JsPDFConstructor) {
-      throw new Error("jsPDF konnte nicht geladen werden.");
-    }
-
-    const pdf = new JsPDFConstructor("p", "mm", "a4");
+    const pdf = new jsPDF("p", "mm", "a4");
     const container = document.createElement("div");
 
     container.innerHTML = buildAbnahmeProtocolHtml();
