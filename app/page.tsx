@@ -7182,12 +7182,98 @@ FE-SERVICE`,
                       </button>
                     </div>
                   ) : (
+                    <>
+                    
+                    {/* FE-SERVICE CUSTOMER DEVICE MULTISELECT START */}
+                    <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h4 className="text-lg font-black text-slate-900">
+                            Geräte diesem Kunden zuweisen
+                          </h4>
+                          <p className="mt-1 text-sm font-semibold text-slate-500">
+                            Studios haben oft mehrere Geräte. Wähle alle passenden Geräte direkt beim Kunden aus.
+                          </p>
+                        </div>
+
+                        <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-black text-green-700">
+                          {assignedDeviceIds.length} ausgewählt
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {devices.length === 0 ? (
+                          <div className="rounded-2xl bg-white p-4 text-sm font-bold text-slate-500 md:col-span-2 xl:col-span-3">
+                            Noch keine Geräte vorhanden. Geräte können später jederzeit zugeordnet werden.
+                          </div>
+                        ) : (
+                          devices.map((deviceItem) => {
+                            const linkedCustomer =
+                              deviceItem.customer_id && deviceItem.customer_id !== editingCustomer?.id
+                                ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
+                                : null;
+
+                            const checked = assignedDeviceIds.includes(String(deviceItem.id));
+
+                            return (
+                              <label
+                                key={deviceItem.id}
+                                className={`flex min-h-[96px] cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
+                                  checked
+                                    ? "border-green-500 bg-green-50"
+                                    : "border-slate-200 bg-white hover:border-green-300"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(event) => {
+                                    const deviceId = String(deviceItem.id);
+
+                                    setAssignedDeviceIds((prev) =>
+                                      event.target.checked
+                                        ? Array.from(new Set([...prev, deviceId]))
+                                        : prev.filter((id) => id !== deviceId),
+                                    );
+                                  }}
+                                  className="mt-1 h-5 w-5 shrink-0 accent-green-600"
+                                />
+
+                                <span className="min-w-0">
+                                  <span className="block break-words text-base font-black text-slate-900">
+                                    {deviceItem.name}
+                                  </span>
+
+                                  <span className="mt-1 block break-words text-xs font-bold text-slate-500">
+                                    {deviceItem.manufacturer || getManufacturerNameById(deviceItem.manufacturer_id) || "Hersteller unbekannt"}
+                                    {deviceItem.serial_number ? ` · SN: ${deviceItem.serial_number}` : ""}
+                                  </span>
+
+                                  <span className="mt-1 block break-words text-xs font-semibold text-slate-400">
+                                    {deviceItem.location || "Kein Standort"}
+                                  </span>
+
+                                  {linkedCustomer && (
+                                    <span className="mt-2 block rounded-xl bg-yellow-100 px-3 py-2 text-xs font-black text-yellow-800">
+                                      Aktuell zugeordnet: {getCustomerLabel(linkedCustomer)}
+                                    </span>
+                                  )}
+                                </span>
+                              </label>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                    {/* FE-SERVICE CUSTOMER DEVICE MULTISELECT ENDE */}
+
                     <button
                       onClick={createCustomer}
                       className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white"
                     >
                       Kunde hinzufügen
                     </button>
+                    </>
                   )}
                 </div>
               </div>
