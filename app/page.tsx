@@ -61,6 +61,20 @@ type Customer = {
   created_at: string;
 };
 
+type Manufacturer = {
+  id: number;
+  name: string;
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  contact_person: string | null;
+  address: string | null;
+  parts_url: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+
 type DocumentItem = {
   id: number;
   file_name: string;
@@ -185,6 +199,7 @@ const navItems = [
   "Service-Tickets",
   "Kunden",
   "Geräte",
+  "Hersteller",
   "QR-Scan",
   "Abnahmeprotokoll",
   "Ersatzteile",
@@ -268,6 +283,16 @@ export default function Home() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
+  const [manufacturerName, setManufacturerName] = useState("");
+  const [manufacturerWebsite, setManufacturerWebsite] = useState("");
+  const [manufacturerPhone, setManufacturerPhone] = useState("");
+  const [manufacturerEmail, setManufacturerEmail] = useState("");
+  const [manufacturerContactPerson, setManufacturerContactPerson] = useState("");
+  const [manufacturerAddress, setManufacturerAddress] = useState("");
+  const [manufacturerPartsUrl, setManufacturerPartsUrl] = useState("");
+  const [manufacturerNote, setManufacturerNote] = useState("");
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [deviceHistory, setDeviceHistory] = useState<DeviceHistory[]>([]);
   const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlan[]>(
@@ -296,6 +321,7 @@ export default function Home() {
 
   const [deviceName, setDeviceName] = useState("");
   const [deviceManufacturer, setDeviceManufacturer] = useState("");
+  const [deviceManufacturerId, setDeviceManufacturerId] = useState("");
   const [deviceSerial, setDeviceSerial] = useState("");
   const [deviceLocation, setDeviceLocation] = useState("");
   const [deviceStatus, setDeviceStatus] = useState("Aktiv");
@@ -474,6 +500,7 @@ export default function Home() {
           loadTickets();
           loadDevices();
           loadCustomers();
+          loadManufacturers();
           loadDocuments();
           loadDeviceHistory();
           loadMaintenancePlans();
@@ -895,6 +922,26 @@ export default function Home() {
       setCustomers([]);
       return;
     }
+
+  async function loadManufacturers() {
+    if (!isAdmin) {
+      setManufacturers([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("manufacturers")
+      .select("*")
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("Hersteller konnten nicht geladen werden:", error.message);
+      setManufacturers([]);
+      return;
+    }
+
+    setManufacturers((data || []) as Manufacturer[]);
+  }
 
     setCustomers(data || []);
   }
@@ -1406,6 +1453,7 @@ export default function Home() {
     setEditingDevice(null);
     setDeviceName("");
     setDeviceManufacturer("");
+    setDeviceManufacturerId("");
     setDeviceSerial("");
     setDeviceLocation("");
     setDeviceStatus("Aktiv");
@@ -1452,6 +1500,7 @@ export default function Home() {
     setEditingDevice(item);
     setDeviceName(item.name || "");
     setDeviceManufacturer(item.manufacturer || "");
+    setDeviceManufacturerId(item.manufacturer_id ? String(item.manufacturer_id) : "");
     setDeviceSerial(item.serial_number || "");
     setDeviceLocation(item.location || "");
     setDeviceStatus(item.status || "Aktiv");
@@ -2009,16 +2058,94 @@ export default function Home() {
     await loadTickets();
   }
 
+  async function saveManufacturer() {
+    if (!isAdmin) {
+      alert("Nur Admins können Hersteller verwalten.");
+      return;
+    }
+
+    if (!manufacturerName.trim()) {
+      alert("Bitte Herstellername eingeben.");
+      return;
+    }
+
+    const payload = {
+      name: manufacturerName.trim(),
+      website: manufacturerWebsite.trim() || null,
+      phone: manufacturerPhone.trim() || null,
+      email: manufacturerEmail.trim() || null,
+      contact_person: manufacturerContactPerson.trim() || null,
+      address: manufacturerAddress.trim() || null,
+      parts_url: manufacturerPartsUrl.trim() || null,
+      note: manufacturerNote.trim() || null,
+    };
+
+    const result = editingManufacturer
+      ? await supabase
+          .from("manufacturers")
+          .update(payload)
+          .eq("id", editingManufacturer.id)
+      : await supabase.from("manufacturers").insert([payload]);
+
+    if (result.error) {
+      alert(`Hersteller konnte nicht gespeichert werden: ${result.error.message}`);
+      return;
+    }
+
+    resetManufacturerForm();
+    await loadManufacturers();
+    alert("Hersteller wurde gespeichert.");
+  }
+
+  async function deleteManufacturer(item: Manufacturer) {
+    if (!isAdmin) {
+      alert("Nur Admins können Hersteller löschen.");
+      return;
+    }
+
+    const usedByDevices = devices.filter(
+      (deviceItem) =>
+        deviceItem.manufacturer_id === item.id ||
+        deviceItem.manufacturer === item.name,
+    );
+
+    if (usedByDevices.length > 0) {
+      alert(
+        `Dieser Hersteller ist noch ${usedByDevices.length} Gerät(en) zugeordnet und kann nicht gelöscht werden.`,
+      );
+      return;
+    }
+
+    if (!confirm(`Hersteller "${item.name}" wirklich löschen?`)) return;
+
+    const { error } = await supabase
+      .from("manufacturers")
+      .delete()
+      .eq("id", item.id);
+
+    if (error) {
+      alert(`Hersteller konnte nicht gelöscht werden: ${error.message}`);
+      return;
+    }
+
+    await loadManufacturers();
+  }
+
   async function createDevice() {
     if (!deviceName) {
       alert("Bitte Gerätename eingeben.");
       return;
     }
 
+    const selectedManufacturer = manufacturers.find(
+      (item) => item.id === Number(deviceManufacturerId),
+    );
+
     const { error } = await supabase.from("devices").insert([
       {
         name: deviceName,
-        manufacturer: deviceManufacturer || null,
+        manufacturer: selectedManufacturer?.name || deviceManufacturer || null,
+        manufacturer_id: selectedManufacturer?.id || null,
         serial_number: deviceSerial,
         location: deviceLocation,
         status: deviceStatus,
@@ -2688,6 +2815,37 @@ export default function Home() {
   function getDevicesForCustomer(customerId?: number | null) {
     if (!customerId) return [];
     return devices.filter((deviceItem) => deviceItem.customer_id === customerId);
+  }
+
+  function getManufacturerNameById(manufacturerId?: number | null) {
+    if (!manufacturerId) return "";
+    return manufacturers.find((item) => item.id === manufacturerId)?.name || "";
+  }
+
+  function resetManufacturerForm() {
+    setEditingManufacturer(null);
+    setManufacturerName("");
+    setManufacturerWebsite("");
+    setManufacturerPhone("");
+    setManufacturerEmail("");
+    setManufacturerContactPerson("");
+    setManufacturerAddress("");
+    setManufacturerPartsUrl("");
+    setManufacturerNote("");
+  }
+
+  function startEditManufacturer(item: Manufacturer) {
+    setActivePage("Hersteller");
+    setEditingManufacturer(item);
+    setManufacturerName(item.name || "");
+    setManufacturerWebsite(item.website || "");
+    setManufacturerPhone(item.phone || "");
+    setManufacturerEmail(item.email || "");
+    setManufacturerContactPerson(item.contact_person || "");
+    setManufacturerAddress(item.address || "");
+    setManufacturerPartsUrl(item.parts_url || "");
+    setManufacturerNote(item.note || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
 
@@ -5083,6 +5241,7 @@ FE-SERVICE`,
       "Service-Tickets": "Tickets",
       Kunden: "Kunden",
       Geräte: "Geräte",
+      Hersteller: "Hersteller",
       "QR-Scan": "QR-Scan",
       Abnahmeprotokoll: "Abnahmeprotokoll",
       Ersatzteile: "Teile",
@@ -6791,7 +6950,186 @@ FE-SERVICE`,
             </div>
           )}
 
-          {activePage === "Geräte" && selectedDeviceView && (
+                    {activePage === "Hersteller" && isAdmin && (
+            <div className="space-y-6">
+              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+                  Nur Admin
+                </p>
+                <h3 className="mt-2 text-3xl font-black md:text-4xl">
+                  Herstellerverwaltung
+                </h3>
+                <p className="mt-3 max-w-4xl text-sm font-semibold text-slate-300">
+                  Hersteller, Ansprechpartner, Webseite, Telefon und Ersatzteil-Links zentral verwalten.
+                  Kunden und Techniker sehen diese internen Kontaktdaten nicht.
+                </p>
+              </div>
+
+              <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">
+                    {editingManufacturer ? "Hersteller bearbeiten" : "Hersteller anlegen"}
+                  </h3>
+
+                  <div className="mt-5 space-y-3">
+                    <input
+                      value={manufacturerName}
+                      onChange={(e) => setManufacturerName(e.target.value)}
+                      placeholder="Herstellername"
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
+                    />
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <input
+                        value={manufacturerWebsite}
+                        onChange={(e) => setManufacturerWebsite(e.target.value)}
+                        placeholder="Webseite"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
+
+                      <input
+                        value={manufacturerPartsUrl}
+                        onChange={(e) => setManufacturerPartsUrl(e.target.value)}
+                        placeholder="Ersatzteil-Link / Shop"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <input
+                        value={manufacturerPhone}
+                        onChange={(e) => setManufacturerPhone(e.target.value)}
+                        placeholder="Telefon"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
+
+                      <input
+                        value={manufacturerEmail}
+                        onChange={(e) => setManufacturerEmail(e.target.value)}
+                        placeholder="E-Mail"
+                        type="email"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
+                    </div>
+
+                    <input
+                      value={manufacturerContactPerson}
+                      onChange={(e) => setManufacturerContactPerson(e.target.value)}
+                      placeholder="Ansprechpartner"
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-4"
+                    />
+
+                    <textarea
+                      value={manufacturerAddress}
+                      onChange={(e) => setManufacturerAddress(e.target.value)}
+                      placeholder="Adresse"
+                      rows={3}
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-4"
+                    />
+
+                    <textarea
+                      value={manufacturerNote}
+                      onChange={(e) => setManufacturerNote(e.target.value)}
+                      placeholder="Interne Support-Notiz"
+                      rows={4}
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-4"
+                    />
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <button
+                        onClick={saveManufacturer}
+                        className="rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+                      >
+                        {editingManufacturer ? "Änderungen speichern" : "Hersteller speichern"}
+                      </button>
+
+                      <button
+                        onClick={resetManufacturerForm}
+                        className="rounded-2xl border border-slate-300 bg-white px-6 py-4 font-black"
+                      >
+                        Formular leeren
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Herstellerliste</h3>
+
+                  <div className="mt-5 space-y-3">
+                    {manufacturers.length === 0 ? (
+                      <p className="rounded-2xl bg-slate-50 p-5 text-sm font-semibold text-slate-500">
+                        Noch keine Hersteller angelegt.
+                      </p>
+                    ) : (
+                      manufacturers.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-[24px] border border-slate-200 bg-slate-50 p-5"
+                        >
+                          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <div>
+                              <h4 className="text-xl font-black text-[#07130d]">
+                                {item.name}
+                              </h4>
+
+                              <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-600 md:grid-cols-2">
+                                <p><span className="font-black text-green-700">Ansprechpartner:</span> {item.contact_person || "-"}</p>
+                                <p><span className="font-black text-green-700">Telefon:</span> {item.phone || "-"}</p>
+                                <p><span className="font-black text-green-700">E-Mail:</span> {item.email || "-"}</p>
+                                <p><span className="font-black text-green-700">Webseite:</span> {item.website || "-"}</p>
+                              </div>
+
+                              {item.parts_url && (
+                                <p className="mt-3 text-sm font-bold text-blue-700">
+                                  Ersatzteile: {item.parts_url}
+                                </p>
+                              )}
+
+                              {item.note && (
+                                <p className="mt-3 rounded-2xl bg-white p-3 text-sm font-semibold text-slate-600">
+                                  {item.note}
+                                </p>
+                              )}
+
+                              <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+                                Zugeordnete Geräte:{" "}
+                                {
+                                  devices.filter(
+                                    (deviceItem) =>
+                                      deviceItem.manufacturer_id === item.id ||
+                                      deviceItem.manufacturer === item.name,
+                                  ).length
+                                }
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => startEditManufacturer(item)}
+                                className="rounded-2xl bg-blue-100 px-5 py-3 text-sm font-black text-blue-700"
+                              >
+                                Bearbeiten
+                              </button>
+
+                              <button
+                                onClick={() => deleteManufacturer(item)}
+                                className="rounded-2xl bg-red-100 px-5 py-3 text-sm font-black text-red-700"
+                              >
+                                Löschen
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+{activePage === "Geräte" && selectedDeviceView && (
             <div className="mb-6 rounded-[24px] bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
                 <div>
@@ -7162,12 +7500,45 @@ FE-SERVICE`,
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
-                  <input
-                    value={deviceManufacturer}
-                    onChange={(e) => setDeviceManufacturer(e.target.value)}
-                    placeholder="Hersteller / Marke"
-                    className="w-full rounded-2xl border border-slate-300 px-5 py-3"
-                  />
+                  {isAdmin ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <select
+                        value={deviceManufacturerId}
+                        onChange={(e) => {
+                          setDeviceManufacturerId(e.target.value);
+                          const selectedManufacturer = manufacturers.find(
+                            (item) => item.id === Number(e.target.value),
+                          );
+                          setDeviceManufacturer(selectedManufacturer?.name || "");
+                        }}
+                        className="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold"
+                      >
+                        <option value="">Hersteller aus Verwaltung wählen</option>
+                        {manufacturers.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <input
+                        value={deviceManufacturer}
+                        onChange={(e) => {
+                          setDeviceManufacturer(e.target.value);
+                          setDeviceManufacturerId("");
+                        }}
+                        placeholder="oder Hersteller frei eintragen"
+                        className="rounded-2xl border border-slate-300 px-5 py-3"
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      value={deviceManufacturer}
+                      onChange={(e) => setDeviceManufacturer(e.target.value)}
+                      placeholder="Hersteller / Marke"
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  )}
 
                   <input
                     value={deviceSerial}
