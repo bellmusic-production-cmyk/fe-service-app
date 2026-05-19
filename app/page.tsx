@@ -3950,7 +3950,7 @@ FE-SERVICE`,
 
             <div class="company">
               <div>
-                <strong>FE-Service oHG</strong><br/>
+                <strong>FE-Service e.K.</strong><br/>
                 Fitness Equipment Service
               </div>
               <div>
@@ -3967,6 +3967,48 @@ FE-SERVICE`,
     `;
   }
 
+  async function createAbnahmeProtocolPdfBlob() {
+    const jspdfModule: any = await new Function("return import('jspdf')")();
+    const JsPDFConstructor =
+      jspdfModule.jsPDF || jspdfModule.default?.jsPDF || jspdfModule.default;
+
+    if (!JsPDFConstructor) {
+      throw new Error("jsPDF konnte nicht geladen werden.");
+    }
+
+    const pdf = new JsPDFConstructor("p", "mm", "a4");
+    const container = document.createElement("div");
+
+    container.innerHTML = buildAbnahmeProtocolHtml();
+    container.style.position = "fixed";
+    container.style.left = "-10000px";
+    container.style.top = "0";
+    container.style.width = "1120px";
+    container.style.background = "white";
+
+    const printButton = container.querySelector(".print-button");
+    if (printButton) {
+      printButton.remove();
+    }
+
+    document.body.appendChild(container);
+
+    await new Promise<void>((resolve) => {
+      pdf.html(container, {
+        callback: () => resolve(),
+        x: 0,
+        y: 0,
+        width: 210,
+        windowWidth: 1120,
+        autoPaging: "text",
+      });
+    });
+
+    document.body.removeChild(container);
+
+    return pdf.output("blob") as Blob;
+  }
+
   async function archiveAbnahmeProtocolHtml() {
     const selectedTicket = abnahmeTicketId
       ? tickets.find((item) => item.id === Number(abnahmeTicketId))
@@ -3975,53 +4017,60 @@ FE-SERVICE`,
       ? devices.find((item) => item.id === Number(abnahmeDeviceId))
       : null;
 
-    const html = buildAbnahmeProtocolHtml();
-    const fileName = `Abnahmeprotokoll-DGUV-UVV-${Date.now().toString().slice(-6)}.html`;
-    const filePath = `Abnahmeprotokolle/${Date.now()}-${fileName}`;
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    try {
+      const pdfBlob = await createAbnahmeProtocolPdfBlob();
+      const fileName = `Abnahmeprotokoll-DGUV-UVV-${Date.now().toString().slice(-6)}.pdf`;
+      const filePath = `Abnahmeprotokolle/${Date.now()}-${fileName}`;
 
-    const uploadResult = await supabase.storage
-      .from("documents")
-      .upload(filePath, blob, {
-        contentType: "text/html;charset=utf-8",
-        upsert: false,
-      });
+      const uploadResult = await supabase.storage
+        .from("documents")
+        .upload(filePath, pdfBlob, {
+          contentType: "application/pdf",
+          upsert: false,
+        });
 
-    if (uploadResult.error) {
-      alert(`Protokoll konnte nicht archiviert werden: ${uploadResult.error.message}`);
-      return;
+      if (uploadResult.error) {
+        alert(`PDF-Protokoll konnte nicht archiviert werden: ${uploadResult.error.message}`);
+        return;
+      }
+
+      const insertResult = await supabase.from("documents").insert([
+        {
+          file_name: fileName,
+          file_path: filePath,
+          category: "Abnahmeprotokolle",
+          file_size: pdfBlob.size,
+          device_id: selectedDevice?.id || null,
+          ticket_id: selectedTicket?.id || null,
+          customer_id:
+            Number(abnahmeCustomerId) ||
+            selectedTicket?.customer_id ||
+            selectedDevice?.customer_id ||
+            null,
+        },
+      ]);
+
+      if (insertResult.error) {
+        alert(`PDF-Protokoll wurde hochgeladen, aber nicht gelistet: ${insertResult.error.message}`);
+        return;
+      }
+
+      await createDeviceHistory(
+        selectedDevice?.id || null,
+        "Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung als PDF archiviert",
+        `${fileName} · nächste Prüfung: ${abnahmeNextInspection || "nicht angegeben"}`,
+        "PDF",
+      );
+
+      await loadDocuments();
+      alert("Abnahmeprotokoll wurde als echtes PDF archiviert.");
+    } catch (error: any) {
+      alert(
+        `PDF konnte nicht erzeugt werden. Bitte prüfen, ob jsPDF installiert ist. Fehler: ${
+          error?.message || "unbekannt"
+        }`,
+      );
     }
-
-    const insertResult = await supabase.from("documents").insert([
-      {
-        file_name: fileName,
-        file_path: filePath,
-        category: "Abnahmeprotokolle",
-        file_size: blob.size,
-        device_id: selectedDevice?.id || null,
-        ticket_id: selectedTicket?.id || null,
-        customer_id:
-          Number(abnahmeCustomerId) ||
-          selectedTicket?.customer_id ||
-          selectedDevice?.customer_id ||
-          null,
-      },
-    ]);
-
-    if (insertResult.error) {
-      alert(`Protokoll wurde hochgeladen, aber nicht gelistet: ${insertResult.error.message}`);
-      return;
-    }
-
-    await createDeviceHistory(
-      selectedDevice?.id || null,
-      "Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung archiviert",
-      `${fileName} · nächste Prüfung: ${abnahmeNextInspection || "nicht angegeben"}`,
-      "Prüfprotokoll",
-    );
-
-    await loadDocuments();
-    alert("Abnahmeprotokoll wurde archiviert.");
   }
 
   function printAbnahmeProtocol() {
@@ -7353,7 +7402,7 @@ FE-SERVICE`,
                   onClick={archiveAbnahmeProtocolHtml}
                   className="rounded-2xl bg-blue-100 px-6 py-4 font-black text-blue-700"
                 >
-                  Protokoll archivieren
+                  PDF archivieren
                 </button>
 
                 <button
