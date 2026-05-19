@@ -278,22 +278,22 @@ export default function Home() {
   const [acceptDigitalDocumentation, setAcceptDigitalDocumentation] = useState(false);
   const [activePage, setActivePage] = useState("Service-Tickets");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("Verwaltung");
+  const [password, setPassword] = useState("Verwaltung");
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [devices, setDevices] = useState<Device[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
-  const [manufacturerName, setManufacturerName] = useState("");
-  const [manufacturerWebsite, setManufacturerWebsite] = useState("");
-  const [manufacturerPhone, setManufacturerPhone] = useState("");
-  const [manufacturerEmail, setManufacturerEmail] = useState("");
-  const [manufacturerContactPerson, setManufacturerContactPerson] = useState("");
-  const [manufacturerAddress, setManufacturerAddress] = useState("");
-  const [manufacturerPartsUrl, setManufacturerPartsUrl] = useState("");
-  const [manufacturerNote, setManufacturerNote] = useState("");
+  const [manufacturerName, setManufacturerName] = useState("Verwaltung");
+  const [manufacturerWebsite, setManufacturerWebsite] = useState("Verwaltung");
+  const [manufacturerPhone, setManufacturerPhone] = useState("Verwaltung");
+  const [manufacturerEmail, setManufacturerEmail] = useState("Verwaltung");
+  const [manufacturerContactPerson, setManufacturerContactPerson] = useState("Verwaltung");
+  const [manufacturerAddress, setManufacturerAddress] = useState("Verwaltung");
+  const [manufacturerPartsUrl, setManufacturerPartsUrl] = useState("Verwaltung");
+  const [manufacturerNote, setManufacturerNote] = useState("Verwaltung");
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [deviceHistory, setDeviceHistory] = useState<DeviceHistory[]>([]);
   const [maintenancePlans, setMaintenancePlans] = useState<MaintenancePlan[]>(
@@ -313,56 +313,56 @@ export default function Home() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [editingPart, setEditingPart] = useState<ServicePart | null>(null);
 
-  const [customer, setCustomer] = useState("");
+  const [customer, setCustomer] = useState("Verwaltung");
   const [device, setDevice] = useState(fallbackDevices[0]);
-  const [customDeviceName, setCustomDeviceName] = useState("");
-  const [issue, setIssue] = useState("");
-  const [description, setDescription] = useState("");
+  const [customDeviceName, setCustomDeviceName] = useState("Verwaltung");
+  const [issue, setIssue] = useState("Verwaltung");
+  const [description, setDescription] = useState("Verwaltung");
   const [priority, setPriority] = useState("Mittel");
 
-  const [deviceName, setDeviceName] = useState("");
-  const [deviceManufacturer, setDeviceManufacturer] = useState("");
-  const [deviceManufacturerId, setDeviceManufacturerId] = useState("");
-  const [deviceSerial, setDeviceSerial] = useState("");
-  const [deviceLocation, setDeviceLocation] = useState("");
+  const [deviceName, setDeviceName] = useState("Verwaltung");
+  const [deviceManufacturer, setDeviceManufacturer] = useState("Verwaltung");
+  const [deviceManufacturerId, setDeviceManufacturerId] = useState("Verwaltung");
+  const [deviceSerial, setDeviceSerial] = useState("Verwaltung");
+  const [deviceLocation, setDeviceLocation] = useState("Verwaltung");
   const [deviceStatus, setDeviceStatus] = useState("Aktiv");
-  const [deviceNextCheck, setDeviceNextCheck] = useState("");
-  const [deviceNote, setDeviceNote] = useState("");
+  const [deviceNextCheck, setDeviceNextCheck] = useState("Verwaltung");
+  const [deviceNote, setDeviceNote] = useState("Verwaltung");
 
-  const [inspectionDeviceId, setInspectionDeviceId] = useState("");
-  const [inspectionBadgeNumber, setInspectionBadgeNumber] = useState("");
-  const [inspectionDate, setInspectionDate] = useState("");
-  const [inspectionExpires, setInspectionExpires] = useState("");
+  const [inspectionDeviceId, setInspectionDeviceId] = useState("Verwaltung");
+  const [inspectionBadgeNumber, setInspectionBadgeNumber] = useState("Verwaltung");
+  const [inspectionDate, setInspectionDate] = useState("Verwaltung");
+  const [inspectionExpires, setInspectionExpires] = useState("Verwaltung");
   const [inspectionResult, setInspectionResult] = useState("Bestanden");
-  const [inspectionComment, setInspectionComment] = useState("");
+  const [inspectionComment, setInspectionComment] = useState("Verwaltung");
 
-  const [maintenanceCustomerId, setMaintenanceCustomerId] = useState("");
-  const [maintenanceDeviceId, setMaintenanceDeviceId] = useState("");
+  const [maintenanceCustomerId, setMaintenanceCustomerId] = useState("Verwaltung");
+  const [maintenanceDeviceId, setMaintenanceDeviceId] = useState("Verwaltung");
   const [maintenanceType, setMaintenanceType] = useState("Regelwartung");
   const [maintenanceIntervalDays, setMaintenanceIntervalDays] = useState("365");
-  const [maintenanceNextDue, setMaintenanceNextDue] = useState("");
-  const [maintenanceAssignedTo, setMaintenanceAssignedTo] = useState("");
+  const [maintenanceNextDue, setMaintenanceNextDue] = useState("Verwaltung");
+  const [maintenanceAssignedTo, setMaintenanceAssignedTo] = useState("Verwaltung");
   const [maintenanceStatus, setMaintenanceStatus] = useState("Geplant");
-  const [maintenanceNote, setMaintenanceNote] = useState("");
+  const [maintenanceNote, setMaintenanceNote] = useState("Verwaltung");
 
-  const [abnahmeCustomerId, setAbnahmeCustomerId] = useState("");
-  const [abnahmeDeviceId, setAbnahmeDeviceId] = useState("");
-  const [abnahmeTicketId, setAbnahmeTicketId] = useState("");
+  const [abnahmeCustomerId, setAbnahmeCustomerId] = useState("Verwaltung");
+  const [abnahmeDeviceId, setAbnahmeDeviceId] = useState("Verwaltung");
+  const [abnahmeTicketId, setAbnahmeTicketId] = useState("Verwaltung");
   const [abnahmeDate, setAbnahmeDate] = useState(
     new Date().toISOString().split("T")[0],
   );
-  const [abnahmeAddressObject, setAbnahmeAddressObject] = useState("");
-  const [abnahmeOrderNumber, setAbnahmeOrderNumber] = useState("");
-  const [abnahmeCustomerNumber, setAbnahmeCustomerNumber] = useState("");
+  const [abnahmeAddressObject, setAbnahmeAddressObject] = useState("Verwaltung");
+  const [abnahmeOrderNumber, setAbnahmeOrderNumber] = useState("Verwaltung");
+  const [abnahmeCustomerNumber, setAbnahmeCustomerNumber] = useState("Verwaltung");
   const [abnahmeContractType, setAbnahmeContractType] = useState("Wartungsvertrag");
   const [abnahmeDguvChecked, setAbnahmeDguvChecked] = useState(true);
   const [abnahmeUvvChecked, setAbnahmeUvvChecked] = useState(true);
   const [abnahmePage, setAbnahmePage] = useState("1");
   const [abnahmePagesTotal, setAbnahmePagesTotal] = useState("1");
-  const [abnahmeManufacturer, setAbnahmeManufacturer] = useState("");
-  const [abnahmeModel, setAbnahmeModel] = useState("");
-  const [abnahmeSerial, setAbnahmeSerial] = useState("");
-  const [abnahmeDefects, setAbnahmeDefects] = useState("");
+  const [abnahmeManufacturer, setAbnahmeManufacturer] = useState("Verwaltung");
+  const [abnahmeModel, setAbnahmeModel] = useState("Verwaltung");
+  const [abnahmeSerial, setAbnahmeSerial] = useState("Verwaltung");
+  const [abnahmeDefects, setAbnahmeDefects] = useState("Verwaltung");
   const [abnahmeDeviceResult, setAbnahmeDeviceResult] = useState("OK");
   const [abnahmeChecks, setAbnahmeChecks] = useState<AbnahmeProtocolCheck[]>(
     abnahmeProtocolQuestions.map((question) => ({
@@ -371,70 +371,70 @@ export default function Home() {
       ok: false,
       vs: false,
       df: false,
-      comment: "",
+      comment: "Verwaltung",
     })),
   );
   const [abnahmeBadgeApplied, setAbnahmeBadgeApplied] = useState(false);
-  const [abnahmeRecommendation, setAbnahmeRecommendation] = useState("");
-  const [abnahmeRepairRecommendedAt, setAbnahmeRepairRecommendedAt] = useState("");
+  const [abnahmeRecommendation, setAbnahmeRecommendation] = useState("Verwaltung");
+  const [abnahmeRepairRecommendedAt, setAbnahmeRepairRecommendedAt] = useState("Verwaltung");
   const [abnahmeOfferFollows, setAbnahmeOfferFollows] = useState("Ja");
-  const [abnahmeNextInspection, setAbnahmeNextInspection] = useState("");
-  const [abnahmeTechnicianName, setAbnahmeTechnicianName] = useState("");
-  const [abnahmeTechnicianShort, setAbnahmeTechnicianShort] = useState("");
-  const [abnahmeCustomerResponsible, setAbnahmeCustomerResponsible] = useState("");
-  const [abnahmeTechnicianSignature, setAbnahmeTechnicianSignature] = useState("");
-  const [abnahmeCustomerSignature, setAbnahmeCustomerSignature] = useState("");
+  const [abnahmeNextInspection, setAbnahmeNextInspection] = useState("Verwaltung");
+  const [abnahmeTechnicianName, setAbnahmeTechnicianName] = useState("Verwaltung");
+  const [abnahmeTechnicianShort, setAbnahmeTechnicianShort] = useState("Verwaltung");
+  const [abnahmeCustomerResponsible, setAbnahmeCustomerResponsible] = useState("Verwaltung");
+  const [abnahmeTechnicianSignature, setAbnahmeTechnicianSignature] = useState("Verwaltung");
+  const [abnahmeCustomerSignature, setAbnahmeCustomerSignature] = useState("Verwaltung");
 
 
-  const [serviceReport, setServiceReport] = useState("");
-  const [serviceBadgeNumber, setServiceBadgeNumber] = useState("");
-  const [serviceBadgeExpires, setServiceBadgeExpires] = useState("");
-  const [serviceInternalNote, setServiceInternalNote] = useState("");
+  const [serviceReport, setServiceReport] = useState("Verwaltung");
+  const [serviceBadgeNumber, setServiceBadgeNumber] = useState("Verwaltung");
+  const [serviceBadgeExpires, setServiceBadgeExpires] = useState("Verwaltung");
+  const [serviceInternalNote, setServiceInternalNote] = useState("Verwaltung");
 
-  const [technicianSignature, setTechnicianSignature] = useState("");
-  const [customerSignature, setCustomerSignature] = useState("");
-  const [customerApprovalName, setCustomerApprovalName] = useState("");
+  const [technicianSignature, setTechnicianSignature] = useState("Verwaltung");
+  const [customerSignature, setCustomerSignature] = useState("Verwaltung");
+  const [customerApprovalName, setCustomerApprovalName] = useState("Verwaltung");
 
 
 
-  const [customerDeviceName, setCustomerDeviceName] = useState("");
+  const [customerDeviceName, setCustomerDeviceName] = useState("Verwaltung");
   const [customerDeviceManufacturer, setCustomerDeviceManufacturer] =
-    useState("");
-  const [customerDeviceSerial, setCustomerDeviceSerial] = useState("");
-  const [customerDeviceLocation, setCustomerDeviceLocation] = useState("");
+    useState("Verwaltung");
+  const [customerDeviceSerial, setCustomerDeviceSerial] = useState("Verwaltung");
+  const [customerDeviceLocation, setCustomerDeviceLocation] = useState("Verwaltung");
   const [customerDefectDescription, setCustomerDefectDescription] =
-    useState("");
+    useState("Verwaltung");
   const [customerServiceType, setCustomerServiceType] = useState("Reparatur");
-  const [customerPreferredDate, setCustomerPreferredDate] = useState("");
+  const [customerPreferredDate, setCustomerPreferredDate] = useState("Verwaltung");
 
-  const [customerCompany, setCustomerCompany] = useState("");
-  const [customerContact, setCustomerContact] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerCompany, setCustomerCompany] = useState("Verwaltung");
+  const [customerContact, setCustomerContact] = useState("Verwaltung");
+  const [customerEmail, setCustomerEmail] = useState("Verwaltung");
+  const [customerPhone, setCustomerPhone] = useState("Verwaltung");
+  const [customerAddress, setCustomerAddress] = useState("Verwaltung");
   const [assignedDeviceIds, setAssignedDeviceIds] = useState<string[]>([]);
 
-  const [partName, setPartName] = useState("");
-  const [partSku, setPartSku] = useState("");
-  const [partCategory, setPartCategory] = useState("");
+  const [partName, setPartName] = useState("Verwaltung");
+  const [partSku, setPartSku] = useState("Verwaltung");
+  const [partCategory, setPartCategory] = useState("Verwaltung");
   const [partStock, setPartStock] = useState("0");
   const [partMinStock, setPartMinStock] = useState("1");
   const [partUnit, setPartUnit] = useState("Stück");
-  const [partLocation, setPartLocation] = useState("");
-  const [partNote, setPartNote] = useState("");
-  const [selectedPartId, setSelectedPartId] = useState("");
+  const [partLocation, setPartLocation] = useState("Verwaltung");
+  const [partNote, setPartNote] = useState("Verwaltung");
+  const [selectedPartId, setSelectedPartId] = useState("Verwaltung");
   const [partUsageQuantity, setPartUsageQuantity] = useState("1");
-  const [partUsageDeviceId, setPartUsageDeviceId] = useState("");
-  const [partUsageTicketId, setPartUsageTicketId] = useState("");
-  const [partUsageNote, setPartUsageNote] = useState("");
+  const [partUsageDeviceId, setPartUsageDeviceId] = useState("Verwaltung");
+  const [partUsageTicketId, setPartUsageTicketId] = useState("Verwaltung");
+  const [partUsageNote, setPartUsageNote] = useState("Verwaltung");
 
   const [invoiceType, setInvoiceType] = useState("Rechnung");
-  const [invoiceTicketId, setInvoiceTicketId] = useState("");
-  const [invoiceTitle, setInvoiceTitle] = useState("");
-  const [invoiceAmountNet, setInvoiceAmountNet] = useState("");
+  const [invoiceTicketId, setInvoiceTicketId] = useState("Verwaltung");
+  const [invoiceTitle, setInvoiceTitle] = useState("Verwaltung");
+  const [invoiceAmountNet, setInvoiceAmountNet] = useState("Verwaltung");
   const [invoiceTaxRate, setInvoiceTaxRate] = useState("19");
   const [invoiceStatus, setInvoiceStatus] = useState("Entwurf");
-  const [invoiceNote, setInvoiceNote] = useState("");
+  const [invoiceNote, setInvoiceNote] = useState("Verwaltung");
 
   const [calendarDate, setCalendarDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -442,40 +442,40 @@ export default function Home() {
   const [calendarTechnicianFilter, setCalendarTechnicianFilter] = useState("Alle");
 
   const [notificationType, setNotificationType] = useState("Einsatzbestätigung");
-  const [notificationRecipient, setNotificationRecipient] = useState("");
-  const [notificationSubject, setNotificationSubject] = useState("");
-  const [notificationMessage, setNotificationMessage] = useState("");
-  const [notificationTicketId, setNotificationTicketId] = useState("");
+  const [notificationRecipient, setNotificationRecipient] = useState("Verwaltung");
+  const [notificationSubject, setNotificationSubject] = useState("Verwaltung");
+  const [notificationMessage, setNotificationMessage] = useState("Verwaltung");
+  const [notificationTicketId, setNotificationTicketId] = useState("Verwaltung");
 
-  const [contractCustomerId, setContractCustomerId] = useState("");
-  const [contractTitle, setContractTitle] = useState("");
+  const [contractCustomerId, setContractCustomerId] = useState("Verwaltung");
+  const [contractTitle, setContractTitle] = useState("Verwaltung");
   const [contractType, setContractType] = useState("Wartungsvertrag");
   const [contractSlaHours, setContractSlaHours] = useState("24");
-  const [contractMonthlyAmount, setContractMonthlyAmount] = useState("");
+  const [contractMonthlyAmount, setContractMonthlyAmount] = useState("Verwaltung");
   const [contractMaintenanceInterval, setContractMaintenanceInterval] = useState("6");
-  const [contractStartDate, setContractStartDate] = useState("");
-  const [contractEndDate, setContractEndDate] = useState("");
+  const [contractStartDate, setContractStartDate] = useState("Verwaltung");
+  const [contractEndDate, setContractEndDate] = useState("Verwaltung");
   const [contractStatus, setContractStatus] = useState("Aktiv");
-  const [contractNote, setContractNote] = useState("");
+  const [contractNote, setContractNote] = useState("Verwaltung");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("Verwaltung");
   const [statusFilter, setStatusFilter] = useState("Alle");
   const [priorityFilter, setPriorityFilter] = useState("Alle");
 
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState("Abnahmeprotokolle");
   const [activeDocumentCategory, setActiveDocumentCategory] = useState("Alle");
-  const [documentSearchTerm, setDocumentSearchTerm] = useState("");
+  const [documentSearchTerm, setDocumentSearchTerm] = useState("Verwaltung");
   const [documentCustomerFilter, setDocumentCustomerFilter] = useState("Alle");
   const [documentDeviceFilter, setDocumentDeviceFilter] = useState("Alle");
-  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [selectedDeviceId, setSelectedDeviceId] = useState("Verwaltung");
   const [selectedDeviceView, setSelectedDeviceView] = useState<Device | null>(
     null,
   );
-  const [qrSearchTerm, setQrSearchTerm] = useState("");
-  const [qrSelectedDeviceId, setQrSelectedDeviceId] = useState("");
-  const [qrManualCode, setQrManualCode] = useState("");
+  const [qrSearchTerm, setQrSearchTerm] = useState("Verwaltung");
+  const [qrSelectedDeviceId, setQrSelectedDeviceId] = useState("Verwaltung");
+  const [qrManualCode, setQrManualCode] = useState("Verwaltung");
   const [qrScanStatus, setQrScanStatus] = useState("Scanner bereit.");
   const [qrScannerActive, setQrScannerActive] = useState(false);
   const qrScannerRef = useRef<any>(null);
@@ -485,8 +485,8 @@ export default function Home() {
   const abnahmeTechnicianDrawingRef = useRef(false);
   const abnahmeCustomerDrawingRef = useRef(false);
 
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [previewName, setPreviewName] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("Verwaltung");
+  const [previewName, setPreviewName] = useState("Verwaltung");
 
   useEffect(() => {
     checkSession();
@@ -556,8 +556,8 @@ export default function Home() {
 
   const customerNames = useMemo(() => {
     return customers
-      .map((item) => item.company || "")
-      .filter((item) => item.trim() !== "");
+      .map((item) => item.company || "Verwaltung")
+      .filter((item) => item.trim() !== "Verwaltung");
   }, [customers]);
 
   const filteredTickets = useMemo(() => {
@@ -631,11 +631,11 @@ export default function Home() {
 
       const matchesCustomer =
         documentCustomerFilter === "Alle" ||
-        String(item.customer_id || linkedDevice?.customer_id || linkedTicket?.customer_id || "") ===
+        String(item.customer_id || linkedDevice?.customer_id || linkedTicket?.customer_id || "Verwaltung") ===
           documentCustomerFilter;
 
       const matchesDevice =
-        documentDeviceFilter === "Alle" || String(item.device_id || "") === documentDeviceFilter;
+        documentDeviceFilter === "Alle" || String(item.device_id || "Verwaltung") === documentDeviceFilter;
 
       const matchesSearch =
         !search ||
@@ -644,7 +644,7 @@ export default function Home() {
         customerName.includes(search) ||
         deviceName.includes(search) ||
         ticketNumber.includes(search) ||
-        String(linkedTicket?.issue || "").toLowerCase().includes(search);
+        String(linkedTicket?.issue || "Verwaltung").toLowerCase().includes(search);
 
       return matchesCategory && matchesCustomer && matchesDevice && matchesSearch;
     });
@@ -830,8 +830,8 @@ export default function Home() {
       setUserProfile(null);
       setProfileLoading(false);
       setSelectedDeviceView(null);
-      setPreviewUrl("");
-      setPreviewName("");
+      setPreviewUrl("Verwaltung");
+      setPreviewName("Verwaltung");
 
       resetTicketForm();
       resetDeviceForm();
@@ -1168,7 +1168,7 @@ export default function Home() {
     await createDeviceHistory(
       relatedDevice?.id || null,
       assignedTo ? "Ticket zugewiesen" : "Ticket-Zuweisung entfernt",
-      `${currentTicket?.ticket_number || "Ticket"} · ${assignedName}${serviceDate ? ` · Termin: ${serviceDate}${serviceTime ? ` ${serviceTime}` : ""}` : ""}`,
+      `${currentTicket?.ticket_number || "Ticket"} · ${assignedName}${serviceDate ? ` · Termin: ${serviceDate}${serviceTime ? ` ${serviceTime}` : "Verwaltung"}` : "Verwaltung"}`,
       "Einsatz",
     );
   }
@@ -1243,7 +1243,7 @@ export default function Home() {
       "Dokument",
     );
 
-    event.target.value = "";
+    event.target.value = "Verwaltung";
     await loadDocuments();
     alert("Dokument erfolgreich hochgeladen.");
   }
@@ -1299,7 +1299,7 @@ export default function Home() {
       "Dokument",
     );
 
-    event.target.value = "";
+    event.target.value = "Verwaltung";
     await loadDocuments();
     alert("Dokument erfolgreich beim Gerät hochgeladen.");
   }
@@ -1369,7 +1369,7 @@ export default function Home() {
       "Dokument",
     );
 
-    event.target.value = "";
+    event.target.value = "Verwaltung";
     await loadDocuments();
     alert("Dokument wurde dem Einsatz zugeordnet.");
   }
@@ -1402,8 +1402,8 @@ export default function Home() {
   }
 
   function closePreview() {
-    setPreviewUrl("");
-    setPreviewName("");
+    setPreviewUrl("Verwaltung");
+    setPreviewName("Verwaltung");
   }
 
   async function deleteDocument(item: DocumentItem) {
@@ -1445,56 +1445,56 @@ export default function Home() {
 
   function resetTicketForm() {
     setEditingTicket(null);
-    setCustomer("");
+    setCustomer("Verwaltung");
     setDevice(deviceNames[0] || fallbackDevices[0]);
-    setCustomDeviceName("");
-    setIssue("");
-    setDescription("");
+    setCustomDeviceName("Verwaltung");
+    setIssue("Verwaltung");
+    setDescription("Verwaltung");
     setPriority("Mittel");
   }
 
   function resetDeviceForm() {
     setEditingDevice(null);
-    setDeviceName("");
-    setDeviceManufacturer("");
-    setDeviceManufacturerId("");
-    setDeviceSerial("");
-    setDeviceLocation("");
+    setDeviceName("Verwaltung");
+    setDeviceManufacturer("Verwaltung");
+    setDeviceManufacturerId("Verwaltung");
+    setDeviceSerial("Verwaltung");
+    setDeviceLocation("Verwaltung");
     setDeviceStatus("Aktiv");
-    setDeviceNextCheck("");
-    setDeviceNote("");
+    setDeviceNextCheck("Verwaltung");
+    setDeviceNote("Verwaltung");
   }
 
   function resetCustomerForm() {
     setEditingCustomer(null);
-    setCustomerCompany("");
-    setCustomerContact("");
-    setCustomerEmail("");
-    setCustomerPhone("");
-    setCustomerAddress("");
+    setCustomerCompany("Verwaltung");
+    setCustomerContact("Verwaltung");
+    setCustomerEmail("Verwaltung");
+    setCustomerPhone("Verwaltung");
+    setCustomerAddress("Verwaltung");
     setAssignedDeviceIds([]);
   }
 
   function resetPartForm() {
     setEditingPart(null);
-    setPartName("");
-    setPartSku("");
-    setPartCategory("");
+    setPartName("Verwaltung");
+    setPartSku("Verwaltung");
+    setPartCategory("Verwaltung");
     setPartStock("0");
     setPartMinStock("1");
     setPartUnit("Stück");
-    setPartLocation("");
-    setPartNote("");
+    setPartLocation("Verwaltung");
+    setPartNote("Verwaltung");
   }
 
   function startEdit(ticket: Ticket) {
     setActivePage("Service-Tickets");
     setEditingTicket(ticket);
-    setCustomer(ticket.customer || "");
+    setCustomer(ticket.customer || "Verwaltung");
     setDevice(ticket.device || deviceNames[0] || fallbackDevices[0]);
-    setCustomDeviceName("");
-    setIssue(ticket.issue || "");
-    setDescription(ticket.description || "");
+    setCustomDeviceName("Verwaltung");
+    setIssue(ticket.issue || "Verwaltung");
+    setDescription(ticket.description || "Verwaltung");
     setPriority(ticket.priority || "Mittel");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1502,24 +1502,24 @@ export default function Home() {
   function startEditDevice(item: Device) {
     setActivePage("Geräte");
     setEditingDevice(item);
-    setDeviceName(item.name || "");
-    setDeviceManufacturer(item.manufacturer || "");
-    setDeviceManufacturerId(item.manufacturer_id ? String(item.manufacturer_id) : "");
-    setDeviceSerial(item.serial_number || "");
-    setDeviceLocation(item.location || "");
+    setDeviceName(item.name || "Verwaltung");
+    setDeviceManufacturer(item.manufacturer || "Verwaltung");
+    setDeviceManufacturerId(item.manufacturer_id ? String(item.manufacturer_id) : "Verwaltung");
+    setDeviceSerial(item.serial_number || "Verwaltung");
+    setDeviceLocation(item.location || "Verwaltung");
     setDeviceStatus(item.status || "Aktiv");
-    setDeviceNextCheck(item.next_check || "");
-    setDeviceNote(item.note || "");
+    setDeviceNextCheck(item.next_check || "Verwaltung");
+    setDeviceNote(item.note || "Verwaltung");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function startEditCustomer(item: Customer) {
     setEditingCustomer(item);
-    setCustomerCompany(item.company || "");
-    setCustomerContact(item.contact_person || "");
-    setCustomerEmail(item.email || "");
-    setCustomerPhone(item.phone || "");
-    setCustomerAddress(item.address || "");
+    setCustomerCompany(item.company || "Verwaltung");
+    setCustomerContact(item.contact_person || "Verwaltung");
+    setCustomerEmail(item.email || "Verwaltung");
+    setCustomerPhone(item.phone || "Verwaltung");
+    setCustomerAddress(item.address || "Verwaltung");
     setAssignedDeviceIds(
       devices
         .filter((deviceItem) => deviceItem.customer_id === item.id)
@@ -1538,7 +1538,7 @@ export default function Home() {
       : null;
 
     const currentCustomerName = isCustomer
-      ? profileCustomer?.company || userProfile?.company || ""
+      ? profileCustomer?.company || userProfile?.company || "Verwaltung"
       : customer || customerFromDevice?.company || "Vor-Ort / nicht zugeordnet";
 
     const currentCustomerId = isCustomer
@@ -1674,7 +1674,7 @@ export default function Home() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>FE-SERVICE Servicebericht ${ticket.ticket_number || ""}</title>
+          <title>FE-SERVICE Servicebericht ${ticket.ticket_number || "Verwaltung"}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
             h1 { margin: 0; color: #16a34a; letter-spacing: 4px; }
@@ -1740,7 +1740,7 @@ export default function Home() {
                       (doc) =>
                         `<div><strong>${doc.category}</strong>: ${doc.file_name}</div>`,
                     )
-                    .join("")
+                    .join("Verwaltung")
             }
           </div>
 
@@ -1956,7 +1956,7 @@ export default function Home() {
                       (doc) =>
                         `<div><strong>${doc.category}</strong>: ${doc.file_name}</div>`,
                     )
-                    .join("")
+                    .join("Verwaltung")
             }
           </div>
 
@@ -1986,7 +1986,7 @@ export default function Home() {
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("Verwaltung", "_blank");
 
     if (!printWindow) {
       alert("Popup wurde blockiert. Bitte Popups erlauben.");
@@ -1999,7 +1999,7 @@ export default function Home() {
     createDeviceHistory(
       relatedDevice?.id || null,
       "PDF-Servicebericht erstellt",
-      `${ticket.ticket_number || "Ticket"} · ${ticket.issue || ""}`,
+      `${ticket.ticket_number || "Ticket"} · ${ticket.issue || "Verwaltung"}`,
       "PDF",
     );
   }
@@ -2338,19 +2338,19 @@ export default function Home() {
       : null;
 
     setActivePage("Service-Tickets");
-    setCustomer(linkedCustomer?.company || "");
+    setCustomer(linkedCustomer?.company || "Verwaltung");
     setDevice(item.name);
-    setCustomDeviceName("");
+    setCustomDeviceName("Verwaltung");
     setIssue(`Service für ${item.name}`);
-    setDescription(item.note || "");
+    setDescription(item.note || "Verwaltung");
     setPriority(item.status === "Prüfung erforderlich" ? "Hoch" : "Mittel");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function createTicketFromCustomer(item: Customer) {
     setActivePage("Service-Tickets");
-    setCustomer(item.company || "");
-    setIssue(`Service-Anfrage ${item.company || ""}`);
+    setCustomer(item.company || "Verwaltung");
+    setIssue(`Service-Anfrage ${item.company || "Verwaltung"}`);
     setDescription(
       `Ansprechpartner: ${item.contact_person || "nicht angegeben"}\nTelefon: ${
         item.phone || "nicht angegeben"
@@ -2539,7 +2539,7 @@ export default function Home() {
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.set("device", String(item.id));
-      window.history.replaceState(null, "", url.toString());
+      window.history.replaceState(null, "Verwaltung", url.toString());
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
@@ -2587,7 +2587,7 @@ export default function Home() {
 
     
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("Verwaltung", "_blank");
 
     if (!printWindow) {
       alert("Popup wurde blockiert. Bitte Popups erlauben.");
@@ -2649,10 +2649,10 @@ export default function Home() {
 
     return (
       devices.find((item) => String(item.id).toLowerCase() === normalized) ||
-      devices.find((item) => String(item.serial_number || "").toLowerCase() === normalized) ||
-      devices.find((item) => String(item.name || "").toLowerCase() === normalized) ||
-      devices.find((item) => String(item.name || "").toLowerCase().includes(normalized)) ||
-      devices.find((item) => String(item.serial_number || "").toLowerCase().includes(normalized)) ||
+      devices.find((item) => String(item.serial_number || "Verwaltung").toLowerCase() === normalized) ||
+      devices.find((item) => String(item.name || "Verwaltung").toLowerCase() === normalized) ||
+      devices.find((item) => String(item.name || "Verwaltung").toLowerCase().includes(normalized)) ||
+      devices.find((item) => String(item.serial_number || "Verwaltung").toLowerCase().includes(normalized)) ||
       null
     );
   }
@@ -2822,33 +2822,33 @@ export default function Home() {
   }
 
   function getManufacturerNameById(manufacturerId?: number | null) {
-    if (!manufacturerId) return "";
-    return manufacturers.find((item) => item.id === manufacturerId)?.name || "";
+    if (!manufacturerId) return "Verwaltung";
+    return manufacturers.find((item) => item.id === manufacturerId)?.name || "Verwaltung";
   }
 
   function resetManufacturerForm() {
     setEditingManufacturer(null);
-    setManufacturerName("");
-    setManufacturerWebsite("");
-    setManufacturerPhone("");
-    setManufacturerEmail("");
-    setManufacturerContactPerson("");
-    setManufacturerAddress("");
-    setManufacturerPartsUrl("");
-    setManufacturerNote("");
+    setManufacturerName("Verwaltung");
+    setManufacturerWebsite("Verwaltung");
+    setManufacturerPhone("Verwaltung");
+    setManufacturerEmail("Verwaltung");
+    setManufacturerContactPerson("Verwaltung");
+    setManufacturerAddress("Verwaltung");
+    setManufacturerPartsUrl("Verwaltung");
+    setManufacturerNote("Verwaltung");
   }
 
   function startEditManufacturer(item: Manufacturer) {
     setActivePage("Hersteller");
     setEditingManufacturer(item);
-    setManufacturerName(item.name || "");
-    setManufacturerWebsite(item.website || "");
-    setManufacturerPhone(item.phone || "");
-    setManufacturerEmail(item.email || "");
-    setManufacturerContactPerson(item.contact_person || "");
-    setManufacturerAddress(item.address || "");
-    setManufacturerPartsUrl(item.parts_url || "");
-    setManufacturerNote(item.note || "");
+    setManufacturerName(item.name || "Verwaltung");
+    setManufacturerWebsite(item.website || "Verwaltung");
+    setManufacturerPhone(item.phone || "Verwaltung");
+    setManufacturerEmail(item.email || "Verwaltung");
+    setManufacturerContactPerson(item.contact_person || "Verwaltung");
+    setManufacturerAddress(item.address || "Verwaltung");
+    setManufacturerPartsUrl(item.parts_url || "Verwaltung");
+    setManufacturerNote(item.note || "Verwaltung");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -2874,14 +2874,14 @@ export default function Home() {
     : devices;
 
   function resetMaintenanceForm() {
-    setMaintenanceCustomerId("");
-    setMaintenanceDeviceId("");
+    setMaintenanceCustomerId("Verwaltung");
+    setMaintenanceDeviceId("Verwaltung");
     setMaintenanceType("Regelwartung");
     setMaintenanceIntervalDays("365");
-    setMaintenanceNextDue("");
-    setMaintenanceAssignedTo("");
+    setMaintenanceNextDue("Verwaltung");
+    setMaintenanceAssignedTo("Verwaltung");
     setMaintenanceStatus("Geplant");
-    setMaintenanceNote("");
+    setMaintenanceNote("Verwaltung");
   }
 
   async function saveMaintenancePlan() {
@@ -3043,12 +3043,12 @@ export default function Home() {
   }
 
   function resetInspectionForm() {
-    setInspectionDeviceId("");
-    setInspectionBadgeNumber("");
-    setInspectionDate("");
-    setInspectionExpires("");
+    setInspectionDeviceId("Verwaltung");
+    setInspectionBadgeNumber("Verwaltung");
+    setInspectionDate("Verwaltung");
+    setInspectionExpires("Verwaltung");
     setInspectionResult("Bestanden");
-    setInspectionComment("");
+    setInspectionComment("Verwaltung");
   }
 
   async function saveInspectionBadge() {
@@ -3097,7 +3097,7 @@ export default function Home() {
     await createDeviceHistory(
       deviceId,
       "Prüfsiegel eingetragen",
-      `Siegel: ${inspectionBadgeNumber} · Ergebnis: ${inspectionResult} · gültig bis ${inspectionExpires}${inspectionComment ? ` · ${inspectionComment}` : ""}`,
+      `Siegel: ${inspectionBadgeNumber} · Ergebnis: ${inspectionResult} · gültig bis ${inspectionExpires}${inspectionComment ? ` · ${inspectionComment}` : "Verwaltung"}`,
       "Prüfsiegel",
     );
 
@@ -3169,12 +3169,12 @@ export default function Home() {
 
     const ticketDescription = [
       customerDefectDescription.trim(),
-      customerPreferredDate ? `Wunschtermin: ${customerPreferredDate}` : "",
+      customerPreferredDate ? `Wunschtermin: ${customerPreferredDate}` : "Verwaltung",
       customerDeviceManufacturer
         ? `Hersteller: ${customerDeviceManufacturer}`
-        : "",
-      customerDeviceSerial ? `Seriennummer: ${customerDeviceSerial}` : "",
-      customerDeviceLocation ? `Standort: ${customerDeviceLocation}` : "",
+        : "Verwaltung",
+      customerDeviceSerial ? `Seriennummer: ${customerDeviceSerial}` : "Verwaltung",
+      customerDeviceLocation ? `Standort: ${customerDeviceLocation}` : "Verwaltung",
     ]
       .filter(Boolean)
       .join("\n");
@@ -3224,13 +3224,13 @@ export default function Home() {
       "Kundenportal",
     );
 
-    setCustomerDeviceName("");
-    setCustomerDeviceManufacturer("");
-    setCustomerDeviceSerial("");
-    setCustomerDeviceLocation("");
-    setCustomerDefectDescription("");
+    setCustomerDeviceName("Verwaltung");
+    setCustomerDeviceManufacturer("Verwaltung");
+    setCustomerDeviceSerial("Verwaltung");
+    setCustomerDeviceLocation("Verwaltung");
+    setCustomerDefectDescription("Verwaltung");
     setCustomerServiceType("Reparatur");
-    setCustomerPreferredDate("");
+    setCustomerPreferredDate("Verwaltung");
 
     await loadDevices();
     await loadTickets();
@@ -3295,7 +3295,7 @@ export default function Home() {
       </html>
     `;
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("Verwaltung", "_blank");
 
     if (!printWindow) {
       alert("Popup wurde blockiert. Bitte Popups erlauben.");
@@ -3319,7 +3319,7 @@ export default function Home() {
       (customerItem) => customerItem.company === relatedTicket?.customer,
     );
 
-    const recipient = relatedCustomer?.email || "";
+    const recipient = relatedCustomer?.email || "Verwaltung";
     const subject = encodeURIComponent(`Prüfbericht ${item.name}`);
     const body = encodeURIComponent(
       `Hallo,
@@ -3365,14 +3365,14 @@ FE-SERVICE`,
 
   function startEditPart(part: ServicePart) {
     setEditingPart(part);
-    setPartName(part.name || "");
-    setPartSku(part.sku || "");
-    setPartCategory(part.category || "");
+    setPartName(part.name || "Verwaltung");
+    setPartSku(part.sku || "Verwaltung");
+    setPartCategory(part.category || "Verwaltung");
     setPartStock(String(part.stock ?? 0));
     setPartMinStock(String(part.min_stock ?? 1));
     setPartUnit(part.unit || "Stück");
-    setPartLocation(part.location || "");
-    setPartNote(part.note || "");
+    setPartLocation(part.location || "Verwaltung");
+    setPartNote(part.note || "Verwaltung");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -3497,15 +3497,15 @@ FE-SERVICE`,
     await createDeviceHistory(
       partUsageDeviceId ? Number(partUsageDeviceId) : null,
       "Ersatzteil verbraucht",
-      `${quantity} ${part.unit || "Stück"} · ${part.name}${partUsageNote ? ` · ${partUsageNote}` : ""}`,
+      `${quantity} ${part.unit || "Stück"} · ${part.name}${partUsageNote ? ` · ${partUsageNote}` : "Verwaltung"}`,
       "Ersatzteil",
     );
 
-    setSelectedPartId("");
+    setSelectedPartId("Verwaltung");
     setPartUsageQuantity("1");
-    setPartUsageDeviceId("");
-    setPartUsageTicketId("");
-    setPartUsageNote("");
+    setPartUsageDeviceId("Verwaltung");
+    setPartUsageTicketId("Verwaltung");
+    setPartUsageNote("Verwaltung");
 
     await loadServiceParts();
     await loadPartUsages();
@@ -3570,30 +3570,30 @@ FE-SERVICE`,
 
   function resetContractForm() {
     setEditingContractId(null);
-    setContractCustomerId("");
-    setContractTitle("");
+    setContractCustomerId("Verwaltung");
+    setContractTitle("Verwaltung");
     setContractType("Wartungsvertrag");
     setContractSlaHours("24");
-    setContractMonthlyAmount("");
+    setContractMonthlyAmount("Verwaltung");
     setContractMaintenanceInterval("6");
-    setContractStartDate("");
-    setContractEndDate("");
+    setContractStartDate("Verwaltung");
+    setContractEndDate("Verwaltung");
     setContractStatus("Aktiv");
-    setContractNote("");
+    setContractNote("Verwaltung");
   }
 
   function startEditContract(contract: ServiceContract) {
     setEditingContractId(contract.id);
-    setContractCustomerId(contract.customer_id ? String(contract.customer_id) : "");
-    setContractTitle(contract.title || "");
+    setContractCustomerId(contract.customer_id ? String(contract.customer_id) : "Verwaltung");
+    setContractTitle(contract.title || "Verwaltung");
     setContractType(contract.contract_type || "Wartungsvertrag");
     setContractSlaHours(String(contract.sla_hours || 24));
-    setContractMonthlyAmount(String(contract.monthly_amount || ""));
+    setContractMonthlyAmount(String(contract.monthly_amount || "Verwaltung"));
     setContractMaintenanceInterval(String(contract.maintenance_interval_months || 6));
-    setContractStartDate(contract.start_date || "");
-    setContractEndDate(contract.end_date || "");
+    setContractStartDate(contract.start_date || "Verwaltung");
+    setContractEndDate(contract.end_date || "Verwaltung");
     setContractStatus(contract.status || "Aktiv");
-    setContractNote(contract.note || "");
+    setContractNote(contract.note || "Verwaltung");
 
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3711,10 +3711,10 @@ FE-SERVICE`,
 
   function resetNotificationForm() {
     setNotificationType("Einsatzbestätigung");
-    setNotificationRecipient("");
-    setNotificationSubject("");
-    setNotificationMessage("");
-    setNotificationTicketId("");
+    setNotificationRecipient("Verwaltung");
+    setNotificationSubject("Verwaltung");
+    setNotificationMessage("Verwaltung");
+    setNotificationTicketId("Verwaltung");
   }
 
   async function saveNotification() {
@@ -3774,12 +3774,12 @@ FE-SERVICE`,
 
   function resetInvoiceForm() {
     setInvoiceType("Rechnung");
-    setInvoiceTicketId("");
-    setInvoiceTitle("");
-    setInvoiceAmountNet("");
+    setInvoiceTicketId("Verwaltung");
+    setInvoiceTitle("Verwaltung");
+    setInvoiceAmountNet("Verwaltung");
     setInvoiceTaxRate("19");
     setInvoiceStatus("Entwurf");
-    setInvoiceNote("");
+    setInvoiceNote("Verwaltung");
   }
 
   function getInvoiceCustomerName(item: InvoiceItem) {
@@ -3793,22 +3793,22 @@ FE-SERVICE`,
 
 
   function resetAbnahmeProtocolForm() {
-    setAbnahmeCustomerId("");
-    setAbnahmeDeviceId("");
-    setAbnahmeTicketId("");
+    setAbnahmeCustomerId("Verwaltung");
+    setAbnahmeDeviceId("Verwaltung");
+    setAbnahmeTicketId("Verwaltung");
     setAbnahmeDate(new Date().toISOString().split("T")[0]);
-    setAbnahmeAddressObject("");
-    setAbnahmeOrderNumber("");
-    setAbnahmeCustomerNumber("");
+    setAbnahmeAddressObject("Verwaltung");
+    setAbnahmeOrderNumber("Verwaltung");
+    setAbnahmeCustomerNumber("Verwaltung");
     setAbnahmeContractType("Wartungsvertrag");
     setAbnahmeDguvChecked(true);
     setAbnahmeUvvChecked(true);
     setAbnahmePage("1");
     setAbnahmePagesTotal("1");
-    setAbnahmeManufacturer("");
-    setAbnahmeModel("");
-    setAbnahmeSerial("");
-    setAbnahmeDefects("");
+    setAbnahmeManufacturer("Verwaltung");
+    setAbnahmeModel("Verwaltung");
+    setAbnahmeSerial("Verwaltung");
+    setAbnahmeDefects("Verwaltung");
     setAbnahmeDeviceResult("OK");
     setAbnahmeChecks(
       abnahmeProtocolQuestions.map((question) => ({
@@ -3817,19 +3817,19 @@ FE-SERVICE`,
         ok: false,
         vs: false,
         df: false,
-        comment: "",
+        comment: "Verwaltung",
       })),
     );
     setAbnahmeBadgeApplied(false);
-    setAbnahmeRecommendation("");
-    setAbnahmeRepairRecommendedAt("");
+    setAbnahmeRecommendation("Verwaltung");
+    setAbnahmeRepairRecommendedAt("Verwaltung");
     setAbnahmeOfferFollows("Ja");
-    setAbnahmeNextInspection("");
-    setAbnahmeTechnicianName("");
-    setAbnahmeTechnicianShort("");
-    setAbnahmeCustomerResponsible("");
-    setAbnahmeTechnicianSignature("");
-    setAbnahmeCustomerSignature("");
+    setAbnahmeNextInspection("Verwaltung");
+    setAbnahmeTechnicianName("Verwaltung");
+    setAbnahmeTechnicianShort("Verwaltung");
+    setAbnahmeCustomerResponsible("Verwaltung");
+    setAbnahmeTechnicianSignature("Verwaltung");
+    setAbnahmeCustomerSignature("Verwaltung");
     clearSignatureCanvas("technician");
     clearSignatureCanvas("customer");
   }
@@ -3857,11 +3857,11 @@ FE-SERVICE`,
       setAbnahmeCustomerId(String(selectedDevice.customer_id));
     }
 
-    setAbnahmeManufacturer(selectedDevice.manufacturer || "");
-    setAbnahmeModel(selectedDevice.name || "");
-    setAbnahmeSerial(selectedDevice.serial_number || "");
-    setAbnahmeAddressObject(selectedDevice.location || "");
-    setAbnahmeDefects(selectedDevice.note || "");
+    setAbnahmeManufacturer(selectedDevice.manufacturer || "Verwaltung");
+    setAbnahmeModel(selectedDevice.name || "Verwaltung");
+    setAbnahmeSerial(selectedDevice.serial_number || "Verwaltung");
+    setAbnahmeAddressObject(selectedDevice.location || "Verwaltung");
+    setAbnahmeDefects(selectedDevice.note || "Verwaltung");
   }
 
   function getAbnahmeCanvasContext(canvas: HTMLCanvasElement | null) {
@@ -3959,10 +3959,10 @@ FE-SERVICE`,
 
     if (who === "technician") {
       abnahmeTechnicianDrawingRef.current = false;
-      setAbnahmeTechnicianSignature(canvas?.toDataURL("image/png") || "");
+      setAbnahmeTechnicianSignature(canvas?.toDataURL("image/png") || "Verwaltung");
     } else {
       abnahmeCustomerDrawingRef.current = false;
-      setAbnahmeCustomerSignature(canvas?.toDataURL("image/png") || "");
+      setAbnahmeCustomerSignature(canvas?.toDataURL("image/png") || "Verwaltung");
     }
   }
 
@@ -3978,9 +3978,9 @@ FE-SERVICE`,
     context?.clearRect(0, 0, canvas.width, canvas.height);
 
     if (who === "technician") {
-      setAbnahmeTechnicianSignature("");
+      setAbnahmeTechnicianSignature("Verwaltung");
     } else {
-      setAbnahmeCustomerSignature("");
+      setAbnahmeCustomerSignature("Verwaltung");
     }
   }
 
@@ -4006,20 +4006,20 @@ FE-SERVICE`,
         (item, index) => `
           <tr>
             <td class="question">${index + 1}. ${item.question}</td>
-            <td>${item.ja ? "X" : ""}</td>
-            <td>${item.ok ? "X" : ""}</td>
-            <td>${item.vs ? "X" : ""}</td>
-            <td>${item.df ? "X" : ""}</td>
+            <td>${item.ja ? "X" : "Verwaltung"}</td>
+            <td>${item.ok ? "X" : "Verwaltung"}</td>
+            <td>${item.vs ? "X" : "Verwaltung"}</td>
+            <td>${item.df ? "X" : "Verwaltung"}</td>
             <td>${index + 1}</td>
-            <td>${abnahmeManufacturer || selectedDevice?.manufacturer || ""}</td>
-            <td>${abnahmeModel || selectedDevice?.name || ""}</td>
-            <td>${abnahmeSerial || selectedDevice?.serial_number || ""}</td>
-            <td>${item.comment || (index === 0 ? abnahmeDefects : "")}</td>
+            <td>${abnahmeManufacturer || selectedDevice?.manufacturer || "Verwaltung"}</td>
+            <td>${abnahmeModel || selectedDevice?.name || "Verwaltung"}</td>
+            <td>${abnahmeSerial || selectedDevice?.serial_number || "Verwaltung"}</td>
+            <td>${item.comment || (index === 0 ? abnahmeDefects : "Verwaltung")}</td>
             <td>${abnahmeDeviceResult}</td>
           </tr>
         `,
       )
-      .join("");
+      .join("Verwaltung");
 
     return `
       <!doctype html>
@@ -4166,17 +4166,17 @@ FE-SERVICE`,
 
             <div class="row">
               Datum der Prüfung <span class="line mid">${abnahmeDate}</span>
-              Adresse / Objekt <span class="line">${abnahmeAddressObject || selectedCustomer?.address || selectedDevice?.location || ""}</span>
+              Adresse / Objekt <span class="line">${abnahmeAddressObject || selectedCustomer?.address || selectedDevice?.location || "Verwaltung"}</span>
             </div>
 
             <div class="row">
-              Auftr. Nr. / Kunden Nr. <span class="line mid">${abnahmeOrderNumber || selectedTicket?.ticket_number || ""}</span>
-              <span class="line mid">${abnahmeCustomerNumber || selectedCustomer?.id || ""}</span>
-              Wartungsvertrag ( ${abnahmeContractType === "Wartungsvertrag" ? "X" : ""} )
-              Einmalige Wartung ( ${abnahmeContractType === "Einmalige Wartung" ? "X" : ""} )
-              Abnahme ( ${abnahmeContractType === "Abnahme" ? "X" : ""} )
-              DGUV202-044 ( ${abnahmeDguvChecked ? "X" : ""} )
-              UVV-Unfallverhütungsvorschrift Prüfung ( ${abnahmeUvvChecked ? "X" : ""} )
+              Auftr. Nr. / Kunden Nr. <span class="line mid">${abnahmeOrderNumber || selectedTicket?.ticket_number || "Verwaltung"}</span>
+              <span class="line mid">${abnahmeCustomerNumber || selectedCustomer?.id || "Verwaltung"}</span>
+              Wartungsvertrag ( ${abnahmeContractType === "Wartungsvertrag" ? "X" : "Verwaltung"} )
+              Einmalige Wartung ( ${abnahmeContractType === "Einmalige Wartung" ? "X" : "Verwaltung"} )
+              Abnahme ( ${abnahmeContractType === "Abnahme" ? "X" : "Verwaltung"} )
+              DGUV202-044 ( ${abnahmeDguvChecked ? "X" : "Verwaltung"} )
+              UVV-Unfallverhütungsvorschrift Prüfung ( ${abnahmeUvvChecked ? "X" : "Verwaltung"} )
             </div>
 
             <table>
@@ -4199,8 +4199,8 @@ FE-SERVICE`,
                 ${checkRows}
                 <tr>
                   <td class="question">Prüfplakette angebracht</td>
-                  <td colspan="2">N ( ${abnahmeBadgeApplied ? "" : "X"} )</td>
-                  <td colspan="2">OK ( ${abnahmeBadgeApplied ? "X" : ""} )</td>
+                  <td colspan="2">N ( ${abnahmeBadgeApplied ? "Verwaltung" : "X"} )</td>
+                  <td colspan="2">OK ( ${abnahmeBadgeApplied ? "X" : "Verwaltung"} )</td>
                   <td colspan="6"></td>
                 </tr>
               </tbody>
@@ -4228,8 +4228,8 @@ FE-SERVICE`,
             <div class="row">
               Folge Reparatur-Auftrag empfohlen bei:
               <span class="line">${abnahmeRepairRecommendedAt}</span>
-              Angebot folgt Ja ( ${abnahmeOfferFollows === "Ja" ? "X" : ""} )
-              Nein ( ${abnahmeOfferFollows === "Nein" ? "X" : ""} )
+              Angebot folgt Ja ( ${abnahmeOfferFollows === "Ja" ? "X" : "Verwaltung"} )
+              Nein ( ${abnahmeOfferFollows === "Nein" ? "X" : "Verwaltung"} )
             </div>
 
             <div class="row">
@@ -4239,11 +4239,11 @@ FE-SERVICE`,
 
             <div class="signature-row">
               <div class="signature-box">
-                ${abnahmeTechnicianSignature ? `<img src="${abnahmeTechnicianSignature}" class="signature-img" />` : ""}
+                ${abnahmeTechnicianSignature ? `<img src="${abnahmeTechnicianSignature}" class="signature-img" />` : "Verwaltung"}
                 Unterschrift Techniker
               </div>
               <div class="signature-box">
-                ${abnahmeCustomerSignature ? `<img src="${abnahmeCustomerSignature}" class="signature-img" />` : ""}
+                ${abnahmeCustomerSignature ? `<img src="${abnahmeCustomerSignature}" class="signature-img" />` : "Verwaltung"}
                 Unterschrift Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}
               </div>
             </div>
@@ -4292,7 +4292,7 @@ FE-SERVICE`,
     let y = 9;
 
     function clean(value: any) {
-      return String(value ?? "")
+      return String(value ?? "Verwaltung")
         .replace(/\\s+/g, " ")
         .trim();
     }
@@ -4311,7 +4311,7 @@ FE-SERVICE`,
       pdf.setFont("helvetica", bold ? "bold" : "normal");
       pdf.setFontSize(size);
       const maxWidth = Math.max(4, w - 2);
-      const cellText = pdf.splitTextToSize(clean(value) || "", maxWidth);
+      const cellText = pdf.splitTextToSize(clean(value) || "Verwaltung", maxWidth);
       const textX = align === "center" ? x + w / 2 : x + 1.2;
       pdf.text(cellText.slice(0, 2), textX, cellY + 3.8, {
         align,
@@ -4393,16 +4393,16 @@ FE-SERVICE`,
     abnahmeChecks.forEach((item, index) => {
       const rowHeight = 6.8;
       drawCell(colX[0], y, colW[0], rowHeight, `${index + 1}. ${item.question}`, 5.4);
-      drawCell(colX[1], y, colW[1], rowHeight, item.ja ? "X" : "", 6, true, "center");
-      drawCell(colX[2], y, colW[2], rowHeight, item.ok ? "X" : "", 6, true, "center");
-      drawCell(colX[3], y, colW[3], rowHeight, item.vs ? "X" : "", 6, true, "center");
-      drawCell(colX[4], y, colW[4], rowHeight, item.df ? "X" : "", 6, true, "center");
+      drawCell(colX[1], y, colW[1], rowHeight, item.ja ? "X" : "Verwaltung", 6, true, "center");
+      drawCell(colX[2], y, colW[2], rowHeight, item.ok ? "X" : "Verwaltung", 6, true, "center");
+      drawCell(colX[3], y, colW[3], rowHeight, item.vs ? "X" : "Verwaltung", 6, true, "center");
+      drawCell(colX[4], y, colW[4], rowHeight, item.df ? "X" : "Verwaltung", 6, true, "center");
       drawCell(
         colX[5],
         y,
         colW[5],
         rowHeight,
-        item.comment || (index === 0 ? abnahmeDefects : ""),
+        item.comment || (index === 0 ? abnahmeDefects : "Verwaltung"),
         5.1,
       );
       y += rowHeight;
@@ -4598,7 +4598,7 @@ FE-SERVICE`,
       await loadDocuments();
 
       const html = buildAbnahmeProtocolHtml();
-      const printWindow = window.open("", "_blank");
+      const printWindow = window.open("Verwaltung", "_blank");
 
       if (!printWindow) {
         alert("PDF wurde archiviert. Popup wurde blockiert. Bitte Popups erlauben.");
@@ -4799,7 +4799,7 @@ FE-SERVICE`,
           <div class="box">
             <div class="label">Position</div>
             <div class="value">${item.title}</div>
-            <p>${item.note || ""}</p>
+            <p>${item.note || "Verwaltung"}</p>
           </div>
 
           <h2>Betrag</h2>
@@ -4816,7 +4816,7 @@ FE-SERVICE`,
 
     archiveInvoiceDocument(item, html);
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open("Verwaltung", "_blank");
 
     if (!printWindow) {
       alert("Popup wurde blockiert. Bitte Popups erlauben.");
@@ -5070,7 +5070,7 @@ FE-SERVICE`,
   );
 
   const contractGeneratedMaintenanceCount = maintenancePlans.filter((plan) =>
-    String(plan.note || "").includes("Automatisch aus Vertrag"),
+    String(plan.note || "Verwaltung").includes("Automatisch aus Vertrag"),
   ).length;
 
   const technicianPerformance = technicians
@@ -5865,8 +5865,8 @@ FE-SERVICE`,
                     ) : (
                       calendarTickets
                         .sort((a, b) =>
-                          String(a.service_time || "").localeCompare(
-                            String(b.service_time || ""),
+                          String(a.service_time || "Verwaltung").localeCompare(
+                            String(b.service_time || "Verwaltung"),
                           ),
                         )
                         .map((ticket) => (
@@ -6011,7 +6011,7 @@ FE-SERVICE`,
                       onChange={(e) => setNotificationTicketId(e.target.value)}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Kein Ticket verknüpfen</option>
+                      <option value="Verwaltung">Kein Ticket verknüpfen</option>
                       {tickets.map((ticket) => (
                         <option key={ticket.id} value={ticket.id}>
                           {ticket.ticket_number} · {ticket.customer}
@@ -6150,7 +6150,7 @@ FE-SERVICE`,
                       }}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Kein Ticket verknüpfen</option>
+                      <option value="Verwaltung">Kein Ticket verknüpfen</option>
                       {tickets.map((ticket) => (
                         <option key={ticket.id} value={ticket.id}>
                           {ticket.ticket_number} · {ticket.customer} · {ticket.issue}
@@ -6354,7 +6354,7 @@ FE-SERVICE`,
                       onChange={(e) => setSelectedDeviceId(e.target.value)}
                       className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Kein Gerät</option>
+                      <option value="Verwaltung">Kein Gerät</option>
 
                       {devices.map((item) => (
                         <option key={item.id} value={item.id}>
@@ -6415,7 +6415,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={() => {
-                        setDocumentSearchTerm("");
+                        setDocumentSearchTerm("Verwaltung");
                         setDocumentCustomerFilter("Alle");
                         setDocumentDeviceFilter("Alle");
                         setActiveDocumentCategory("Alle");
@@ -6726,7 +6726,7 @@ FE-SERVICE`,
             <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <div
                 className={`rounded-[24px] bg-white p-4 shadow-sm ${
-                  editingCustomer ? "ring-4 ring-green-200" : ""
+                  editingCustomer ? "ring-4 ring-green-200" : "Verwaltung"
                 }`}
               >
                 <h3 className="text-xl font-black">
@@ -7489,7 +7489,7 @@ FE-SERVICE`,
             <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
               <div
                 className={`rounded-[24px] bg-white p-4 shadow-sm ${
-                  editingDevice ? "ring-4 ring-green-200" : ""
+                  editingDevice ? "ring-4 ring-green-200" : "Verwaltung"
                 }`}
               >
                 <h3 className="text-xl font-black">
@@ -7513,11 +7513,11 @@ FE-SERVICE`,
                           const selectedManufacturer = manufacturers.find(
                             (item) => item.id === Number(e.target.value),
                           );
-                          setDeviceManufacturer(selectedManufacturer?.name || "");
+                          setDeviceManufacturer(selectedManufacturer?.name || "Verwaltung");
                         }}
                         className="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold"
                       >
-                        <option value="">Hersteller aus Verwaltung wählen</option>
+                        <option value="Verwaltung">Hersteller aus Verwaltung wählen</option>
                         {manufacturers.map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.name}
@@ -7529,7 +7529,7 @@ FE-SERVICE`,
                         value={deviceManufacturer}
                         onChange={(e) => {
                           setDeviceManufacturer(e.target.value);
-                          setDeviceManufacturerId("");
+                          setDeviceManufacturerId("Verwaltung");
                         }}
                         placeholder="oder Hersteller frei eintragen"
                         className="rounded-2xl border border-slate-300 px-5 py-3"
@@ -7724,9 +7724,9 @@ FE-SERVICE`,
                       onChange={(e) => setContractCustomerId(e.target.value)}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Kunde auswählen</option>
+                      <option value="Verwaltung">Kunde auswählen</option>
                       {customers.length === 0 ? (
-                        <option value="" disabled>
+                        <option value="Verwaltung" disabled>
                           Keine Kunden geladen
                         </option>
                       ) : (
@@ -7973,14 +7973,14 @@ FE-SERVICE`,
                         const selectedCustomer = customers.find(
                           (item) => item.id === Number(e.target.value),
                         );
-                        setAbnahmeAddressObject(selectedCustomer?.address || "");
+                        setAbnahmeAddressObject(selectedCustomer?.address || "Verwaltung");
                         setAbnahmeCustomerNumber(
-                          selectedCustomer ? String(selectedCustomer.id) : "",
+                          selectedCustomer ? String(selectedCustomer.id) : "Verwaltung",
                         );
                       }}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Kunde auswählen</option>
+                      <option value="Verwaltung">Kunde auswählen</option>
                       {portalCustomers.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.company || item.contact_person || `Kunde ${item.id}`}
@@ -7993,7 +7993,7 @@ FE-SERVICE`,
                       onChange={(e) => fillAbnahmeFromDevice(e.target.value)}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Gerät auswählen</option>
+                      <option value="Verwaltung">Gerät auswählen</option>
                       {availableTicketDevices
                         .filter((item) =>
                           abnahmeCustomerId
@@ -8012,7 +8012,7 @@ FE-SERVICE`,
                       onChange={(e) => setAbnahmeTicketId(e.target.value)}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Optional Ticket verknüpfen</option>
+                      <option value="Verwaltung">Optional Ticket verknüpfen</option>
                       {filteredTickets.map((ticket) => (
                         <option key={ticket.id} value={ticket.id}>
                           {ticket.ticket_number} · {ticket.customer} · {ticket.issue}
@@ -8373,11 +8373,11 @@ FE-SERVICE`,
                       value={maintenanceCustomerId}
                       onChange={(e) => {
                         setMaintenanceCustomerId(e.target.value);
-                        setMaintenanceDeviceId("");
+                        setMaintenanceDeviceId("Verwaltung");
                       }}
                       className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Kunde auswählen</option>
+                      <option value="Verwaltung">Kunde auswählen</option>
                       {customers.map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.company || `Kunde ${item.id}`}
@@ -8391,7 +8391,7 @@ FE-SERVICE`,
                       disabled={!maintenanceCustomerId}
                       className="rounded-2xl border border-slate-300 px-5 py-4 font-bold disabled:bg-slate-100 disabled:text-slate-400"
                     >
-                      <option value="">
+                      <option value="Verwaltung">
                         {maintenanceCustomerId ? "Gerät dieses Kunden auswählen" : "Erst Kunde auswählen"}
                       </option>
                       {maintenanceFilteredDevices.map((item) => (
@@ -8435,7 +8435,7 @@ FE-SERVICE`,
                       onChange={(e) => setMaintenanceAssignedTo(e.target.value)}
                       className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Techniker nicht zugewiesen</option>
+                      <option value="Verwaltung">Techniker nicht zugewiesen</option>
                       {technicians.map((technician) => (
                         <option key={technician.id} value={technician.id}>
                           {technician.full_name || technician.company || technician.id}
@@ -8509,7 +8509,7 @@ FE-SERVICE`,
                                 {plan.maintenance_type || "Wartung"} · {deviceItem?.serial_number || "Keine Seriennummer"}
                               </p>
                               <h4 className="mt-1 text-xl font-black">
-                                {plan.title || `Wartung ${deviceItem?.name || ""}`}
+                                {plan.title || `Wartung ${deviceItem?.name || "Verwaltung"}`}
                               </h4>
                               <p className="mt-2 text-sm text-slate-600">
                                 Kunde: {getCustomerNameById(plan.customer_id || deviceItem?.customer_id || null)}
@@ -8684,7 +8684,7 @@ FE-SERVICE`,
                           Termin: {ticket.service_date || "nicht geplant"}
                           {ticket.service_time
                             ? ` · ${ticket.service_time}`
-                            : ""}
+                            : "Verwaltung"}
                         </span>
                         <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700">
                           Einsatz: {ticket.service_status || "Geplant"}
@@ -8832,7 +8832,7 @@ FE-SERVICE`,
                         onChange={(e) => setInspectionDeviceId(e.target.value)}
                         className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                       >
-                        <option value="">Gerät auswählen</option>
+                        <option value="Verwaltung">Gerät auswählen</option>
                         {devices.map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.name}
@@ -9200,7 +9200,7 @@ FE-SERVICE`,
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 <div
                   className={`rounded-[24px] bg-white p-4 shadow-sm ${
-                    editingTicket ? "ring-4 ring-green-200" : ""
+                    editingTicket ? "ring-4 ring-green-200" : "Verwaltung"
                   }`}
                 >
                   <h3 className="text-xl font-black">
@@ -9227,7 +9227,7 @@ FE-SERVICE`,
                         onChange={(e) => setCustomer(e.target.value)}
                         className="w-full rounded-2xl border border-slate-300 px-5 py-4 text-base font-bold"
                       >
-                        <option value="">Kunde auswählen</option>
+                        <option value="Verwaltung">Kunde auswählen</option>
                         {customerNames.map((item) => (
                           <option key={item}>{item}</option>
                         ))}
@@ -9356,7 +9356,7 @@ FE-SERVICE`,
 
                       <button
                         onClick={() => {
-                          setSearchTerm("");
+                          setSearchTerm("Verwaltung");
                           setStatusFilter("Alle");
                           setPriorityFilter("Alle");
                         }}
@@ -9408,15 +9408,15 @@ FE-SERVICE`,
                                   Techniker:{" "}
                                   {getTechnicianNameById(ticket.assigned_to)}
                                   {ticket.service_date
-                                    ? ` · Termin: ${ticket.service_date}${ticket.service_time ? ` ${ticket.service_time}` : ""}`
+                                    ? ` · Termin: ${ticket.service_date}${ticket.service_time ? ` ${ticket.service_time}` : "Verwaltung"}`
                                     : " · Kein Termin"}
-                                  {ticket.service_status ? ` · Einsatz: ${ticket.service_status}` : ""}
+                                  {ticket.service_status ? ` · Einsatz: ${ticket.service_status}` : "Verwaltung"}
                                 </p>
 
                                 {isAdmin && (
                                   <div className="mt-3 grid gap-2 md:grid-cols-[1.3fr_1fr_0.8fr]">
                                     <select
-                                      value={ticket.assigned_to || ""}
+                                      value={ticket.assigned_to || "Verwaltung"}
                                       onChange={(e) =>
                                         updateTicketAssignment(
                                           ticket.id,
@@ -9427,7 +9427,7 @@ FE-SERVICE`,
                                       }
                                       className="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-bold"
                                     >
-                                      <option value="">Nicht zugewiesen</option>
+                                      <option value="Verwaltung">Nicht zugewiesen</option>
                                       {technicians.map((technician) => (
                                         <option
                                           key={technician.id}
@@ -9442,7 +9442,7 @@ FE-SERVICE`,
 
                                     <input
                                       type="date"
-                                      value={ticket.service_date || ""}
+                                      value={ticket.service_date || "Verwaltung"}
                                       onChange={(e) =>
                                         updateTicketAssignment(
                                           ticket.id,
@@ -9456,7 +9456,7 @@ FE-SERVICE`,
 
                                     <input
                                       type="time"
-                                      value={ticket.service_time || ""}
+                                      value={ticket.service_time || "Verwaltung"}
                                       onChange={(e) =>
                                         updateTicketAssignment(
                                           ticket.id,
@@ -9834,7 +9834,7 @@ FE-SERVICE`,
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 {isAdmin && (
                   <div
-                    className={`rounded-[24px] bg-white p-4 shadow-sm ${editingPart ? "ring-4 ring-green-200" : ""}`}
+                    className={`rounded-[24px] bg-white p-4 shadow-sm ${editingPart ? "ring-4 ring-green-200" : "Verwaltung"}`}
                   >
                     <h3 className="text-xl font-black">
                       {editingPart
@@ -9928,7 +9928,7 @@ FE-SERVICE`,
                 )}
 
                 <div
-                  className={`rounded-[24px] bg-white p-4 shadow-sm ${isAdmin ? "" : "xl:col-span-2"}`}
+                  className={`rounded-[24px] bg-white p-4 shadow-sm ${isAdmin ? "Verwaltung" : "xl:col-span-2"}`}
                 >
                   <h3 className="text-xl font-black">Verbrauch buchen</h3>
                   <p className="mt-2 text-slate-600">
@@ -9942,7 +9942,7 @@ FE-SERVICE`,
                       onChange={(e) => setSelectedPartId(e.target.value)}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Ersatzteil auswählen</option>
+                      <option value="Verwaltung">Ersatzteil auswählen</option>
                       {serviceParts.map((part) => (
                         <option key={part.id} value={part.id}>
                           {part.name} · Bestand: {part.stock ?? 0}{" "}
@@ -9965,7 +9965,7 @@ FE-SERVICE`,
                         onChange={(e) => setPartUsageDeviceId(e.target.value)}
                         className="rounded-2xl border border-slate-300 px-5 py-4"
                       >
-                        <option value="">Kein Gerät</option>
+                        <option value="Verwaltung">Kein Gerät</option>
                         {devices.map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.name}
@@ -9977,7 +9977,7 @@ FE-SERVICE`,
                         onChange={(e) => setPartUsageTicketId(e.target.value)}
                         className="rounded-2xl border border-slate-300 px-5 py-4"
                       >
-                        <option value="">Kein Ticket</option>
+                        <option value="Verwaltung">Kein Ticket</option>
                         {tickets.map((ticket) => (
                           <option key={ticket.id} value={ticket.id}>
                             {ticket.ticket_number} · {ticket.issue}
