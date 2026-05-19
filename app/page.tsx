@@ -7432,7 +7432,7 @@ FE-SERVICE`,
                             <button
                               type="button"
                               onClick={() => {
-                                setTicketCustomer(item.company || getCustomerDisplayName(item) || "");
+                                setCustomer(item.company || getCustomerDisplayName(item) || "");
                                 setActivePage("Service-Tickets");
                               }}
                               className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-black text-blue-700"
