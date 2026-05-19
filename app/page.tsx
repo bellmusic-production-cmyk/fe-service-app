@@ -7321,13 +7321,9 @@ FE-SERVICE`,
               
               <div className="w-full rounded-[32px] bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <h3 className="text-2xl font-black text-slate-900">
-                      Kunden suchen
-                    </h3>
-                    <p className="mt-1 text-sm font-semibold text-slate-500">
-                      Suche nach Firma, Ansprechpartner, Ort, E-Mail oder Telefon. Die Anzeige bleibt auf 30 Treffer begrenzt.
-                    </p>
+                  <div className="w-full min-w-0 rounded-[32px] bg-white p-6 shadow-sm">
+                    <h3 className="text-2xl font-black text-slate-900">Kunden suchen</h3>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">Suche nach Firma, Ansprechpartner, Ort, E-Mail oder Telefon.</p>
                   </div>
 
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-600">
@@ -7353,18 +7349,18 @@ FE-SERVICE`,
                     Kein Kunde gefunden.
                   </div>
                 ) : (
-                  <div className="mt-5 grid w-full grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+                  <div className="mt-5 grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {filteredCustomerDirectory.slice(0, 30).map((item) => {
                       const customerDevices = getDevicesForCustomer(item.id);
 
                       return (
                         <article
                           key={item.id}
-                          className="flex min-w-0 flex-col rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                          className="flex w-full min-w-0 flex-col rounded-3xl border border-slate-200 bg-slate-50 p-5"
                         >
                           <div className="min-w-0 flex-1">
                             <p className="break-words text-xs font-black text-green-600">
-                              Kundennummer {item.id}
+                              Kunden-Nr. {item.id}
                             </p>
 
                             <h4 className="mt-1 break-words text-xl font-black leading-tight text-slate-900">
