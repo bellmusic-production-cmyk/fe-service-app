@@ -4264,11 +4264,36 @@ FE-SERVICE`,
               margin-bottom: 6px;
             }
             .company {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-top: 18px;
-              font-size: 10px;
+              display: grid;
+              grid-template-columns: 170px 1fr 130px;
+              gap: 14px;
+              align-items: end;
+              margin-top: 22px;
+              font-size: 8.5px;
+              line-height: 1.25;
+            }
+            .footer-brand {
+              font-weight: 900;
+              font-size: 13px;
+              line-height: 1;
+            }
+            .footer-service-logo {
+              font-weight: 900;
+              font-size: 14px;
+              letter-spacing: -0.04em;
+            }
+            .footer-service-sub {
+              font-size: 7.5px;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+            }
+            .footer-details {
+              font-weight: 700;
+            }
+            .footer-partner {
+              text-align: right;
+              font-weight: 900;
+              font-size: 9px;
             }
             .company-logo {
               height: 26px;
@@ -4391,11 +4416,19 @@ FE-SERVICE`,
 
             <div class="company">
               <div>
-                <strong>FE-Service e.K.</strong><br/>
-                Fitness Equipment Service
+                <div class="footer-service-logo">FE-Service e.K.</div>
+                <div class="footer-service-sub">Fitness Equipment Service</div>
               </div>
-              <div>
-                Diese digitale Prüfung wurde über die FE-SERVICE Plattform erstellt.
+
+              <div class="footer-details">
+                Lochhamerstr. 1, 51491 Overath&nbsp;&nbsp;&nbsp; Lager: Mathildenstr. 5, 53797 Lohmar<br/>
+                Tel. 02206-9389333, Fax 02206-9389339<br/>
+                E-Mail: info@fe-service.de, URL: www.fe-service.de<br/>
+                Inhaber-Geschäftsführer: Frank Ehlers&nbsp;&nbsp; USt.Id: DE233560663&nbsp;&nbsp; HRA 37460 Amtsgericht Köln
+              </div>
+
+              <div class="footer-partner">
+                IN STYLE<br/>FITNESS
               </div>
             </div>
 
@@ -4594,12 +4627,26 @@ FE-SERVICE`,
     pdf.text("Unterschrift Techniker", 14, signatureY + 21);
     pdf.text(`Unterschrift Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}`, 109, signatureY + 21);
 
+    const footerY = pageHeight - 25;
+
     pdf.setFont("helvetica", "bold");
-    pdf.text("FE-Service e.K.", 204, signatureY + 6);
+    pdf.setFontSize(8);
+    pdf.text("FE-Service e.K.", 12, footerY);
+    pdf.setFontSize(4.8);
+    pdf.text("FITNESS EQUIPMENT SERVICE", 12, footerY + 3.8);
+
     pdf.setFont("helvetica", "normal");
-    pdf.text("Fitness Equipment Service", 204, signatureY + 11);
-    pdf.text("Digital erstellt über die FE-SERVICE Plattform", 204, signatureY + 16);
-    pdf.text(`Erstellt am: ${new Date().toLocaleString("de-DE")}`, 204, signatureY + 21);
+    pdf.setFontSize(5.4);
+    pdf.text("Lochhamerstr. 1, 51491 Overath   Lager: Mathildenstr. 5, 53797 Lohmar", 58, footerY);
+    pdf.text("Tel. 02206-9389333, Fax 02206-9389339", 58, footerY + 4);
+    pdf.text("E-Mail: info@fe-service.de, URL: www.fe-service.de", 58, footerY + 8);
+    pdf.text("Inhaber-Geschäftsführer: Frank Ehlers   USt.Id: DE233560663   HRA 37460 Amtsgericht Köln", 58, footerY + 12);
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(6);
+    pdf.text("IN STYLE", 246, footerY + 4);
+    pdf.text("FITNESS", 246, footerY + 8);
+    pdf.setFont("helvetica", "normal");
 
     pdf.setDrawColor(120);
     pdf.rect(6, 6, pageWidth - 12, pageHeight - 12);
