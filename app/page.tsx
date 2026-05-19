@@ -3986,7 +3986,7 @@ FE-SERVICE`,
       session?.user?.email ||
       "Nicht angegeben";
 
-    const pdf = new jsPDF("p", "mm", "a4");
+    const pdf = new jsPDF("l", "mm", "a4");
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
@@ -4051,16 +4051,16 @@ FE-SERVICE`,
     pdf.setFont("helvetica", "normal");
 
     y += 3;
-    drawCell(14, y, 42, 10, "Hersteller", 7, true);
-    drawCell(56, y, 54, 10, "Modell / NR", 7, true);
-    drawCell(110, y, 42, 10, "Seriennummer", 7, true);
-    drawCell(152, y, 30, 10, "Ergebnis", 7, true);
+    drawCell(14, y, 60, 10, "Hersteller", 7, true);
+    drawCell(74, y, 90, 10, "Modell / NR", 7, true);
+    drawCell(164, y, 43, 10, "Seriennummer", 7, true);
+    drawCell(207, y, 40, 10, "Ergebnis", 7, true);
 
     y += 10;
-    drawCell(14, y, 42, 12, abnahmeManufacturer || selectedDevice?.manufacturer || "-", 7);
-    drawCell(56, y, 54, 12, abnahmeModel || selectedDevice?.name || "-", 7);
-    drawCell(110, y, 42, 12, abnahmeSerial || selectedDevice?.serial_number || "-", 7);
-    drawCell(152, y, 30, 12, abnahmeDeviceResult || "-", 7);
+    drawCell(14, y, 60, 12, abnahmeManufacturer || selectedDevice?.manufacturer || "-", 7);
+    drawCell(74, y, 90, 12, abnahmeModel || selectedDevice?.name || "-", 7);
+    drawCell(164, y, 43, 12, abnahmeSerial || selectedDevice?.serial_number || "-", 7);
+    drawCell(207, y, 40, 12, abnahmeDeviceResult || "-", 7);
 
     y += 18;
     pdf.setFont("helvetica", "bold");
@@ -4068,8 +4068,8 @@ FE-SERVICE`,
     pdf.setFont("helvetica", "normal");
 
     y += 4;
-    const colX = [14, 105, 116, 127, 138, 149];
-    const colW = [91, 11, 11, 11, 11, 47];
+    const colX = [14, 155, 168, 181, 194, 207];
+    const colW = [141, 13, 13, 13, 13, 60];
 
     drawCell(colX[0], y, colW[0], 8, "Prüfpunkt", 7, true);
     drawCell(colX[1], y, colW[1], 8, "Ja", 7, true);
