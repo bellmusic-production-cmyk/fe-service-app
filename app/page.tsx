@@ -923,6 +923,10 @@ export default function Home() {
       return;
     }
 
+    setCustomers(data || []);
+  }
+
+
   async function loadManufacturers() {
     if (!isAdmin) {
       setManufacturers([]);
@@ -943,8 +947,7 @@ export default function Home() {
     setManufacturers((data || []) as Manufacturer[]);
   }
 
-    setCustomers(data || []);
-  }
+
 
   async function loadDocuments() {
     const { data, error } = await supabase
