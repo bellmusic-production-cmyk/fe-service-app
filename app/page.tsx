@@ -7410,7 +7410,7 @@ FE-SERVICE`,
                 </button>
 
                 <button
-                  onClick={archiveAbnahmeProtocolHtml}
+                  onClick={() => archiveAbnahmeProtocolHtml()}
                   className="rounded-2xl bg-blue-100 px-6 py-4 font-black text-blue-700"
                 >
                   Nur im Archiv speichern
