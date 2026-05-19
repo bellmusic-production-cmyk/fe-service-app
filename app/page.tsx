@@ -8061,27 +8061,27 @@ FE-SERVICE`,
                       <option>Abnahme</option>
                     </select>
 
-                    <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
-                      <label className="flex min-h-[96px] min-w-0 items-center gap-4 rounded-2xl bg-slate-50 p-4 font-bold leading-snug">
+                    <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                      <label className="flex min-h-[92px] min-w-0 items-center gap-4 rounded-2xl bg-slate-50 p-4 font-bold">
                         <input
                           type="checkbox"
                           checked={abnahmeDguvChecked}
                           onChange={(e) => setAbnahmeDguvChecked(e.target.checked)}
                           className="h-5 w-5 shrink-0 accent-green-600"
                         />
-                        <span className="min-w-0 flex-1 break-words">
+                        <span className="min-w-0 break-words leading-snug text-slate-900">
                           DGUV202-044
                         </span>
                       </label>
 
-                      <label className="flex min-h-[96px] min-w-0 items-center gap-4 rounded-2xl bg-slate-50 p-4 font-bold leading-snug">
+                      <label className="flex min-h-[92px] min-w-0 items-center gap-4 rounded-2xl bg-slate-50 p-4 font-bold">
                         <input
                           type="checkbox"
                           checked={abnahmeUvvChecked}
                           onChange={(e) => setAbnahmeUvvChecked(e.target.checked)}
                           className="h-5 w-5 shrink-0 accent-green-600"
                         />
-                        <span className="min-w-0 flex-1 break-words">
+                        <span className="min-w-0 break-words leading-snug text-slate-900">
                           UVV-Unfallverhütungsvorschrift Prüfung
                         </span>
                       </label>
@@ -10134,4 +10134,3 @@ function StatCard({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-s
