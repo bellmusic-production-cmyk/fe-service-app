@@ -5232,6 +5232,8 @@ FE-SERVICE`,
     });
   }
 
+  const editingCustomerIdForDeviceAssignment = editingCustomer ? Number((editingCustomer as Customer).id) : null;
+
   const profileCustomer = userProfile?.customer_id
     ? customers.find((item) => item.id === userProfile.customer_id)
     : null;
@@ -7209,7 +7211,7 @@ FE-SERVICE`,
                         ) : (
                           devices.map((deviceItem) => {
                             const assignedOtherCustomerName =
-                              deviceItem.customer_id && (!editingCustomer || deviceItem.customer_id !== editingCustomer.id)
+                              deviceItem.customer_id && deviceItem.customer_id !== editingCustomerIdForDeviceAssignment
                                 ? getCustomerNameById(deviceItem.customer_id)
                                 : "";
 
