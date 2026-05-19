@@ -8061,23 +8061,29 @@ FE-SERVICE`,
                       <option>Abnahme</option>
                     </select>
 
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <label className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 font-bold">
+                    <div className="grid grid-cols-1 gap-3 2xl:grid-cols-2">
+                      <label className="flex min-h-[96px] min-w-0 items-center gap-4 rounded-2xl bg-slate-50 p-4 font-bold leading-snug">
                         <input
                           type="checkbox"
                           checked={abnahmeDguvChecked}
                           onChange={(e) => setAbnahmeDguvChecked(e.target.checked)}
+                          className="h-5 w-5 shrink-0 accent-green-600"
                         />
-                        DGUV202-044
+                        <span className="min-w-0 flex-1 break-words">
+                          DGUV202-044
+                        </span>
                       </label>
 
-                      <label className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 font-bold">
+                      <label className="flex min-h-[96px] min-w-0 items-center gap-4 rounded-2xl bg-slate-50 p-4 font-bold leading-snug">
                         <input
                           type="checkbox"
                           checked={abnahmeUvvChecked}
                           onChange={(e) => setAbnahmeUvvChecked(e.target.checked)}
+                          className="h-5 w-5 shrink-0 accent-green-600"
                         />
-                        UVV-Unfallverhütungsvorschrift Prüfung
+                        <span className="min-w-0 flex-1 break-words">
+                          UVV-Unfallverhütungsvorschrift Prüfung
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -10128,3 +10134,4 @@ function StatCard({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
+s
