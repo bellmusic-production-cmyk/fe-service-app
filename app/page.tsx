@@ -1254,6 +1254,11 @@ export default function Home() {
   }
 
   async function deleteDocument(item: DocumentItem) {
+    if (!canDeleteDocument(item)) {
+      alert(documentDeleteLockedReason(item));
+      return;
+    }
+
     if (!confirm("Datei wirklich löschen?")) return;
 
     const storageResult = await supabase.storage
@@ -2268,6 +2273,30 @@ export default function Home() {
     const linkedTicket = tickets.find((ticketItem) => ticketItem.id === item.ticket_id);
     return getTechnicianNameById(linkedTicket?.assigned_to || null);
   }
+
+  function canDeleteDocument(item: DocumentItem) {
+    if (isAdmin) return true;
+
+    if (isCustomer) return false;
+
+    if (isTechnician) {
+      if (item.category === "Abnahmeprotokolle") return false;
+      if (item.file_path?.startsWith("Abnahmeprotokolle/")) return false;
+      if (item.file_name?.toLowerCase().includes("abnahmeprotokoll")) return false;
+      return true;
+    }
+
+    return false;
+  }
+
+  function documentDeleteLockedReason(item: DocumentItem) {
+    if (isTechnician && item.category === "Abnahmeprotokolle") {
+      return "Abnahmeprotokolle sind geschützt und können nur vom Admin gelöscht werden.";
+    }
+
+    return "Keine Löschberechtigung.";
+  }
+
 
 
   function openDeviceFromQr(item: Device) {
@@ -3990,7 +4019,7 @@ FE-SERVICE`,
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    let y = 14;
+    let y = 9;
 
     function clean(value: any) {
       return String(value ?? "")
@@ -3998,149 +4027,145 @@ FE-SERVICE`,
         .trim();
     }
 
-    function addWrappedText(value: any, x: number, currentY: number, maxWidth: number, size = 8) {
-      pdf.setFontSize(size);
-      const lines = pdf.splitTextToSize(clean(value) || "-", maxWidth);
-      pdf.text(lines, x, currentY);
-      return currentY + lines.length * (size * 0.42) + 2;
-    }
-
-    function drawCell(x: number, cellY: number, w: number, h: number, value: any, size = 7, bold = false) {
+    function drawCell(
+      x: number,
+      cellY: number,
+      w: number,
+      h: number,
+      value: any,
+      size = 6,
+      bold = false,
+      align: "left" | "center" = "left",
+    ) {
       pdf.rect(x, cellY, w, h);
       pdf.setFont("helvetica", bold ? "bold" : "normal");
       pdf.setFontSize(size);
-      const cellText = pdf.splitTextToSize(clean(value), Math.max(4, w - 2));
-      pdf.text(cellText, x + 1.5, cellY + 4);
+      const maxWidth = Math.max(4, w - 2);
+      const cellText = pdf.splitTextToSize(clean(value) || "", maxWidth);
+      const textX = align === "center" ? x + w / 2 : x + 1.2;
+      pdf.text(cellText.slice(0, 2), textX, cellY + 3.8, {
+        align,
+      });
       pdf.setFont("helvetica", "normal");
     }
 
+    function checkbox(label: string, checked: boolean, x: number, boxY: number) {
+      pdf.rect(x, boxY - 3, 3.5, 3.5);
+      if (checked) {
+        pdf.setFont("helvetica", "bold");
+        pdf.text("X", x + 0.7, boxY - 0.3);
+        pdf.setFont("helvetica", "normal");
+      }
+      pdf.text(label, x + 5, boxY);
+    }
+
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(13);
-    pdf.text("Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung", pageWidth / 2, y, {
-      align: "center",
-    });
+    pdf.setFontSize(11);
+    pdf.text(
+      "Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung für Sport-Fitness – Kraft & Medizin Geräte",
+      pageWidth / 2,
+      y,
+      { align: "center" },
+    );
+
+    y += 6;
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(6.8);
+    pdf.text(`Datum der Prüfung: ${abnahmeDate || "-"}`, 10, y);
+    pdf.text(`Auftrag: ${abnahmeOrderNumber || selectedTicket?.ticket_number || "-"}`, 58, y);
+    pdf.text(`Kunden-Nr.: ${abnahmeCustomerNumber || selectedCustomer?.id || "-"}`, 103, y);
+    pdf.text(`Seite ${abnahmePage || "1"} von ${abnahmePagesTotal || "1"}`, 260, y);
+
+    y += 5;
+    pdf.text(`Kunde: ${selectedCustomer?.company || selectedCustomer?.contact_person || "-"}`, 10, y);
+    pdf.text(
+      `Adresse / Objekt: ${abnahmeAddressObject || selectedCustomer?.address || selectedDevice?.location || "-"}`,
+      90,
+      y,
+    );
+
+    y += 5;
+    checkbox("Wartungsvertrag", abnahmeContractType === "Wartungsvertrag", 10, y);
+    checkbox("Einmalige Wartung", abnahmeContractType === "Einmalige Wartung", 48, y);
+    checkbox("Abnahme", abnahmeContractType === "Abnahme", 91, y);
+    checkbox("DGUV202-044", abnahmeDguvChecked, 118, y);
+    checkbox("UVV-Unfallverhütungsvorschrift Prüfung", abnahmeUvvChecked, 153, y);
+
+    y += 6;
+
+    drawCell(10, y, 48, 7, "Hersteller", 5.8, true);
+    drawCell(58, y, 76, 7, "Modell / NR", 5.8, true);
+    drawCell(134, y, 42, 7, "Seriennummer", 5.8, true);
+    drawCell(176, y, 30, 7, "Ergebnis", 5.8, true);
+    drawCell(206, y, 78, 7, "Mängel / Gerätedaten", 5.8, true);
 
     y += 7;
-    pdf.setFontSize(9);
-    pdf.text("für Sport-Fitness - Kraft & Medizin Geräte", pageWidth / 2, y, {
-      align: "center",
-    });
-
-    y += 8;
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(8);
-    pdf.text(`Datum der Prüfung: ${abnahmeDate || "-"}`, 14, y);
-    pdf.text(`Seite ${abnahmePage || "1"} von ${abnahmePagesTotal || "1"}`, 155, y);
-
-    y += 6;
-    pdf.text(`Kunde: ${selectedCustomer?.company || selectedCustomer?.contact_person || "-"}`, 14, y);
-    pdf.text(`Kunden-Nr.: ${abnahmeCustomerNumber || selectedCustomer?.id || "-"}`, 120, y);
-
-    y += 6;
-    pdf.text(`Adresse / Objekt: ${abnahmeAddressObject || selectedCustomer?.address || selectedDevice?.location || "-"}`, 14, y);
-
-    y += 6;
-    pdf.text(`Auftrag: ${abnahmeOrderNumber || selectedTicket?.ticket_number || "-"}`, 14, y);
-    pdf.text(`Vertragsart: ${abnahmeContractType}`, 80, y);
-    pdf.text(`DGUV202-044: ${abnahmeDguvChecked ? "Ja" : "Nein"}`, 140, y);
-    pdf.text(`UVV: ${abnahmeUvvChecked ? "Ja" : "Nein"}`, 175, y);
-
-    y += 8;
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Gerätedaten", 14, y);
-    pdf.setFont("helvetica", "normal");
-
-    y += 3;
-    drawCell(14, y, 60, 10, "Hersteller", 7, true);
-    drawCell(74, y, 90, 10, "Modell / NR", 7, true);
-    drawCell(164, y, 43, 10, "Seriennummer", 7, true);
-    drawCell(207, y, 40, 10, "Ergebnis", 7, true);
+    drawCell(10, y, 48, 8, abnahmeManufacturer || selectedDevice?.manufacturer || "-", 5.8);
+    drawCell(58, y, 76, 8, abnahmeModel || selectedDevice?.name || "-", 5.8);
+    drawCell(134, y, 42, 8, abnahmeSerial || selectedDevice?.serial_number || "-", 5.8);
+    drawCell(176, y, 30, 8, abnahmeDeviceResult || "-", 5.8, true, "center");
+    drawCell(206, y, 78, 8, abnahmeDefects || "-", 5.6);
 
     y += 10;
-    drawCell(14, y, 60, 12, abnahmeManufacturer || selectedDevice?.manufacturer || "-", 7);
-    drawCell(74, y, 90, 12, abnahmeModel || selectedDevice?.name || "-", 7);
-    drawCell(164, y, 43, 12, abnahmeSerial || selectedDevice?.serial_number || "-", 7);
-    drawCell(207, y, 40, 12, abnahmeDeviceResult || "-", 7);
 
-    y += 18;
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Prüfpunkte", 14, y);
-    pdf.setFont("helvetica", "normal");
+    const colX = [10, 151, 163, 175, 187, 199];
+    const colW = [141, 12, 12, 12, 12, 85];
 
-    y += 4;
-    const colX = [14, 155, 168, 181, 194, 207];
-    const colW = [141, 13, 13, 13, 13, 60];
+    drawCell(colX[0], y, colW[0], 6, "Prüfpunkt", 5.8, true);
+    drawCell(colX[1], y, colW[1], 6, "Ja", 5.8, true, "center");
+    drawCell(colX[2], y, colW[2], 6, "OK", 5.8, true, "center");
+    drawCell(colX[3], y, colW[3], 6, "VS", 5.8, true, "center");
+    drawCell(colX[4], y, colW[4], 6, "DF", 5.8, true, "center");
+    drawCell(colX[5], y, colW[5], 6, "Mangel / Bemerkung", 5.8, true);
 
-    drawCell(colX[0], y, colW[0], 8, "Prüfpunkt", 7, true);
-    drawCell(colX[1], y, colW[1], 8, "Ja", 7, true);
-    drawCell(colX[2], y, colW[2], 8, "OK", 7, true);
-    drawCell(colX[3], y, colW[3], 8, "VS", 7, true);
-    drawCell(colX[4], y, colW[4], 8, "DF", 7, true);
-    drawCell(colX[5], y, colW[5], 8, "Mangel / Bemerkung", 7, true);
-
-    y += 8;
+    y += 6;
 
     abnahmeChecks.forEach((item, index) => {
-      if (y > 255) {
-        pdf.addPage();
-        y = 14;
-      }
-
-      const rowHeight = 9;
-      drawCell(colX[0], y, colW[0], rowHeight, `${index + 1}. ${item.question}`, 6.5);
-      drawCell(colX[1], y, colW[1], rowHeight, item.ja ? "X" : "", 7, true);
-      drawCell(colX[2], y, colW[2], rowHeight, item.ok ? "X" : "", 7, true);
-      drawCell(colX[3], y, colW[3], rowHeight, item.vs ? "X" : "", 7, true);
-      drawCell(colX[4], y, colW[4], rowHeight, item.df ? "X" : "", 7, true);
-      drawCell(colX[5], y, colW[5], rowHeight, item.comment || (index === 0 ? abnahmeDefects : ""), 6.5);
+      const rowHeight = 6.8;
+      drawCell(colX[0], y, colW[0], rowHeight, `${index + 1}. ${item.question}`, 5.4);
+      drawCell(colX[1], y, colW[1], rowHeight, item.ja ? "X" : "", 6, true, "center");
+      drawCell(colX[2], y, colW[2], rowHeight, item.ok ? "X" : "", 6, true, "center");
+      drawCell(colX[3], y, colW[3], rowHeight, item.vs ? "X" : "", 6, true, "center");
+      drawCell(colX[4], y, colW[4], rowHeight, item.df ? "X" : "", 6, true, "center");
+      drawCell(
+        colX[5],
+        y,
+        colW[5],
+        rowHeight,
+        item.comment || (index === 0 ? abnahmeDefects : ""),
+        5.1,
+      );
       y += rowHeight;
     });
 
-    if (y > 240) {
-      pdf.addPage();
-      y = 14;
-    }
+    y += 4;
 
-    y += 6;
+    pdf.setFontSize(6.5);
+    checkbox("Prüfplakette angebracht", abnahmeBadgeApplied, 10, y);
+    pdf.text(`Nächste Prüfung: ${abnahmeNextInspection || "-"}`, 62, y);
+    pdf.text(`Techniker: ${technicianName}`, 115, y);
+    pdf.text(`Kürzel: ${abnahmeTechnicianShort || "-"}`, 205, y);
+
+    y += 5;
+    pdf.text(`Angebot folgt: ${abnahmeOfferFollows || "-"}`, 10, y);
+    pdf.text(`Folge Reparatur-Auftrag empfohlen bei: ${abnahmeRepairRecommendedAt || "-"}`, 62, y);
+
+    y += 5;
     pdf.setFont("helvetica", "bold");
-    pdf.text("Abschluss", 14, y);
+    pdf.text("Empfehlung:", 10, y);
     pdf.setFont("helvetica", "normal");
+    const recommendationLines = pdf.splitTextToSize(clean(abnahmeRecommendation || "-"), 250);
+    pdf.text(recommendationLines.slice(0, 2), 32, y);
 
-    y += 6;
-    pdf.text(`Prüfplakette angebracht: ${abnahmeBadgeApplied ? "Ja" : "Nein"}`, 14, y);
-    pdf.text(`Nächste Prüfung: ${abnahmeNextInspection || "-"}`, 100, y);
+    y += 14;
 
-    y += 6;
-    pdf.text(`Techniker: ${technicianName}`, 14, y);
-    pdf.text(`Kürzel: ${abnahmeTechnicianShort || "-"}`, 120, y);
-
-    y += 6;
-    pdf.text(`Angebot folgt: ${abnahmeOfferFollows || "-"}`, 14, y);
-    pdf.text(`Folge Reparatur-Auftrag empfohlen bei: ${abnahmeRepairRecommendedAt || "-"}`, 80, y);
-
-    y += 7;
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Empfehlung / Hinweise", 14, y);
-    pdf.setFont("helvetica", "normal");
-    y = addWrappedText(abnahmeRecommendation || "-", 14, y + 5, 170, 8);
-
-    if (y > 230) {
-      pdf.addPage();
-      y = 14;
-    }
-
-    y += 8;
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Unterschriften", 14, y);
-    pdf.setFont("helvetica", "normal");
-
-    y += 6;
-    pdf.rect(14, y, 82, 34);
-    pdf.rect(110, y, 82, 34);
+    const signatureY = Math.min(y, 164);
+    pdf.rect(10, signatureY, 82, 24);
+    pdf.rect(105, signatureY, 82, 24);
 
     if (abnahmeTechnicianSignature) {
       try {
-        pdf.addImage(abnahmeTechnicianSignature, "PNG", 18, y + 4, 70, 20);
+        pdf.addImage(abnahmeTechnicianSignature, "PNG", 14, signatureY + 3, 68, 13);
       } catch {
         // Signatur konnte nicht eingebettet werden.
       }
@@ -4148,25 +4173,25 @@ FE-SERVICE`,
 
     if (abnahmeCustomerSignature) {
       try {
-        pdf.addImage(abnahmeCustomerSignature, "PNG", 114, y + 4, 70, 20);
+        pdf.addImage(abnahmeCustomerSignature, "PNG", 109, signatureY + 3, 68, 13);
       } catch {
         // Signatur konnte nicht eingebettet werden.
       }
     }
 
-    pdf.setFontSize(8);
-    pdf.text("Unterschrift Techniker", 18, y + 30);
-    pdf.text(`Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}`, 114, y + 30);
+    pdf.setFontSize(6.2);
+    pdf.text("Unterschrift Techniker", 14, signatureY + 21);
+    pdf.text(`Unterschrift Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}`, 109, signatureY + 21);
 
-    y += 44;
-    pdf.setFontSize(8);
     pdf.setFont("helvetica", "bold");
-    pdf.text("FE-Service e.K.", 14, y);
+    pdf.text("FE-Service e.K.", 204, signatureY + 6);
     pdf.setFont("helvetica", "normal");
-    pdf.text("Fitness Equipment Service - Digital erstellt über die FE-SERVICE Plattform", 14, y + 5);
+    pdf.text("Fitness Equipment Service", 204, signatureY + 11);
+    pdf.text("Digital erstellt über die FE-SERVICE Plattform", 204, signatureY + 16);
+    pdf.text(`Erstellt am: ${new Date().toLocaleString("de-DE")}`, 204, signatureY + 21);
 
-    pdf.setFontSize(7);
-    pdf.text(`Erstellt am: ${new Date().toLocaleString("de-DE")}`, 14, pageHeight - 10);
+    pdf.setDrawColor(120);
+    pdf.rect(6, 6, pageWidth - 12, pageHeight - 12);
 
     return pdf.output("blob") as Blob;
   }
@@ -6077,12 +6102,22 @@ FE-SERVICE`,
                               Öffnen
                             </button>
 
-                            <button
-                              onClick={() => deleteDocument(item)}
-                              className="rounded-[20px] bg-[#f3dede] px-6 py-4 text-lg font-black text-[#bb2d2d]"
-                            >
-                              Löschen
-                            </button>
+                            {canDeleteDocument(item) ? (
+                              <button
+                                onClick={() => deleteDocument(item)}
+                                className="rounded-[20px] bg-[#f3dede] px-6 py-4 text-lg font-black text-[#bb2d2d]"
+                              >
+                                Löschen
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => alert(documentDeleteLockedReason(item))}
+                                className="rounded-[20px] bg-slate-100 px-6 py-4 text-lg font-black text-slate-400"
+                              >
+                                Geschützt
+                              </button>
+                            )}
                           </div>
                           </div>
                         </div>
