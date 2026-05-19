@@ -427,7 +427,6 @@ export default function Home() {
   const [customerCity, setCustomerCity] = useState("");
   const [customerCountry, setCustomerCountry] = useState("Deutschland");
   const [assignedDeviceIds, setAssignedDeviceIds] = useState<string[]>([]);
-  const [customerDeviceAssignSearch, setCustomerDeviceAssignSearch] = useState("");
 
   const [partName, setPartName] = useState("");
   const [partSku, setPartSku] = useState("");
@@ -1506,7 +1505,6 @@ export default function Home() {
     setCustomerCity("");
     setCustomerCountry("Deutschland");
     setAssignedDeviceIds([]);
-    setCustomerDeviceAssignSearch("");
   }
 
   function resetPartForm() {
@@ -5575,48 +5573,6 @@ FE-SERVICE`,
     });
   })();
 
-
-  const editingCustomerIdForDeviceAssignment = editingCustomer
-    ? Number((editingCustomer as Customer).id)
-    : null;
-
-  const assignedCustomerDevices = devices.filter((deviceItem) =>
-    assignedDeviceIds.includes(String(deviceItem.id)),
-  );
-
-  const customerDeviceAssignResults = (() => {
-    const search = customerDeviceAssignSearch.trim().toLowerCase();
-
-    if (!search || search.length < 2) return [];
-
-    return devices
-      .filter((deviceItem) => !assignedDeviceIds.includes(String(deviceItem.id)))
-      .filter((deviceItem) => {
-        const linkedCustomer = deviceItem.customer_id
-          ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
-          : null;
-
-        const searchText = [
-          deviceItem.name,
-          deviceItem.manufacturer,
-          getManufacturerNameById(deviceItem.manufacturer_id),
-          deviceItem.serial_number,
-          deviceItem.location,
-          deviceItem.status,
-          deviceItem.note,
-          linkedCustomer ? getCustomerDisplayName(linkedCustomer) : "",
-          linkedCustomer ? getCustomerLabel(linkedCustomer) : "",
-          linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        return searchText.includes(search);
-      })
-      .slice(0, 25);
-  })();
-
   if (authLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#07130d] text-white">
@@ -7063,101 +7019,261 @@ FE-SERVICE`,
                   editingCustomer ? "ring-4 ring-green-200" : ""
                 }`}
               >
-                <h3 className="text-2xl font-black text-slate-900">Kunden suchen</h3>
-                    <p className="mt-1 text-sm font-semibold text-slate-500">Suche nach Firma, Ansprechpartner, Ort, E-Mail oder Telefon.</p>
+                <h3 className="text-xl font-black">
+                  {editingCustomer ? "Kunde bearbeiten" : "Neuer Kunde"}
+                </h3>
+
+                <div className="mt-5 space-y-4">
+                  <input
+                    value={customerCompany}
+                    onChange={(e) => setCustomerCompany(e.target.value)}
+                    placeholder="Firma / Studio"
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-3"
+                  />
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input
+                      value={customerFirstName}
+                      onChange={(e) => setCustomerFirstName(e.target.value)}
+                      placeholder="Vorname Ansprechpartner"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerLastName}
+                      onChange={(e) => setCustomerLastName(e.target.value)}
+                      placeholder="Nachname Ansprechpartner"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
                   </div>
 
-                  <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-600">
-                    {customerDirectorySearch.trim().length < 2
-                      ? "Suche ab 2 Zeichen"
-                      : `${filteredCustomerDirectory.length} Treffer`}
-                  </span>
+                  <input
+                    value={customerContact}
+                    onChange={(e) => setCustomerContact(e.target.value)}
+                    placeholder="Ansprechpartner optional / Anzeigename"
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-3"
+                  />
+
+                  <input
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    placeholder="E-Mail"
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-3"
+                  />
+
+                  <input
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="Telefon"
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-3"
+                  />
+
+                  <div className="grid gap-3 md:grid-cols-[1fr_0.45fr]">
+                    <input
+                      value={customerStreet}
+                      onChange={(e) => setCustomerStreet(e.target.value)}
+                      placeholder="Straße"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerHouseNumber}
+                      onChange={(e) => setCustomerHouseNumber(e.target.value)}
+                      placeholder="Hausnummer"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-[0.55fr_1fr_0.75fr]">
+                    <input
+                      value={customerPostalCode}
+                      onChange={(e) => setCustomerPostalCode(e.target.value)}
+                      placeholder="PLZ"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerCity}
+                      onChange={(e) => setCustomerCity(e.target.value)}
+                      placeholder="Ort"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerCountry}
+                      onChange={(e) => setCustomerCountry(e.target.value)}
+                      placeholder="Land"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
+                  <textarea
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    placeholder="Adresse Altbestand / Zusatzinformation optional"
+                    rows={3}
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-3"
+                  />
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="mb-3 text-sm font-bold text-slate-700">
+                      Geräte diesem Kunden zuweisen
+                    </p>
+
+                    {devices.length === 0 ? (
+                      <p className="text-sm text-slate-500">
+                        Noch keine Geräte vorhanden.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {devices.map((deviceItem) => (
+                          <label
+                            key={deviceItem.id}
+                            className="flex items-center gap-3 rounded-xl bg-white p-3 text-sm font-bold"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={assignedDeviceIds.includes(
+                                String(deviceItem.id),
+                              )}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAssignedDeviceIds((prev) => [
+                                    ...prev,
+                                    String(deviceItem.id),
+                                  ]);
+                                } else {
+                                  setAssignedDeviceIds((prev) =>
+                                    prev.filter(
+                                      (id) => id !== String(deviceItem.id),
+                                    ),
+                                  );
+                                }
+                              }}
+                            />
+                            <span>{deviceItem.name}</span>
+                            {deviceItem.customer_id &&
+                              deviceItem.customer_id !==
+                                editingCustomer?.id && (
+                                <span className="ml-auto rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-700">
+                                  bereits zugewiesen
+                                </span>
+                              )}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {editingCustomer ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <button
+                        onClick={updateCustomer}
+                        className="rounded-2xl bg-green-600 py-4 font-bold text-white"
+                      >
+                        Kunde speichern
+                      </button>
+
+                      <button
+                        onClick={resetCustomerForm}
+                        className="rounded-2xl border border-slate-300 py-4 font-bold"
+                      >
+                        Abbrechen
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={createCustomer}
+                      className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white"
+                    >
+                      Kunde hinzufügen
+                    </button>
+                  )}
                 </div>
+              </div>
+              )}
+
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Kundenliste mit Geräteüberblick</h3>
+                {!isAdmin && (
+                  <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
+                    Such- und Lesemodus: Techniker können Kundendaten und zugewiesene Geräte ansehen, aber nicht bearbeiten.
+                  </p>
+                )}
 
                 <input
                   value={customerDirectorySearch}
                   onChange={(e) => setCustomerDirectorySearch(e.target.value)}
-                  placeholder="Kunde suchen: Firma, Name, Ort, PLZ, E-Mail oder Telefon"
-                  className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 text-base font-semibold outline-none focus:border-green-500"
+                  placeholder="Kunden suchen: Firma, Vorname, Nachname, Ort, PLZ, E-Mail, Telefon"
+                  className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
                 />
 
-                {customerDirectorySearch.trim().length < 2 ? (
-                  <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-bold text-slate-500">
-                    Mindestens 2 Zeichen eingeben, um Kunden zu suchen.
-                  </div>
-                ) : filteredCustomerDirectory.length === 0 ? (
-                  <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-bold text-slate-500">
-                    Kein Kunde gefunden.
-                  </div>
-                ) : (
-                  <div className="mt-5 grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {filteredCustomerDirectory.slice(0, 30).map((item) => {
-                      const customerDevices = getDevicesForCustomer(item.id);
-
-                      return (
-                        <article
-                          key={item.id}
-                          className="flex w-full min-w-0 flex-col rounded-3xl border border-slate-200 bg-slate-50 p-5"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="break-words text-xs font-black text-green-600">
-                              Kundennummer {item.id}
+                <div className="mt-5 space-y-3">
+                  {filteredCustomerDirectory.length === 0 ? (
+                    <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
+                      Keine Kunden gefunden.
+                    </div>
+                  ) : (
+                    filteredCustomerDirectory.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="text-xs font-bold text-green-600">
+                              {getCustomerDisplayName(item) || "Kein Ansprechpartner"}
                             </p>
 
-                            <h4 className="mt-1 break-words text-xl font-black leading-tight text-slate-900">
-                              {getCustomerDisplayName(item) || item.company || "Unbenannter Kunde"}
+                            <h4 className="mt-1 text-xl font-black">
+                              {item.company}
                             </h4>
 
-                            {item.company && getCustomerDisplayName(item) !== item.company && (
-                              <p className="mt-1 break-words text-sm font-bold text-slate-500">
-                                {item.company}
-                              </p>
-                            )}
+                            <p className="mt-2 text-sm text-slate-600">
+                              E-Mail: {item.email || "Nicht angegeben"}
+                            </p>
 
-                            <div className="mt-3 space-y-1 text-sm font-semibold leading-snug text-slate-600">
-                              <p className="break-words">
-                                E-Mail: {item.email || "Nicht angegeben"}
-                              </p>
-                              <p className="break-words">
-                                Telefon: {item.phone || "Nicht angegeben"}
-                              </p>
-                              <p className="break-words text-slate-500">
-                                {buildCustomerAddress(item) || "Keine Adresse vorhanden."}
-                              </p>
-                            </div>
+                            <p className="text-sm text-slate-600">
+                              Telefon: {item.phone || "Nicht angegeben"}
+                            </p>
 
-                            <div className="mt-4 rounded-2xl border border-green-100 bg-white p-3">
+                            <p className="mt-2 text-sm text-slate-500">
+                              {buildCustomerAddress(item) || "Keine Adresse vorhanden."}
+                            </p>
+
+                            <div className="mt-4 rounded-2xl border border-green-100 bg-white p-4">
                               <div className="flex items-center justify-between gap-3">
                                 <p className="text-sm font-black text-green-700">
-                                  Geräte
+                                  Zugewiesene Geräte
                                 </p>
 
-                                <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
-                                  {customerDevices.length}
+                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
+                                  {getDevicesForCustomer(item.id).length} Gerät(e)
                                 </span>
                               </div>
 
-                              {customerDevices.length === 0 ? (
-                                <p className="mt-2 text-sm font-semibold text-slate-400">
-                                  Keine Geräte zugewiesen.
+                              {getDevicesForCustomer(item.id).length === 0 ? (
+                                <p className="mt-3 text-sm font-semibold text-slate-400">
+                                  Noch keine Geräte zugewiesen.
                                 </p>
                               ) : (
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  {customerDevices.slice(0, 5).map((deviceItem) => (
-                                    <button
-                                      key={deviceItem.id}
-                                      type="button"
-                                      onClick={() => setSelectedDeviceView(deviceItem)}
-                                      className="max-w-full truncate rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-green-100 hover:text-green-700"
-                                      title={deviceItem.serial_number || "Keine Seriennummer"}
-                                    >
-                                      {deviceItem.name}
-                                    </button>
-                                  ))}
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {getDevicesForCustomer(item.id)
+                                    .slice(0, 8)
+                                    .map((deviceItem) => (
+                                      <button
+                                        key={deviceItem.id}
+                                        onClick={() => setSelectedDeviceView(deviceItem)}
+                                        className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-green-100 hover:text-green-700"
+                                        title={deviceItem.serial_number || "Keine Seriennummer"}
+                                      >
+                                        {deviceItem.name}
+                                      </button>
+                                    ))}
 
-                                  {customerDevices.length > 5 && (
+                                  {getDevicesForCustomer(item.id).length > 8 && (
                                     <span className="rounded-full bg-slate-200 px-3 py-2 text-xs font-black text-slate-600">
-                                      +{customerDevices.length - 5}
+                                      +{getDevicesForCustomer(item.id).length - 8} weitere
                                     </span>
                                   )}
                                 </div>
@@ -7165,14 +7281,10 @@ FE-SERVICE`,
                             </div>
                           </div>
 
-                          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-200 pt-3">
+                          <div className="flex flex-col gap-2">
                             <button
-                              type="button"
-                              onClick={() => {
-                                setCustomer(item.company || getCustomerDisplayName(item) || "");
-                                setActivePage("Service-Tickets");
-                              }}
-                              className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-black text-blue-700"
+                              onClick={() => createTicketFromCustomer(item)}
+                              className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-bold text-blue-700"
                             >
                               Ticket
                             </button>
@@ -7180,28 +7292,26 @@ FE-SERVICE`,
                             {isAdmin && (
                               <>
                                 <button
-                                  type="button"
                                   onClick={() => startEditCustomer(item)}
-                                  className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-black text-green-700"
+                                  className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-bold text-green-700"
                                 >
                                   Bearbeiten
                                 </button>
 
                                 <button
-                                  type="button"
                                   onClick={() => deleteCustomer(item.id)}
-                                  className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-black text-red-700"
+                                  className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
                                 >
                                   Löschen
                                 </button>
                               </>
                             )}
                           </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           )}
