@@ -2685,6 +2685,12 @@ export default function Home() {
     return customer?.company || customer?.contact_person || `Kunde ${customerId}`;
   }
 
+  function getDevicesForCustomer(customerId?: number | null) {
+    if (!customerId) return [];
+    return devices.filter((deviceItem) => deviceItem.customer_id === customerId);
+  }
+
+
   function belongsToCurrentCustomer(customerId?: number | null) {
     if (!isCustomer) return true;
     if (!userProfile?.customer_id) return false;
@@ -6679,7 +6685,7 @@ FE-SERVICE`,
               </div>
 
               <div className="rounded-[24px] bg-white p-4 shadow-sm">
-                <h3 className="text-xl font-black">Kundenliste</h3>
+                <h3 className="text-xl font-black">Kundenliste mit Geräteüberblick</h3>
 
                 <div className="mt-5 space-y-3">
                   {customers.length === 0 ? (
@@ -6713,6 +6719,45 @@ FE-SERVICE`,
                             <p className="mt-2 text-sm text-slate-500">
                               {item.address || "Keine Adresse vorhanden."}
                             </p>
+
+                            <div className="mt-4 rounded-2xl border border-green-100 bg-white p-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm font-black text-green-700">
+                                  Zugewiesene Geräte
+                                </p>
+
+                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
+                                  {getDevicesForCustomer(item.id).length} Gerät(e)
+                                </span>
+                              </div>
+
+                              {getDevicesForCustomer(item.id).length === 0 ? (
+                                <p className="mt-3 text-sm font-semibold text-slate-400">
+                                  Noch keine Geräte zugewiesen.
+                                </p>
+                              ) : (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {getDevicesForCustomer(item.id)
+                                    .slice(0, 8)
+                                    .map((deviceItem) => (
+                                      <button
+                                        key={deviceItem.id}
+                                        onClick={() => setSelectedDeviceView(deviceItem)}
+                                        className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-green-100 hover:text-green-700"
+                                        title={deviceItem.serial_number || "Keine Seriennummer"}
+                                      >
+                                        {deviceItem.name}
+                                      </button>
+                                    ))}
+
+                                  {getDevicesForCustomer(item.id).length > 8 && (
+                                    <span className="rounded-full bg-slate-200 px-3 py-2 text-xs font-black text-slate-600">
+                                      +{getDevicesForCustomer(item.id).length - 8} weitere
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           <div className="flex flex-col gap-2">
