@@ -7321,10 +7321,7 @@ FE-SERVICE`,
               
               <div className="w-full rounded-[32px] bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div className="w-full min-w-0 rounded-[32px] bg-white p-6 shadow-sm">
-                    <h3 className="text-2xl font-black text-slate-900">Kunden suchen</h3>
-                    <p className="mt-1 text-sm font-semibold text-slate-500">Suche nach Firma, Ansprechpartner, Ort, E-Mail oder Telefon.</p>
-                  </div>
+                  
 
                   <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-600">
                     {customerDirectorySearch.trim().length < 2
@@ -7463,6 +7460,11 @@ FE-SERVICE`,
                 )}
               </div>
             </div>
+<div className="w-full min-w-0 rounded-[32px] bg-white p-6 shadow-sm">
+                    <h3 className="text-2xl font-black text-slate-900">Kunden suchen</h3>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">Suche nach Firma, Ansprechpartner, Ort, E-Mail oder Telefon.</p>
+                  </div>
+
           )}
 
                     {activePage === "Hersteller" && (isAdmin || isTechnician) && (
