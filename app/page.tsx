@@ -7318,103 +7318,109 @@ FE-SERVICE`,
               </div>
               )}
 
-              <div className="w-full min-w-0 rounded-[28px] bg-white p-5 shadow-sm">
-                <h3 className="text-xl font-black text-slate-900">Kunden suchen</h3>
-                {!isAdmin && (
-                  <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
-                    Such- und Lesemodus: Techniker können Kundendaten und zugewiesene Geräte ansehen, aber nicht bearbeiten.
-                  </p>
-                )}
+              
+              <div className="w-full rounded-[32px] bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900">
+                      Kunden suchen
+                    </h3>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">
+                      Suche nach Firma, Ansprechpartner, Ort, E-Mail oder Telefon. Die Anzeige bleibt auf 30 Treffer begrenzt.
+                    </p>
+                  </div>
+
+                  <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-600">
+                    {customerDirectorySearch.trim().length < 2
+                      ? "Suche ab 2 Zeichen"
+                      : `${filteredCustomerDirectory.length} Treffer`}
+                  </span>
+                </div>
 
                 <input
                   value={customerDirectorySearch}
                   onChange={(e) => setCustomerDirectorySearch(e.target.value)}
                   placeholder="Kunde suchen: Firma, Name, Ort, PLZ, E-Mail oder Telefon"
-                  className="mt-4 w-full rounded-2xl border border-slate-300 px-4 py-3 text-base font-semibold outline-none focus:border-green-500"
+                  className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 text-base font-semibold outline-none focus:border-green-500"
                 />
-                {/* FE-SERVICE CUSTOMER SEARCH COUNTER */}
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
-                  {customerDirectorySearch.trim().length < 2 ? (
-                    <span>Suche ab 2 Zeichen.</span>
-                  ) : (
-                    <>
-                      <span>{filteredCustomerDirectory.length} Treffer gefunden.</span>
-                      {filteredCustomerDirectory.length > 30 && (
-                        <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-800">
-                          Es werden die ersten 30 angezeigt. Bitte Suche verfeinern.
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
 
+                {customerDirectorySearch.trim().length < 2 ? (
+                  <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-bold text-slate-500">
+                    Mindestens 2 Zeichen eingeben, um Kunden zu suchen.
+                  </div>
+                ) : filteredCustomerDirectory.length === 0 ? (
+                  <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-bold text-slate-500">
+                    Kein Kunde gefunden.
+                  </div>
+                ) : (
+                  <div className="mt-5 grid w-full grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+                    {filteredCustomerDirectory.slice(0, 30).map((item) => {
+                      const customerDevices = getDevicesForCustomer(item.id);
 
-                <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {customerDirectorySearch.trim().length < 2 ? (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
-                      Mindestens 2 Zeichen eingeben, um Kunden zu suchen.
-                    </div>
-                  ) : filteredCustomerDirectory.length === 0 ? (
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
-                      Kein Kunde gefunden.
-                    </div>
-                  ) : (
-                    filteredCustomerDirectory.slice(0, 30).map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-4"
-                      >
-                        <div className="flex min-w-0 flex-1 flex-col gap-3">
-                          <div className="min-w-0">
-                            <p className="whitespace-normal break-words text-xs font-bold text-green-600">
-                              {getCustomerDisplayName(item) || "Kein Ansprechpartner"}
+                      return (
+                        <article
+                          key={item.id}
+                          className="flex min-w-0 flex-col rounded-3xl border border-slate-200 bg-slate-50 p-5"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="break-words text-xs font-black text-green-600">
+                              Kundennummer {item.id}
                             </p>
 
-                            <h4 className="mt-1 line-clamp-2 break-words text-lg font-black leading-tight text-slate-900">
-                              {item.company}
+                            <h4 className="mt-1 break-words text-xl font-black leading-tight text-slate-900">
+                              {getCustomerDisplayName(item) || item.company || "Unbenannter Kunde"}
                             </h4>
 
-                            <p className="mt-2 text-sm text-slate-600">
-                              E-Mail: {item.email || "Nicht angegeben"}
-                            </p>
+                            {item.company && getCustomerDisplayName(item) !== item.company && (
+                              <p className="mt-1 break-words text-sm font-bold text-slate-500">
+                                {item.company}
+                              </p>
+                            )}
 
-                            <p className="text-sm text-slate-600">
-                              Telefon: {item.phone || "Nicht angegeben"}
-                            </p>
+                            <div className="mt-3 space-y-1 text-sm font-semibold leading-snug text-slate-600">
+                              <p className="break-words">
+                                E-Mail: {item.email || "Nicht angegeben"}
+                              </p>
+                              <p className="break-words">
+                                Telefon: {item.phone || "Nicht angegeben"}
+                              </p>
+                              <p className="break-words text-slate-500">
+                                {buildCustomerAddress(item) || "Keine Adresse vorhanden."}
+                              </p>
+                            </div>
 
-                            <p className="mt-2 text-sm text-slate-500">
-                              {buildCustomerAddress(item) || "Keine Adresse vorhanden."}
-                            </p>
-
-                            <div className="mt-3 rounded-2xl border border-green-100 bg-white p-3">
+                            <div className="mt-4 rounded-2xl border border-green-100 bg-white p-3">
                               <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm font-black text-green-700">Geräte</p>
+                                <p className="text-sm font-black text-green-700">
+                                  Geräte
+                                </p>
 
                                 <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
-                                  {getDevicesForCustomer(item.id).length} Geräte
+                                  {customerDevices.length}
                                 </span>
                               </div>
 
-                              {getDevicesForCustomer(item.id).length === 0 ? (
-                                <p className="mt-2 text-sm font-semibold text-slate-400">Keine Geräte zugewiesen.</p>
+                              {customerDevices.length === 0 ? (
+                                <p className="mt-2 text-sm font-semibold text-slate-400">
+                                  Keine Geräte zugewiesen.
+                                </p>
                               ) : (
                                 <div className="mt-2 flex flex-wrap gap-2">
-                                  {getDevicesForCustomer(item.id)
-                                    .slice(0, 8)
-                                    .map((deviceItem) => (
-                                      <button
-                                        key={deviceItem.id}
-                                        onClick={() => setSelectedDeviceView(deviceItem)}
-                                        className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-green-100 hover:text-green-700"
-                                        title={deviceItem.serial_number || "Keine Seriennummer"}
-                                      >
-                                        {deviceItem.name}
-                                      </button>
-                                    ))}
+                                  {customerDevices.slice(0, 5).map((deviceItem) => (
+                                    <button
+                                      key={deviceItem.id}
+                                      type="button"
+                                      onClick={() => setSelectedDeviceView(deviceItem)}
+                                      className="max-w-full truncate rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-green-100 hover:text-green-700"
+                                      title={deviceItem.serial_number || "Keine Seriennummer"}
+                                    >
+                                      {deviceItem.name}
+                                    </button>
+                                  ))}
 
-                                  {getDevicesForCustomer(item.id).length > 8 && (
+                                  {customerDevices.length > 5 && (
                                     <span className="rounded-full bg-slate-200 px-3 py-2 text-xs font-black text-slate-600">
-                                      +{getDevicesForCustomer(item.id).length - 8} weitere
+                                      +{customerDevices.length - 5}
                                     </span>
                                   )}
                                 </div>
@@ -7424,7 +7430,11 @@ FE-SERVICE`,
 
                           <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-200 pt-3">
                             <button
-                              onClick={() => createTicketFromCustomer(item)}
+                              type="button"
+                              onClick={() => {
+                                setTicketCustomer(item.company || getCustomerDisplayName(item) || "");
+                                setActivePage("Service-Tickets");
+                              }}
                               className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-black text-blue-700"
                             >
                               Ticket
@@ -7433,6 +7443,7 @@ FE-SERVICE`,
                             {isAdmin && (
                               <>
                                 <button
+                                  type="button"
                                   onClick={() => startEditCustomer(item)}
                                   className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-black text-green-700"
                                 >
@@ -7440,6 +7451,7 @@ FE-SERVICE`,
                                 </button>
 
                                 <button
+                                  type="button"
                                   onClick={() => deleteCustomer(item.id)}
                                   className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-black text-red-700"
                                 >
@@ -7448,11 +7460,11 @@ FE-SERVICE`,
                               </>
                             )}
                           </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
