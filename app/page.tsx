@@ -7318,8 +7318,8 @@ FE-SERVICE`,
               </div>
               )}
 
-              <div className="min-w-0 rounded-[28px] bg-white p-6 shadow-sm">
-                <h3 className="text-2xl font-black text-slate-900">Kunden suchen und verwalten</h3>
+              <div className="min-w-0 rounded-[28px] bg-white p-5 shadow-sm">
+                <h3 className="text-xl font-black text-slate-900">Kunden suchen und verwalten</h3>
                 {!isAdmin && (
                   <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
                     Such- und Lesemodus: Techniker können Kundendaten und zugewiesene Geräte ansehen, aber nicht bearbeiten.
@@ -7349,9 +7349,9 @@ FE-SERVICE`,
                 </div>
 
 
-                <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                <div className="mt-6 space-y-4">
                   {customerDirectorySearch.trim().length < 2 ? (
-                    <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
                       Mindestens 2 Zeichen eingeben, um Kunden zu suchen.
                     </div>
                   ) : filteredCustomerDirectory.length === 0 ? (
