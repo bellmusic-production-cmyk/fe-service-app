@@ -56,9 +56,16 @@ type Customer = {
   id: number;
   company: string | null;
   contact_person: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   email: string | null;
   phone: string | null;
   address: string | null;
+  street?: string | null;
+  house_number?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  country?: string | null;
   created_at: string;
 };
 
@@ -409,9 +416,16 @@ export default function Home() {
 
   const [customerCompany, setCustomerCompany] = useState("");
   const [customerContact, setCustomerContact] = useState("");
+  const [customerFirstName, setCustomerFirstName] = useState("");
+  const [customerLastName, setCustomerLastName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
+  const [customerStreet, setCustomerStreet] = useState("");
+  const [customerHouseNumber, setCustomerHouseNumber] = useState("");
+  const [customerPostalCode, setCustomerPostalCode] = useState("");
+  const [customerCity, setCustomerCity] = useState("");
+  const [customerCountry, setCustomerCountry] = useState("Deutschland");
   const [assignedDeviceIds, setAssignedDeviceIds] = useState<string[]>([]);
 
   const [partName, setPartName] = useState("");
@@ -462,6 +476,11 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Alle");
   const [priorityFilter, setPriorityFilter] = useState("Alle");
+  const [customerDirectorySearch, setCustomerDirectorySearch] = useState("");
+  const [deviceDirectorySearch, setDeviceDirectorySearch] = useState("");
+  const [manufacturerDirectorySearch, setManufacturerDirectorySearch] = useState("");
+  const [abnahmeCustomerSearch, setAbnahmeCustomerSearch] = useState("");
+  const [abnahmeDeviceSearch, setAbnahmeDeviceSearch] = useState("");
 
   const [uploading, setUploading] = useState(false);
   const [uploadCategory, setUploadCategory] = useState("Abnahmeprotokolle");
@@ -530,6 +549,12 @@ export default function Home() {
       setLegalAccepted(false);
     }
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (userProfile?.role === "admin" || userProfile?.role === "technician") {
+      loadManufacturers();
+    }
+  }, [userProfile?.role]);
 
   useEffect(() => {
     if (devices.length === 0) return;
@@ -929,7 +954,7 @@ export default function Home() {
 
 
   async function loadManufacturers() {
-    if (!isAdmin) {
+    if (!isAdmin && !isTechnician) {
       setManufacturers([]);
       return;
     }
@@ -1469,9 +1494,16 @@ export default function Home() {
     setEditingCustomer(null);
     setCustomerCompany("");
     setCustomerContact("");
+    setCustomerFirstName("");
+    setCustomerLastName("");
     setCustomerEmail("");
     setCustomerPhone("");
     setCustomerAddress("");
+    setCustomerStreet("");
+    setCustomerHouseNumber("");
+    setCustomerPostalCode("");
+    setCustomerCity("");
+    setCustomerCountry("Deutschland");
     setAssignedDeviceIds([]);
   }
 
@@ -1517,9 +1549,16 @@ export default function Home() {
     setEditingCustomer(item);
     setCustomerCompany(item.company || "");
     setCustomerContact(item.contact_person || "");
+    setCustomerFirstName(item.first_name || "");
+    setCustomerLastName(item.last_name || "");
     setCustomerEmail(item.email || "");
     setCustomerPhone(item.phone || "");
-    setCustomerAddress(item.address || "");
+    setCustomerAddress(item.address || buildCustomerAddress(item));
+    setCustomerStreet(item.street || "");
+    setCustomerHouseNumber(item.house_number || "");
+    setCustomerPostalCode(item.postal_code || "");
+    setCustomerCity(item.city || "");
+    setCustomerCountry(item.country || "Deutschland");
     setAssignedDeviceIds(
       devices
         .filter((deviceItem) => deviceItem.customer_id === item.id)
@@ -2136,6 +2175,11 @@ export default function Home() {
   }
 
   async function createDevice() {
+    if (!isAdmin) {
+      alert("Nur Admins können Geräte anlegen.");
+      return;
+    }
+
     if (!deviceName) {
       alert("Bitte Gerätename eingeben.");
       return;
@@ -2168,6 +2212,11 @@ export default function Home() {
   }
 
   async function updateDevice() {
+    if (!isAdmin) {
+      alert("Nur Admins können Geräte bearbeiten.");
+      return;
+    }
+
     if (!editingDevice) return;
 
     if (!deviceName) {
@@ -2205,6 +2254,11 @@ export default function Home() {
   }
 
   async function deleteDevice(deviceId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Geräte löschen.");
+      return;
+    }
+
     if (!confirm("Gerät wirklich löschen?")) return;
 
     const { error } = await supabase
@@ -2221,6 +2275,11 @@ export default function Home() {
   }
 
   async function createCustomer() {
+    if (!isAdmin) {
+      alert("Nur Admins können Kunden anlegen.");
+      return;
+    }
+
     if (!customerCompany) {
       alert("Bitte Firmenname eingeben.");
       return;
@@ -2231,10 +2290,17 @@ export default function Home() {
       .insert([
         {
           company: customerCompany,
-          contact_person: customerContact,
+          contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
+          first_name: customerFirstName.trim() || null,
+          last_name: customerLastName.trim() || null,
           email: customerEmail,
           phone: customerPhone,
-          address: customerAddress,
+          address: buildCustomerAddressFromForm() || customerAddress,
+          street: customerStreet.trim() || null,
+          house_number: customerHouseNumber.trim() || null,
+          postal_code: customerPostalCode.trim() || null,
+          city: customerCity.trim() || null,
+          country: customerCountry.trim() || null,
         },
       ])
       .select("id")
@@ -2258,6 +2324,11 @@ export default function Home() {
   }
 
   async function updateCustomer() {
+    if (!isAdmin) {
+      alert("Nur Admins können Kunden bearbeiten.");
+      return;
+    }
+
     if (!editingCustomer) return;
 
     if (!customerCompany) {
@@ -2269,10 +2340,17 @@ export default function Home() {
       .from("customers")
       .update({
         company: customerCompany,
-        contact_person: customerContact,
+        contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
+        first_name: customerFirstName.trim() || null,
+        last_name: customerLastName.trim() || null,
         email: customerEmail,
         phone: customerPhone,
-        address: customerAddress,
+        address: buildCustomerAddressFromForm() || customerAddress,
+        street: customerStreet.trim() || null,
+        house_number: customerHouseNumber.trim() || null,
+        postal_code: customerPostalCode.trim() || null,
+        city: customerCity.trim() || null,
+        country: customerCountry.trim() || null,
       })
       .eq("id", editingCustomer.id);
 
@@ -2299,6 +2377,11 @@ export default function Home() {
   }
 
   async function deleteCustomer(customerId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Kunden löschen.");
+      return;
+    }
+
     if (!confirm("Kunde wirklich löschen?")) return;
 
     await supabase
@@ -2860,10 +2943,57 @@ export default function Home() {
   }
 
 
+  function getCustomerDisplayName(customer: Customer) {
+    const fullName = `${customer.first_name || ""} ${customer.last_name || ""}`.trim();
+    return fullName || customer.contact_person || customer.company || customer.email || `Kunde ${customer.id}`;
+  }
+
+  function buildCustomerAddress(customer: Customer) {
+    const structuredAddress = [
+      `${customer.street || ""} ${customer.house_number || ""}`.trim(),
+      `${customer.postal_code || ""} ${customer.city || ""}`.trim(),
+      customer.country || "",
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    return structuredAddress || customer.address || "";
+  }
+
+  function buildCustomerAddressFromForm() {
+    return [
+      `${customerStreet.trim()} ${customerHouseNumber.trim()}`.trim(),
+      `${customerPostalCode.trim()} ${customerCity.trim()}`.trim(),
+      customerCountry.trim(),
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  function getCustomerSearchText(customer: Customer) {
+    return [
+      customer.company,
+      customer.contact_person,
+      customer.first_name,
+      customer.last_name,
+      customer.email,
+      customer.phone,
+      customer.address,
+      customer.street,
+      customer.house_number,
+      customer.postal_code,
+      customer.city,
+      customer.country,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  }
+
   function getCustomerLabel(customer: Customer) {
     return (
       customer.company ||
-      customer.contact_person ||
+      getCustomerDisplayName(customer) ||
       customer.email ||
       `Kunde ${customer.id}`
     );
@@ -3855,9 +3985,14 @@ FE-SERVICE`,
 
     if (selectedDevice.customer_id) {
       setAbnahmeCustomerId(String(selectedDevice.customer_id));
+      const linkedCustomer = customers.find((item) => item.id === selectedDevice.customer_id);
+      if (linkedCustomer) {
+        setAbnahmeCustomerNumber(String(linkedCustomer.id));
+        setAbnahmeAddressObject(buildCustomerAddress(linkedCustomer) || selectedDevice.location || "");
+      }
     }
 
-    setAbnahmeManufacturer(selectedDevice.manufacturer || "");
+    setAbnahmeManufacturer(selectedDevice.manufacturer || getManufacturerNameById(selectedDevice.manufacturer_id) || "");
     setAbnahmeModel(selectedDevice.name || "");
     setAbnahmeSerial(selectedDevice.serial_number || "");
     setAbnahmeAddressObject(selectedDevice.location || "");
@@ -4166,7 +4301,7 @@ FE-SERVICE`,
 
             <div class="row">
               Datum der Prüfung <span class="line mid">${abnahmeDate}</span>
-              Adresse / Objekt <span class="line">${abnahmeAddressObject || selectedCustomer?.address || selectedDevice?.location || ""}</span>
+              Adresse / Objekt <span class="line">${abnahmeAddressObject || selectedCustomer ? buildCustomerAddress(selectedCustomer) : selectedDevice?.location || ""}</span>
             </div>
 
             <div class="row">
@@ -4349,7 +4484,7 @@ FE-SERVICE`,
     y += 5;
     pdf.text(`Kunde: ${selectedCustomer?.company || selectedCustomer?.contact_person || "-"}`, 10, y);
     pdf.text(
-      `Adresse / Objekt: ${abnahmeAddressObject || selectedCustomer?.address || selectedDevice?.location || "-"}`,
+      `Adresse / Objekt: ${abnahmeAddressObject || selectedCustomer ? buildCustomerAddress(selectedCustomer) : selectedDevice?.location || "-"}`,
       90,
       y,
     );
@@ -5234,7 +5369,7 @@ FE-SERVICE`,
   const visibleNavItems = isAdmin
     ? navItems
     : isTechnician
-      ? ["Einsatz", "Kalender", "QR-Scan", "Service-Tickets", "Geräte", "Abnahmeprotokoll", "Ersatzteile", "Dokumente"]
+      ? ["Einsatz", "Kalender", "QR-Scan", "Service-Tickets", "Kunden", "Geräte", "Hersteller", "Abnahmeprotokoll", "Ersatzteile", "Dokumente"]
       : ["Kundenportal", "Service-Tickets", "Geräte", "Dokumente", "Rechnungen"];
 
   function navItemLabel(item: string) {
@@ -5283,6 +5418,100 @@ FE-SERVICE`,
     isCustomer && userProfile?.customer_id
       ? customers.filter((item) => item.id === userProfile.customer_id)
       : customers;
+
+  const filteredCustomerDirectory = useMemo(() => {
+    const search = customerDirectorySearch.toLowerCase().trim();
+    if (!search) return customers;
+
+    return customers.filter((customerItem) => getCustomerSearchText(customerItem).includes(search));
+  }, [customers, customerDirectorySearch]);
+
+  const filteredDeviceDirectory = useMemo(() => {
+    const search = deviceDirectorySearch.toLowerCase().trim();
+    if (!search) return devices;
+
+    return devices.filter((deviceItem) => {
+      const linkedCustomer = deviceItem.customer_id
+        ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
+        : null;
+      const linkedManufacturer = getManufacturerNameById(deviceItem.manufacturer_id);
+
+      return [
+        deviceItem.name,
+        deviceItem.manufacturer,
+        linkedManufacturer,
+        deviceItem.serial_number,
+        deviceItem.location,
+        deviceItem.status,
+        deviceItem.note,
+        linkedCustomer ? getCustomerLabel(linkedCustomer) : "",
+        linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    });
+  }, [devices, customers, manufacturers, deviceDirectorySearch]);
+
+  const filteredManufacturerDirectory = useMemo(() => {
+    const search = manufacturerDirectorySearch.toLowerCase().trim();
+    if (!search) return manufacturers;
+
+    return manufacturers.filter((manufacturerItem) =>
+      [
+        manufacturerItem.name,
+        manufacturerItem.website,
+        manufacturerItem.phone,
+        manufacturerItem.email,
+        manufacturerItem.contact_person,
+        manufacturerItem.address,
+        manufacturerItem.parts_url,
+        manufacturerItem.note,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search),
+    );
+  }, [manufacturers, manufacturerDirectorySearch]);
+
+  const abnahmeCustomers = useMemo(() => {
+    const search = abnahmeCustomerSearch.toLowerCase().trim();
+    if (!search) return portalCustomers;
+
+    return portalCustomers.filter((customerItem) => getCustomerSearchText(customerItem).includes(search));
+  }, [portalCustomers, abnahmeCustomerSearch]);
+
+  const abnahmeDevices = useMemo(() => {
+    const search = abnahmeDeviceSearch.toLowerCase().trim();
+    const baseDevices = availableTicketDevices.filter((deviceItem) =>
+      abnahmeCustomerId ? deviceItem.customer_id === Number(abnahmeCustomerId) : true,
+    );
+
+    if (!search) return baseDevices;
+
+    return baseDevices.filter((deviceItem) => {
+      const linkedCustomer = deviceItem.customer_id
+        ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
+        : null;
+
+      return [
+        deviceItem.name,
+        deviceItem.manufacturer,
+        getManufacturerNameById(deviceItem.manufacturer_id),
+        deviceItem.serial_number,
+        deviceItem.location,
+        deviceItem.status,
+        deviceItem.note,
+        linkedCustomer ? getCustomerLabel(linkedCustomer) : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    });
+  }, [availableTicketDevices, abnahmeCustomerId, abnahmeDeviceSearch, customers, manufacturers]);
 
   if (authLoading) {
     return (
@@ -6393,9 +6622,9 @@ FE-SERVICE`,
                       className="rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold"
                     >
                       <option value="Alle">Alle Kunden</option>
-                      {portalCustomers.map((item) => (
+                      {abnahmeCustomers.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.company || item.contact_person || `Kunde ${item.id}`}
+                          {getCustomerLabel(item)}
                         </option>
                       ))}
                     </select>
@@ -6723,7 +6952,8 @@ FE-SERVICE`,
           )}
 
           {activePage === "Kunden" && (
-            <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className={`grid gap-6 ${isAdmin ? "xl:grid-cols-[0.9fr_1.1fr]" : "xl:grid-cols-1"}`}>
+              {isAdmin && (
               <div
                 className={`rounded-[24px] bg-white p-4 shadow-sm ${
                   editingCustomer ? "ring-4 ring-green-200" : ""
@@ -6741,10 +6971,26 @@ FE-SERVICE`,
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input
+                      value={customerFirstName}
+                      onChange={(e) => setCustomerFirstName(e.target.value)}
+                      placeholder="Vorname Ansprechpartner"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerLastName}
+                      onChange={(e) => setCustomerLastName(e.target.value)}
+                      placeholder="Nachname Ansprechpartner"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
                   <input
                     value={customerContact}
                     onChange={(e) => setCustomerContact(e.target.value)}
-                    placeholder="Ansprechpartner"
+                    placeholder="Ansprechpartner optional / Anzeigename"
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
@@ -6762,11 +7008,50 @@ FE-SERVICE`,
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
+                  <div className="grid gap-3 md:grid-cols-[1fr_0.45fr]">
+                    <input
+                      value={customerStreet}
+                      onChange={(e) => setCustomerStreet(e.target.value)}
+                      placeholder="Straße"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerHouseNumber}
+                      onChange={(e) => setCustomerHouseNumber(e.target.value)}
+                      placeholder="Hausnummer"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-[0.55fr_1fr_0.75fr]">
+                    <input
+                      value={customerPostalCode}
+                      onChange={(e) => setCustomerPostalCode(e.target.value)}
+                      placeholder="PLZ"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerCity}
+                      onChange={(e) => setCustomerCity(e.target.value)}
+                      placeholder="Ort"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerCountry}
+                      onChange={(e) => setCustomerCountry(e.target.value)}
+                      placeholder="Land"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
                   <textarea
                     value={customerAddress}
                     onChange={(e) => setCustomerAddress(e.target.value)}
-                    placeholder="Adresse"
-                    rows={4}
+                    placeholder="Adresse Altbestand / Zusatzinformation optional"
+                    rows={3}
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
@@ -6846,17 +7131,30 @@ FE-SERVICE`,
                   )}
                 </div>
               </div>
+              )}
 
               <div className="rounded-[24px] bg-white p-4 shadow-sm">
                 <h3 className="text-xl font-black">Kundenliste mit Geräteüberblick</h3>
+                {!isAdmin && (
+                  <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
+                    Such- und Lesemodus: Techniker können Kundendaten und zugewiesene Geräte ansehen, aber nicht bearbeiten.
+                  </p>
+                )}
+
+                <input
+                  value={customerDirectorySearch}
+                  onChange={(e) => setCustomerDirectorySearch(e.target.value)}
+                  placeholder="Kunden suchen: Firma, Vorname, Nachname, Ort, PLZ, E-Mail, Telefon"
+                  className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
+                />
 
                 <div className="mt-5 space-y-3">
-                  {customers.length === 0 ? (
+                  {filteredCustomerDirectory.length === 0 ? (
                     <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
-                      Noch keine Kunden vorhanden.
+                      Keine Kunden gefunden.
                     </div>
                   ) : (
-                    customers.map((item) => (
+                    filteredCustomerDirectory.map((item) => (
                       <div
                         key={item.id}
                         className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -6864,7 +7162,7 @@ FE-SERVICE`,
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <p className="text-xs font-bold text-green-600">
-                              {item.contact_person || "Kein Ansprechpartner"}
+                              {getCustomerDisplayName(item) || "Kein Ansprechpartner"}
                             </p>
 
                             <h4 className="mt-1 text-xl font-black">
@@ -6880,7 +7178,7 @@ FE-SERVICE`,
                             </p>
 
                             <p className="mt-2 text-sm text-slate-500">
-                              {item.address || "Keine Adresse vorhanden."}
+                              {buildCustomerAddress(item) || "Keine Adresse vorhanden."}
                             </p>
 
                             <div className="mt-4 rounded-2xl border border-green-100 bg-white p-4">
@@ -6931,19 +7229,23 @@ FE-SERVICE`,
                               Ticket
                             </button>
 
-                            <button
-                              onClick={() => startEditCustomer(item)}
-                              className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-bold text-green-700"
-                            >
-                              Bearbeiten
-                            </button>
+                            {isAdmin && (
+                              <>
+                                <button
+                                  onClick={() => startEditCustomer(item)}
+                                  className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-bold text-green-700"
+                                >
+                                  Bearbeiten
+                                </button>
 
-                            <button
-                              onClick={() => deleteCustomer(item.id)}
-                              className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
-                            >
-                              Löschen
-                            </button>
+                                <button
+                                  onClick={() => deleteCustomer(item.id)}
+                                  className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
+                                >
+                                  Löschen
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -6954,22 +7256,23 @@ FE-SERVICE`,
             </div>
           )}
 
-                    {activePage === "Hersteller" && isAdmin && (
+                    {activePage === "Hersteller" && (isAdmin || isTechnician) && (
             <div className="space-y-6">
               <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
-                  Nur Admin
+                  {isAdmin ? "Admin-Verwaltung" : "Techniker-Suche"}
                 </p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">
-                  Herstellerverwaltung
+                  Hersteller
                 </h3>
                 <p className="mt-3 max-w-4xl text-sm font-semibold text-slate-300">
-                  Hersteller, Ansprechpartner, Webseite, Telefon und Ersatzteil-Links zentral verwalten.
-                  Kunden und Techniker sehen diese internen Kontaktdaten nicht.
+                  Hersteller, Ansprechpartner, Webseite, Telefon und Ersatzteil-Links zentral durchsuchen.
+                  Techniker haben Leserechte, aber keine Bearbeitungsrechte.
                 </p>
               </div>
 
-              <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+              <div className={`grid gap-6 ${isAdmin ? "xl:grid-cols-[0.9fr_1.1fr]" : "xl:grid-cols-1"}`}>
+                {isAdmin && (
                 <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <h3 className="text-xl font-black">
                     {editingManufacturer ? "Hersteller bearbeiten" : "Hersteller anlegen"}
@@ -7056,17 +7359,30 @@ FE-SERVICE`,
                     </div>
                   </div>
                 </div>
+                )}
 
                 <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <h3 className="text-xl font-black">Herstellerliste</h3>
+                  {!isAdmin && (
+                    <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
+                      Such- und Lesemodus: Techniker können Herstellerdaten einsehen, aber nicht bearbeiten.
+                    </p>
+                  )}
+
+                  <input
+                    value={manufacturerDirectorySearch}
+                    onChange={(e) => setManufacturerDirectorySearch(e.target.value)}
+                    placeholder="Hersteller suchen: Name, Ansprechpartner, Telefon, E-Mail, Webseite, Ersatzteil-Link"
+                    className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
+                  />
 
                   <div className="mt-5 space-y-3">
-                    {manufacturers.length === 0 ? (
+                    {filteredManufacturerDirectory.length === 0 ? (
                       <p className="rounded-2xl bg-slate-50 p-5 text-sm font-semibold text-slate-500">
-                        Noch keine Hersteller angelegt.
+                        Keine Hersteller gefunden.
                       </p>
                     ) : (
-                      manufacturers.map((item) => (
+                      filteredManufacturerDirectory.map((item) => (
                         <div
                           key={item.id}
                           className="rounded-[24px] border border-slate-200 bg-slate-50 p-5"
@@ -7108,21 +7424,23 @@ FE-SERVICE`,
                               </p>
                             </div>
 
-                            <div className="flex flex-col gap-2">
-                              <button
-                                onClick={() => startEditManufacturer(item)}
-                                className="rounded-2xl bg-blue-100 px-5 py-3 text-sm font-black text-blue-700"
-                              >
-                                Bearbeiten
-                              </button>
+                            {isAdmin && (
+                              <div className="flex flex-col gap-2">
+                                <button
+                                  onClick={() => startEditManufacturer(item)}
+                                  className="rounded-2xl bg-blue-100 px-5 py-3 text-sm font-black text-blue-700"
+                                >
+                                  Bearbeiten
+                                </button>
 
-                              <button
-                                onClick={() => deleteManufacturer(item)}
-                                className="rounded-2xl bg-red-100 px-5 py-3 text-sm font-black text-red-700"
-                              >
-                                Löschen
-                              </button>
-                            </div>
+                                <button
+                                  onClick={() => deleteManufacturer(item)}
+                                  className="rounded-2xl bg-red-100 px-5 py-3 text-sm font-black text-red-700"
+                                >
+                                  Löschen
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))
@@ -7486,7 +7804,8 @@ FE-SERVICE`,
             </div>
           )}
           {activePage === "Geräte" && !selectedDeviceView && (
-            <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className={`grid gap-6 ${isAdmin ? "xl:grid-cols-[0.9fr_1.1fr]" : "xl:grid-cols-1"}`}>
+              {isAdmin && (
               <div
                 className={`rounded-[24px] bg-white p-4 shadow-sm ${
                   editingDevice ? "ring-4 ring-green-200" : ""
@@ -7609,17 +7928,30 @@ FE-SERVICE`,
                   )}
                 </div>
               </div>
+              )}
 
               <div className="rounded-[24px] bg-white p-4 shadow-sm">
                 <h3 className="text-xl font-black">Geräteliste</h3>
+                {!isAdmin && (
+                  <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
+                    Such- und Lesemodus: Techniker können Geräte öffnen und Tickets starten, aber keine Stammdaten bearbeiten.
+                  </p>
+                )}
+
+                <input
+                  value={deviceDirectorySearch}
+                  onChange={(e) => setDeviceDirectorySearch(e.target.value)}
+                  placeholder="Geräte suchen: Name, Seriennummer, Kunde, Hersteller, Standort"
+                  className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
+                />
 
                 <div className="mt-5 space-y-3">
-                  {devices.length === 0 ? (
+                  {filteredDeviceDirectory.length === 0 ? (
                     <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
-                      Noch keine Geräte vorhanden.
+                      Keine Geräte gefunden.
                     </div>
                   ) : (
-                    devices.map((item) => (
+                    filteredDeviceDirectory.map((item) => (
                       <div
                         key={item.id}
                         className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -7670,19 +8002,23 @@ FE-SERVICE`,
                               Ticket
                             </button>
 
-                            <button
-                              onClick={() => startEditDevice(item)}
-                              className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-bold text-green-700"
-                            >
-                              Bearbeiten
-                            </button>
+                            {isAdmin && (
+                              <>
+                                <button
+                                  onClick={() => startEditDevice(item)}
+                                  className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-bold text-green-700"
+                                >
+                                  Bearbeiten
+                                </button>
 
-                            <button
-                              onClick={() => deleteDevice(item.id)}
-                              className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
-                            >
-                              Löschen
-                            </button>
+                                <button
+                                  onClick={() => deleteDevice(item.id)}
+                                  className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
+                                >
+                                  Löschen
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -7966,6 +8302,13 @@ FE-SERVICE`,
                       />
                     </div>
 
+                    <input
+                      value={abnahmeCustomerSearch}
+                      onChange={(e) => setAbnahmeCustomerSearch(e.target.value)}
+                      placeholder="Kunde suchen: Firma, Name, Ort, PLZ"
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
+                    />
+
                     <select
                       value={abnahmeCustomerId}
                       onChange={(e) => {
@@ -7973,7 +8316,9 @@ FE-SERVICE`,
                         const selectedCustomer = customers.find(
                           (item) => item.id === Number(e.target.value),
                         );
-                        setAbnahmeAddressObject(selectedCustomer?.address || "");
+                        setAbnahmeAddressObject(selectedCustomer ? buildCustomerAddress(selectedCustomer) : "");
+                        setAbnahmeDeviceId("");
+                        setAbnahmeDeviceSearch("");
                         setAbnahmeCustomerNumber(
                           selectedCustomer ? String(selectedCustomer.id) : "",
                         );
@@ -7981,12 +8326,19 @@ FE-SERVICE`,
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
                       <option value="">Kunde auswählen</option>
-                      {portalCustomers.map((item) => (
+                      {abnahmeCustomers.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.company || item.contact_person || `Kunde ${item.id}`}
+                          {getCustomerLabel(item)}
                         </option>
                       ))}
                     </select>
+
+                    <input
+                      value={abnahmeDeviceSearch}
+                      onChange={(e) => setAbnahmeDeviceSearch(e.target.value)}
+                      placeholder="Gerät suchen: Name, Seriennummer, Hersteller, Standort"
+                      className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
+                    />
 
                     <select
                       value={abnahmeDeviceId}
@@ -7994,13 +8346,7 @@ FE-SERVICE`,
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
                       <option value="">Gerät auswählen</option>
-                      {availableTicketDevices
-                        .filter((item) =>
-                          abnahmeCustomerId
-                            ? item.customer_id === Number(abnahmeCustomerId)
-                            : true,
-                        )
-                        .map((item) => (
+                      {abnahmeDevices.map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.name} · {item.serial_number || "ohne Seriennr."}
                           </option>
