@@ -2948,8 +2948,10 @@ export default function Home() {
     return fullName || customer.contact_person || customer.company || customer.email || `Kunde ${customer.id}`;
   }
 
-  function buildCustomerAddress(customer: Customer) {
-    const structuredAddress = [
+  function buildCustomerAddress(customer?: Customer | null) {
+    
+    if (!customer) return "";
+const structuredAddress = [
       `${customer.street || ""} ${customer.house_number || ""}`.trim(),
       `${customer.postal_code || ""} ${customer.city || ""}`.trim(),
       customer.country || "",
