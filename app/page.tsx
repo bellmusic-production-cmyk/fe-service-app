@@ -7318,8 +7318,8 @@ FE-SERVICE`,
               </div>
               )}
 
-              <div className="min-w-0 rounded-[24px] bg-white p-4 shadow-sm">
-                <h3 className="break-words text-xl font-black">Kundenliste mit Geräteüberblick</h3>
+              <div className="min-w-0 rounded-[28px] bg-white p-6 shadow-sm">
+                <h3 className="text-2xl font-black text-slate-900">Kunden suchen und verwalten</h3>
                 {!isAdmin && (
                   <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
                     Such- und Lesemodus: Techniker können Kundendaten und zugewiesene Geräte ansehen, aber nicht bearbeiten.
@@ -7329,28 +7329,48 @@ FE-SERVICE`,
                 <input
                   value={customerDirectorySearch}
                   onChange={(e) => setCustomerDirectorySearch(e.target.value)}
-                  placeholder="Kunden suchen: Firma, Vorname, Nachname, Ort, PLZ, E-Mail, Telefon"
+                  placeholder="Kunde suchen: Firma, Name, Ort, PLZ, E-Mail oder Telefon"
                   className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
                 />
+                {/* FE-SERVICE CUSTOMER SEARCH COUNTER */}
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
+                  {customerDirectorySearch.trim().length < 2 ? (
+                    <span>Suche startet ab 2 Zeichen.</span>
+                  ) : (
+                    <>
+                      <span>{filteredCustomerDirectory.length} Treffer gefunden.</span>
+                      {filteredCustomerDirectory.length > 30 && (
+                        <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-800">
+                          Es werden die ersten 30 angezeigt. Bitte Suche verfeinern.
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
 
-                <div className="mt-5 space-y-3">
-                  {filteredCustomerDirectory.length === 0 ? (
+
+                <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                  {customerDirectorySearch.trim().length < 2 ? (
                     <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
-                      Keine Kunden gefunden.
+                      Mindestens 2 Zeichen eingeben, um Kunden zu suchen.
+                    </div>
+                  ) : filteredCustomerDirectory.length === 0 ? (
+                    <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
+                      Kein Kunde gefunden.
                     </div>
                   ) : (
-                    filteredCustomerDirectory.map((item) => (
+                    filteredCustomerDirectory.slice(0, 30).map((item) => (
                       <div
                         key={item.id}
-                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                        className="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-5"
                       >
                         <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-green-600">
+                            <p className="break-words text-xs font-bold text-green-600">
                               {getCustomerDisplayName(item) || "Kein Ansprechpartner"}
                             </p>
 
-                            <h4 className="mt-1 break-words text-xl font-black">
+                            <h4 className="mt-1 break-words text-xl font-black text-slate-900">
                               {item.company}
                             </h4>
 
@@ -7406,7 +7426,7 @@ FE-SERVICE`,
                             </div>
                           </div>
 
-                          <div className="flex flex-col gap-2">
+                          <div className="flex shrink-0 flex-row flex-wrap gap-2 xl:flex-col">
                             <button
                               onClick={() => createTicketFromCustomer(item)}
                               className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-bold text-blue-700"
