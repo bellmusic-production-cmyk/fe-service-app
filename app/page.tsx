@@ -4249,28 +4249,36 @@ FE-SERVICE`,
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 24px;
-              margin-top: 20px;
+              margin-top: 18px;
+              margin-bottom: 14px;
+              break-inside: avoid;
+              page-break-inside: avoid;
             }
             .signature-box {
               border-top: 1px solid #111827;
-              padding-top: 8px;
-              min-height: 72px;
+              padding-top: 7px;
+              min-height: 64px;
+              overflow: hidden;
             }
             .signature-img {
-              max-height: 64px;
-              max-width: 240px;
+              max-height: 46px;
+              max-width: 230px;
               object-fit: contain;
               display: block;
-              margin-bottom: 6px;
+              margin-bottom: 5px;
             }
             .company {
               display: grid;
               grid-template-columns: 170px 1fr 130px;
               gap: 14px;
               align-items: end;
-              margin-top: 22px;
-              font-size: 8.5px;
-              line-height: 1.25;
+              margin-top: 10px;
+              padding-top: 8px;
+              border-top: 1px solid #d1d5db;
+              font-size: 8px;
+              line-height: 1.2;
+              break-inside: avoid;
+              page-break-inside: avoid;
             }
             .footer-brand {
               font-weight: 900;
@@ -4603,13 +4611,16 @@ FE-SERVICE`,
 
     y += 14;
 
-    const signatureY = Math.min(y, 164);
-    pdf.rect(10, signatureY, 82, 24);
-    pdf.rect(105, signatureY, 82, 24);
+    const footerY = pageHeight - 20;
+    const signatureBoxHeight = 20;
+    const signatureY = Math.min(y + 2, footerY - signatureBoxHeight - 8);
+
+    pdf.rect(10, signatureY, 82, signatureBoxHeight);
+    pdf.rect(105, signatureY, 82, signatureBoxHeight);
 
     if (abnahmeTechnicianSignature) {
       try {
-        pdf.addImage(abnahmeTechnicianSignature, "PNG", 14, signatureY + 3, 68, 13);
+        pdf.addImage(abnahmeTechnicianSignature, "PNG", 14, signatureY + 2.5, 68, 11.5);
       } catch {
         // Signatur konnte nicht eingebettet werden.
       }
@@ -4617,35 +4628,36 @@ FE-SERVICE`,
 
     if (abnahmeCustomerSignature) {
       try {
-        pdf.addImage(abnahmeCustomerSignature, "PNG", 109, signatureY + 3, 68, 13);
+        pdf.addImage(abnahmeCustomerSignature, "PNG", 109, signatureY + 2.5, 68, 11.5);
       } catch {
         // Signatur konnte nicht eingebettet werden.
       }
     }
 
     pdf.setFontSize(6.2);
-    pdf.text("Unterschrift Techniker", 14, signatureY + 21);
-    pdf.text(`Unterschrift Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}`, 109, signatureY + 21);
+    pdf.text("Unterschrift Techniker", 14, signatureY + signatureBoxHeight - 3);
+    pdf.text(`Unterschrift Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}`, 109, signatureY + signatureBoxHeight - 3);
 
-    const footerY = pageHeight - 25;
+    pdf.setDrawColor(190);
+    pdf.line(10, footerY - 4, pageWidth - 10, footerY - 4);
 
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(8);
+    pdf.setFontSize(7.4);
     pdf.text("FE-Service e.K.", 12, footerY);
-    pdf.setFontSize(4.8);
-    pdf.text("FITNESS EQUIPMENT SERVICE", 12, footerY + 3.8);
+    pdf.setFontSize(4.4);
+    pdf.text("FITNESS EQUIPMENT SERVICE", 12, footerY + 3.4);
 
     pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(5.4);
+    pdf.setFontSize(5.0);
     pdf.text("Lochhamerstr. 1, 51491 Overath   Lager: Mathildenstr. 5, 53797 Lohmar", 58, footerY);
-    pdf.text("Tel. 02206-9389333, Fax 02206-9389339", 58, footerY + 4);
-    pdf.text("E-Mail: info@fe-service.de, URL: www.fe-service.de", 58, footerY + 8);
-    pdf.text("Inhaber-Geschäftsführer: Frank Ehlers   USt.Id: DE233560663   HRA 37460 Amtsgericht Köln", 58, footerY + 12);
+    pdf.text("Tel. 02206-9389333, Fax 02206-9389339", 58, footerY + 3.8);
+    pdf.text("E-Mail: info@fe-service.de, URL: www.fe-service.de", 58, footerY + 7.6);
+    pdf.text("Inhaber-Geschäftsführer: Frank Ehlers   USt.Id: DE233560663   HRA 37460 Amtsgericht Köln", 58, footerY + 11.4);
 
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(6);
-    pdf.text("IN STYLE", 246, footerY + 4);
-    pdf.text("FITNESS", 246, footerY + 8);
+    pdf.setFontSize(5.8);
+    pdf.text("IN STYLE", 246, footerY + 3.8);
+    pdf.text("FITNESS", 246, footerY + 7.6);
     pdf.setFont("helvetica", "normal");
 
     pdf.setDrawColor(120);
