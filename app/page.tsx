@@ -66,6 +66,19 @@ type Customer = {
   postal_code?: string | null;
   city?: string | null;
   country?: string | null;
+  customer_number?: string | null;
+  supplier_number?: string | null;
+  tax_number?: string | null;
+  vat_id?: string | null;
+  email_2?: string | null;
+  phone_2?: string | null;
+  address_extra?: string | null;
+  contact_1_name?: string | null;
+  contact_1_email?: string | null;
+  contact_1_phone?: string | null;
+  contact_2_name?: string | null;
+  contact_2_email?: string | null;
+  contact_2_phone?: string | null;
   created_at: string;
 };
 
@@ -426,6 +439,19 @@ export default function Home() {
   const [customerPostalCode, setCustomerPostalCode] = useState("");
   const [customerCity, setCustomerCity] = useState("");
   const [customerCountry, setCustomerCountry] = useState("Deutschland");
+  const [customerNumber, setCustomerNumber] = useState("");
+  const [customerSupplierNumber, setCustomerSupplierNumber] = useState("");
+  const [customerTaxNumber, setCustomerTaxNumber] = useState("");
+  const [customerVatId, setCustomerVatId] = useState("");
+  const [customerEmail2, setCustomerEmail2] = useState("");
+  const [customerPhone2, setCustomerPhone2] = useState("");
+  const [customerAddressExtra, setCustomerAddressExtra] = useState("");
+  const [customerContact1Name, setCustomerContact1Name] = useState("");
+  const [customerContact1Email, setCustomerContact1Email] = useState("");
+  const [customerContact1Phone, setCustomerContact1Phone] = useState("");
+  const [customerContact2Name, setCustomerContact2Name] = useState("");
+  const [customerContact2Email, setCustomerContact2Email] = useState("");
+  const [customerContact2Phone, setCustomerContact2Phone] = useState("");
   const [assignedDeviceIds, setAssignedDeviceIds] = useState<string[]>([]);
   const [customerDeviceAssignSearch, setCustomerDeviceAssignSearch] = useState("");
 
@@ -1505,6 +1531,19 @@ export default function Home() {
     setCustomerPostalCode("");
     setCustomerCity("");
     setCustomerCountry("Deutschland");
+    setCustomerNumber("");
+    setCustomerSupplierNumber("");
+    setCustomerTaxNumber("");
+    setCustomerVatId("");
+    setCustomerEmail2("");
+    setCustomerPhone2("");
+    setCustomerAddressExtra("");
+    setCustomerContact1Name("");
+    setCustomerContact1Email("");
+    setCustomerContact1Phone("");
+    setCustomerContact2Name("");
+    setCustomerContact2Email("");
+    setCustomerContact2Phone("");
     setAssignedDeviceIds([]);
     setCustomerDeviceAssignSearch("");
   }
@@ -1561,6 +1600,19 @@ export default function Home() {
     setCustomerPostalCode(item.postal_code || "");
     setCustomerCity(item.city || "");
     setCustomerCountry(item.country || "Deutschland");
+    setCustomerNumber(item.customer_number || "");
+    setCustomerSupplierNumber(item.supplier_number || "");
+    setCustomerTaxNumber(item.tax_number || "");
+    setCustomerVatId(item.vat_id || "");
+    setCustomerEmail2(item.email_2 || "");
+    setCustomerPhone2(item.phone_2 || "");
+    setCustomerAddressExtra(item.address_extra || "");
+    setCustomerContact1Name(item.contact_1_name || "");
+    setCustomerContact1Email(item.contact_1_email || "");
+    setCustomerContact1Phone(item.contact_1_phone || "");
+    setCustomerContact2Name(item.contact_2_name || "");
+    setCustomerContact2Email(item.contact_2_email || "");
+    setCustomerContact2Phone(item.contact_2_phone || "");
     setAssignedDeviceIds(
       devices
         .filter((deviceItem) => deviceItem.customer_id === item.id)
@@ -2291,18 +2343,31 @@ export default function Home() {
       .from("customers")
       .insert([
         {
+          customer_number: customerNumber.trim() || null,
+          supplier_number: customerSupplierNumber.trim() || null,
           company: customerCompany,
           contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
           first_name: customerFirstName.trim() || null,
           last_name: customerLastName.trim() || null,
           email: customerEmail,
+          email_2: customerEmail2.trim() || null,
           phone: customerPhone,
+          phone_2: customerPhone2.trim() || null,
           address: buildCustomerAddressFromForm() || customerAddress,
           street: customerStreet.trim() || null,
           house_number: customerHouseNumber.trim() || null,
           postal_code: customerPostalCode.trim() || null,
           city: customerCity.trim() || null,
           country: customerCountry.trim() || null,
+          address_extra: customerAddressExtra.trim() || null,
+          vat_id: customerVatId.trim() || null,
+          tax_number: customerTaxNumber.trim() || null,
+          contact_1_name: customerContact1Name.trim() || null,
+          contact_1_email: customerContact1Email.trim() || null,
+          contact_1_phone: customerContact1Phone.trim() || null,
+          contact_2_name: customerContact2Name.trim() || null,
+          contact_2_email: customerContact2Email.trim() || null,
+          contact_2_phone: customerContact2Phone.trim() || null,
         },
       ])
       .select("id")
@@ -2958,6 +3023,7 @@ export default function Home() {
       `${customer.street || ""} ${customer.house_number || ""}`.trim(),
       `${customer.postal_code || ""} ${customer.city || ""}`.trim(),
       customer.country || "",
+      customer.address_extra || "",
     ]
       .filter(Boolean)
       .join(", ");
@@ -2970,6 +3036,7 @@ export default function Home() {
       `${customerStreet.trim()} ${customerHouseNumber.trim()}`.trim(),
       `${customerPostalCode.trim()} ${customerCity.trim()}`.trim(),
       customerCountry.trim(),
+      customerAddressExtra.trim(),
     ]
       .filter(Boolean)
       .join(", ");
@@ -2978,18 +3045,31 @@ export default function Home() {
   function getCustomerSearchText(customer?: Customer | null) {
     if (!customer) return "";
     return [
+      customer.customer_number,
+      customer.supplier_number,
       customer.company,
       customer.contact_person,
       customer.first_name,
       customer.last_name,
       customer.email,
+      customer.email_2,
       customer.phone,
+      customer.phone_2,
       customer.address,
+      customer.address_extra,
       customer.street,
       customer.house_number,
       customer.postal_code,
       customer.city,
       customer.country,
+      customer.vat_id,
+      customer.tax_number,
+      customer.contact_1_name,
+      customer.contact_1_email,
+      customer.contact_1_phone,
+      customer.contact_2_name,
+      customer.contact_2_email,
+      customer.contact_2_phone,
     ]
       .filter(Boolean)
       .join(" ")
@@ -7127,6 +7207,22 @@ FE-SERVICE`,
                 </h3>
 
                 <div className="mt-5 space-y-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input
+                      value={customerNumber}
+                      onChange={(e) => setCustomerNumber(e.target.value)}
+                      placeholder="Kundennummer"
+                      className="rounded-2xl border border-slate-300 px-5 py-3 font-bold"
+                    />
+
+                    <input
+                      value={customerSupplierNumber}
+                      onChange={(e) => setCustomerSupplierNumber(e.target.value)}
+                      placeholder="Lieferantennummer optional"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
                   <input
                     value={customerCompany}
                     onChange={(e) => setCustomerCompany(e.target.value)}
@@ -7206,6 +7302,13 @@ FE-SERVICE`,
                       value={customerCountry}
                       onChange={(e) => setCustomerCountry(e.target.value)}
                       placeholder="Land"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerAddressExtra}
+                      onChange={(e) => setCustomerAddressExtra(e.target.value)}
+                      placeholder="Adresszusatz optional"
                       className="rounded-2xl border border-slate-300 px-5 py-3"
                     />
                   </div>
@@ -7346,6 +7449,38 @@ FE-SERVICE`,
                           );
                         })
                       )}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <input
+                      value={customerVatId}
+                      onChange={(e) => setCustomerVatId(e.target.value)}
+                      placeholder="USt-ID optional"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+
+                    <input
+                      value={customerTaxNumber}
+                      onChange={(e) => setCustomerTaxNumber(e.target.value)}
+                      placeholder="Steuernummer optional"
+                      className="rounded-2xl border border-slate-300 px-5 py-3"
+                    />
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="mb-3 text-sm font-black text-slate-700">Weitere Ansprechpartner</p>
+
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <input value={customerContact1Name} onChange={(e) => setCustomerContact1Name(e.target.value)} placeholder="Ansprechpartner 1 Name" className="rounded-2xl border border-slate-300 px-4 py-3" />
+                      <input value={customerContact1Email} onChange={(e) => setCustomerContact1Email(e.target.value)} placeholder="Ansprechpartner 1 E-Mail" className="rounded-2xl border border-slate-300 px-4 py-3" />
+                      <input value={customerContact1Phone} onChange={(e) => setCustomerContact1Phone(e.target.value)} placeholder="Ansprechpartner 1 Telefon" className="rounded-2xl border border-slate-300 px-4 py-3" />
+                    </div>
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                      <input value={customerContact2Name} onChange={(e) => setCustomerContact2Name(e.target.value)} placeholder="Ansprechpartner 2 Name" className="rounded-2xl border border-slate-300 px-4 py-3" />
+                      <input value={customerContact2Email} onChange={(e) => setCustomerContact2Email(e.target.value)} placeholder="Ansprechpartner 2 E-Mail" className="rounded-2xl border border-slate-300 px-4 py-3" />
+                      <input value={customerContact2Phone} onChange={(e) => setCustomerContact2Phone(e.target.value)} placeholder="Ansprechpartner 2 Telefon" className="rounded-2xl border border-slate-300 px-4 py-3" />
                     </div>
                   </div>
 
