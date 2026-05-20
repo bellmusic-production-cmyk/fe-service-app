@@ -667,6 +667,32 @@ export default function Home() {
     return "Unbekannter Kunde";
   }
 
+
+  function getDeviceNameById(deviceId: any): string {
+    if (deviceId === null || deviceId === undefined || deviceId === "") {
+      return "";
+    }
+
+    const device = devices.find((deviceItem: any) => {
+      return (
+        deviceItem.id === deviceId ||
+        String(deviceItem.id) === String(deviceId)
+      );
+    });
+
+    if (!device) {
+      return "";
+    }
+
+    return (
+      device.name ||
+      device.model ||
+      device.serial_number ||
+      device.serial ||
+      ""
+    );
+  }
+
   function getDocumentCustomerName(item: any): string {
     const customerId =
       item?.customer_id ??
