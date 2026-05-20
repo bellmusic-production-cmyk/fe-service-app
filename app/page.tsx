@@ -684,12 +684,15 @@ export default function Home() {
       return "";
     }
 
+    const safeDevice: any = device;
+
     return (
-      device.name ||
-      device.model ||
-      device.serial_number ||
-      device.serial ||
-      ""
+      safeDevice.name ||
+      safeDevice.device_name ||
+      safeDevice.serial_number ||
+      safeDevice.serial ||
+      safeDevice.manufacturer ||
+      "Gerät"
     );
   }
 
