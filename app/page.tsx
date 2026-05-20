@@ -631,144 +631,7 @@ export default function Home() {
     priorityFilter,
   ]);
 
-  
-
-  function getCustomerDisplayName(customer: any): string {
-    if (!customer) return "Unbekannter Kunde";
-
-    if (
-      typeof customer.display_name === "string" &&
-      customer.display_name.trim() !== ""
-    ) {
-      return customer.display_name.trim();
-    }
-
-    if (
-      typeof customer.company === "string" &&
-      customer.company.trim() !== ""
-    ) {
-      return customer.company.trim();
-    }
-
-    const firstName =
-      typeof customer.first_name === "string" ? customer.first_name.trim() : "";
-
-    const lastName =
-      typeof customer.last_name === "string" ? customer.last_name.trim() : "";
-
-    const fullName = `${firstName} ${lastName}`.trim();
-
-    if (fullName !== "") return fullName;
-
-    if (typeof customer.email === "string" && customer.email.trim() !== "") {
-      return customer.email.trim();
-    }
-
-    return "Unbekannter Kunde";
-  }
-
-
-  function getDeviceNameById(deviceId: any): string {
-    if (deviceId === null || deviceId === undefined || deviceId === "") {
-      return "";
-    }
-
-    const device = devices.find((deviceItem: any) => {
-      return (
-        deviceItem.id === deviceId ||
-        String(deviceItem.id) === String(deviceId)
-      );
-    });
-
-    if (!device) {
-      return "";
-    }
-
-    const safeDevice: any = device;
-
-    return (
-      safeDevice.name ||
-      safeDevice.device_name ||
-      safeDevice.serial_number ||
-      safeDevice.serial ||
-      safeDevice.manufacturer ||
-      "Gerät"
-    );
-  }
-
-  function getDocumentCustomerName(item: any): string {
-    const customerId =
-      item?.customer_id ??
-      item?.customerId ??
-      item?.customer ??
-      item?.customer_number ??
-      null;
-
-    const customer = customers.find((customerItem: any) => {
-      return (
-        customerItem.id === customerId ||
-        String(customerItem.id) === String(customerId) ||
-        customerItem.company === item?.customer ||
-        customerItem.company === item?.customer_name ||
-        getCustomerDisplayName(customerItem) === item?.customer ||
-        getCustomerDisplayName(customerItem) === item?.customer_name
-      );
-    });
-
-    if (!customer) {
-      return (
-        item?.customer_name ||
-        item?.customer ||
-        item?.company ||
-        "Unbekannter Kunde"
-      );
-    }
-
-    return (
-      customer.company ||
-      getCustomerDisplayName(customer) ||
-      `${customer.first_name || ""} ${customer.last_name || ""}`.trim() ||
-      "Unbekannter Kunde"
-    );
-  }
-
-
-  function getDocumentTicketNumber(item: any): string {
-    const possibleTicketId =
-      item?.ticket_id ??
-      item?.ticketId ??
-      item?.ticket_number ??
-      item?.ticketNumber ??
-      item?.ticket ??
-      null;
-
-    if (item?.ticket_number) return String(item.ticket_number);
-    if (item?.ticketNumber) return String(item.ticketNumber);
-    if (item?.ticket) return String(item.ticket);
-
-    const ticket = (typeof serviceTickets !== "undefined" ? serviceTickets : tickets).find((ticketItem: any) => {
-      return (
-        ticketItem.id === possibleTicketId ||
-        String(ticketItem.id) === String(possibleTicketId) ||
-        ticketItem.ticket_number === possibleTicketId ||
-        String(ticketItem.ticket_number) === String(possibleTicketId)
-      );
-    });
-
-    if (!ticket) {
-      return "";
-    }
-
-    return String(
-      ticket.ticket_number ||
-        ticket.ticketNumber ||
-        ticket.number ||
-        ticket.id ||
-        ""
-    );
-  }
-
-const filteredDocuments = useMemo(() => {
+  const filteredDocuments = useMemo(() => {
     const search = documentSearchTerm.toLowerCase().trim();
 
     const customerFilteredDocuments =
@@ -1865,72 +1728,2704 @@ const filteredDocuments = useMemo(() => {
             .report { white-space: pre-wrap; line-height: 1.5; }
             .footer { margin-top: 70px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
             .line { border-top: 1px solid #0f172a; padding-top: 10px; font-size: 13px; }
-          
-        .fe-pdf-signature-section {
-          margin-top: 8px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 18px;
-          page-break-inside: avoid;
-        }
-
-        .fe-pdf-signature-box {
-          min-height: 82px;
-          border-top: 1px solid #111827;
-          padding-top: 6px;
-          font-size: 10px;
-          line-height: 1.25;
-        }
-
-        .fe-pdf-company-footer {
-          clear: both;
-          margin-top: 18px;
-          padding-top: 10px;
-          border-top: 1px solid #111827;
-          display: grid;
-          grid-template-columns: 0.75fr 1.25fr;
-          gap: 16px;
-          align-items: end;
-          font-size: 8.5px;
-          line-height: 1.25;
-          page-break-inside: avoid;
-        }
-
-        .fe-pdf-company-footer strong {
-          font-size: 9px;
-        }
-
-        .fe-pdf-footer-right {
-          text-align: left;
-        }
-
-        .fe-pdf-footer-line {
-          margin: 1px 0;
-          white-space: normal;
-        }
-
-        .fe-pdf-page {
-          padding-bottom: 12px;
-          box-sizing: border-box;
-        }
-
-
-        .no-print { display: none !important; }
-        </style>
+          </style>
         </head>
         <body>
-          <div class="fe-pdf-company-footer">
-        <div>
-          <strong>FE-Service e.K.</strong>
-          <div class="fe-pdf-footer-line">Fitness Equipment Service</div>
-        </div>
-        <div class="fe-pdf-footer-right">
-          <div class="fe-pdf-footer-line">Lochhamerstr. 1, 51491 Overath&nbsp;&nbsp;&nbsp; Lager: Mathildenstr. 5, 53797 Lohmar</div>
-          <div class="fe-pdf-footer-line">Tel. 02206-9389333, Fax 02206-9389339</div>
-          <div class="fe-pdf-footer-line">E-Mail: info@fe-service.de, URL: www.fe-service.de</div>
-          <div class="fe-pdf-footer-line">Inhaber-Geschäftsführer: Frank Ehlers&nbsp;&nbsp;&nbsp; USt.Id: DE233560663&nbsp;&nbsp;&nbsp; HRA 37460 Amtsgericht Köln</div>
-        </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
+          <p class="muted">Fitness Equipment Service · Automatisch archivierter Servicebericht</p>
+
+          <h2>Kunde & Gerät</h2>
+          <div class="box grid">
+            <div><div class="label">Ticket</div><div class="value">${ticket.ticket_number || "-"}</div></div>
+            <div><div class="label">Datum</div><div class="value">${new Date().toLocaleDateString("de-DE")}</div></div>
+            <div><div class="label">Kunde</div><div class="value">${relatedCustomer?.company || ticket.customer || "-"}</div></div>
+            <div><div class="label">Ansprechpartner</div><div class="value">${relatedCustomer?.contact_person || "-"}</div></div>
+            <div><div class="label">Gerät</div><div class="value">${ticket.device || relatedDevice?.name || "-"}</div></div>
+            <div><div class="label">Seriennummer</div><div class="value">${relatedDevice?.serial_number || "-"}</div></div>
+            <div><div class="label">Standort</div><div class="value">${relatedDevice?.location || "-"}</div></div>
+            <div><div class="label">Techniker</div><div class="value">${technicianName}</div></div>
+          </div>
+
+          <h2>Auftrag</h2>
+          <div class="box">
+            <div class="label">Problem / Betreff</div>
+            <div class="value">${ticket.issue || "-"}</div>
+            <div class="label" style="margin-top:14px;">Beschreibung</div>
+            <div class="report">${ticket.description || "-"}</div>
+          </div>
+
+          <h2>Durchgeführte Arbeiten</h2>
+          <div class="box report">
+            ${serviceReport || ticket.service_report || "Keine Arbeiten dokumentiert."}
+          </div>
+
+          <h2>Prüfsiegel / UVV-Prüfung</h2>
+          <div class="box">
+            UVV- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen,
+            Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.
+          </div>
+          <div class="box grid">
+            <div><div class="label">Prüfsiegelnummer</div><div class="value">${serviceBadgeNumber || ticket.inspection_badge_number || "-"}</div></div>
+            <div><div class="label">Gültig bis</div><div class="value">${serviceBadgeExpires || ticket.inspection_expires || "-"}</div></div>
+            <div><div class="label">Status</div><div class="value">Abgeschlossen</div></div>
+            <div><div class="label">Abgeschlossen am</div><div class="value">${new Date().toLocaleString("de-DE")}</div></div>
+          </div>
+
+          <h2>Nachweise / Dokumente</h2>
+          <div class="box">
+            ${
+              ticketDocuments.length === 0
+                ? "Keine zusätzlichen Nachweise hinterlegt."
+                : ticketDocuments
+                    .map(
+                      (doc) =>
+                        `<div><strong>${doc.category}</strong>: ${doc.file_name}</div>`,
+                    )
+                    .join("")
+            }
+          </div>
+
+          <div class="footer">
+            <div>
+              <div class="line">
+                Techniker: ${technicianSignature || ticket.technician_signature || "Nicht signiert"}
+              </div>
+            </div>
+
+            <div>
+              <div class="line">
+                Kunde: ${customerApprovalName || ticket.customer_approval_name || "-"}
+                <br/>
+                Signatur: ${customerSignature || ticket.customer_signature || "Nicht signiert"}
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  async function archiveServiceReport(ticket: Ticket) {
+    const relatedDevice = devices.find((item) => item.name === ticket.device);
+    const customerId = ticket.customer_id || relatedDevice?.customer_id || null;
+    const html = buildServiceReportHtml(ticket);
+    const fileName = `Servicebericht-${ticket.ticket_number || ticket.id}-${new Date().toISOString().slice(0, 10)}.html`;
+    const filePath = `Serviceberichte/${Date.now()}-${fileName}`;
+    const fileBlob = new Blob([html], { type: "text/html;charset=utf-8" });
+
+    const uploadResult = await supabase.storage
+      .from("documents")
+      .upload(filePath, fileBlob, {
+        contentType: "text/html;charset=utf-8",
+        upsert: false,
+      });
+
+    if (uploadResult.error) {
+      console.error("Servicebericht konnte nicht archiviert werden:", uploadResult.error.message);
+      return null;
+    }
+
+    const insertResult = await supabase
+      .from("documents")
+      .insert([
+        {
+          file_name: fileName,
+          file_path: filePath,
+          category: "Serviceberichte",
+          file_size: fileBlob.size,
+          device_id: relatedDevice?.id || null,
+          ticket_id: ticket.id,
+          customer_id: customerId,
+        },
+      ])
+      .select("*")
+      .single();
+
+    if (insertResult.error) {
+      console.error("Servicebericht-Datei wurde hochgeladen, aber nicht gelistet:", insertResult.error.message);
+      return null;
+    }
+
+    await createDeviceHistory(
+      relatedDevice?.id || null,
+      "Servicebericht automatisch archiviert",
+      `${ticket.ticket_number || "Ticket"} · ${fileName}`,
+      "Dokument",
+    );
+
+    await loadDocuments();
+
+    return insertResult.data as DocumentItem;
+  }
+
+  async function saveServiceReport(ticket: Ticket) {
+    const payload = {
+      service_report: serviceReport || null,
+      inspection_badge_number: serviceBadgeNumber || null,
+      inspection_expires: serviceBadgeExpires || null,
+      internal_note: serviceInternalNote || null,
+      technician_signature: technicianSignature || null,
+      customer_signature: customerSignature || null,
+      customer_approval_name: customerApprovalName || null,
+      customer_approval_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      service_status: "Abgeschlossen",
+      status: "Abgeschlossen",
+    };
+
+    const { error } = await supabase
+      .from("tickets")
+      .update(payload)
+      .eq("id", ticket.id);
+
+    if (error) {
+      alert(`Servicebericht konnte nicht gespeichert werden: ${error.message}`);
+      return;
+    }
+
+    await createDeviceHistory(
+      null,
+      "Servicebericht abgeschlossen",
+      `${ticket.ticket_number || "Ticket"} · Prüfsiegel: ${serviceBadgeNumber || "keins"}`,
+      "Service",
+    );
+
+    const archivedDocument = await archiveServiceReport({
+      ...ticket,
+      ...payload,
+    } as Ticket);
+
+    setTickets((prev) =>
+      prev.map((item) =>
+        item.id === ticket.id ? { ...item, ...payload } : item,
+      ),
+    );
+
+    if (archivedDocument) {
+      alert("Servicebericht gespeichert und automatisch archiviert.");
+    } else {
+      alert("Servicebericht gespeichert. Automatische Archivierung bitte prüfen.");
+    }
+  }
+
+  function printServiceReport(ticket: Ticket) {
+    const relatedDevice = devices.find((item) => item.name === ticket.device);
+    const relatedCustomer =
+      customers.find((item) => item.id === ticket.customer_id) ||
+      customers.find((item) => item.company === ticket.customer);
+    const technicianName = getTechnicianNameById(ticket.assigned_to);
+    const ticketDocuments = getDocumentsForTicket(ticket);
+
+    const reportHtml = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>FE-SERVICE Servicebericht ${ticket.ticket_number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
+            h1 { margin: 0; color: #16a34a; letter-spacing: 4px; }
+            h2 { margin-top: 28px; border-bottom: 2px solid #16a34a; padding-bottom: 8px; }
+            .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; }
+            .muted { color: #64748b; font-size: 13px; }
+            .box { border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px; margin: 14px 0; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold; }
+            .value { margin-top: 4px; font-weight: bold; white-space: pre-wrap; }
+            .report { white-space: pre-wrap; line-height: 1.5; }
+            .footer { margin-top: 70px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+            .line { border-top: 1px solid #0f172a; padding-top: 10px; font-size: 13px; }
+            @media print { button { display: none; } body { padding: 24px; } }
+          </style>
+        </head>
+        <body>
+          <div class="top">
+            <div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
+              <p class="muted">Fitness Equipment Service · Servicebericht / Prüfbericht</p>
+            </div>
+            <div>
+              <div class="label">Ticket</div>
+              <div class="value">${ticket.ticket_number || "-"}</div>
+              <div class="label" style="margin-top:12px;">Datum</div>
+              <div class="value">${new Date().toLocaleDateString("de-DE")}</div>
+            </div>
+          </div>
+
+          <h2>Kunde & Gerät</h2>
+          <div class="box grid">
+            <div><div class="label">Kunde</div><div class="value">${relatedCustomer?.company || ticket.customer || "-"}</div></div>
+            <div><div class="label">Ansprechpartner</div><div class="value">${relatedCustomer?.contact_person || "-"}</div></div>
+            <div><div class="label">Gerät</div><div class="value">${ticket.device || relatedDevice?.name || "-"}</div></div>
+            <div><div class="label">Seriennummer</div><div class="value">${relatedDevice?.serial_number || "-"}</div></div>
+            <div><div class="label">Standort</div><div class="value">${relatedDevice?.location || "-"}</div></div>
+            <div><div class="label">Techniker</div><div class="value">${technicianName}</div></div>
+          </div>
+
+          <h2>Auftrag</h2>
+          <div class="box">
+            <div class="label">Problem / Betreff</div>
+            <div class="value">${ticket.issue || "-"}</div>
+            <div class="label" style="margin-top:14px;">Beschreibung</div>
+            <div class="report">${ticket.description || "-"}</div>
+          </div>
+
+          <h2>Durchgeführte Arbeiten</h2>
+          <div class="box report">
+            ${ticket.service_report || serviceReport || "Keine Arbeiten dokumentiert."}
+          </div>
+
+          <h2>Prüfsiegel / UVV-Prüfung</h2>
+          <div class="box">
+            UVV- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen,
+            Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.
+          </div>
+          <div class="box grid">
+            <div><div class="label">Prüfsiegelnummer</div><div class="value">${ticket.inspection_badge_number || serviceBadgeNumber || "-"}</div></div>
+            <div><div class="label">Gültig bis</div><div class="value">${ticket.inspection_expires || serviceBadgeExpires || "-"}</div></div>
+            <div><div class="label">Status</div><div class="value">${ticket.status || "-"}</div></div>
+            <div><div class="label">Abgeschlossen am</div><div class="value">${ticket.completed_at ? new Date(ticket.completed_at).toLocaleString("de-DE") : "-"}</div></div>
+          </div>
+
+          <h2>Nachweise / Dokumente</h2>
+          <div class="box">
+            ${
+              ticketDocuments.length === 0
+                ? "Keine Nachweise hinterlegt."
+                : ticketDocuments
+                    .map(
+                      (doc) =>
+                        `<div><strong>${doc.category}</strong>: ${doc.file_name}</div>`,
+                    )
+                    .join("")
+            }
+          </div>
+
+          <h2>Kundenbestätigung</h2>
+          <div class="box">
+            Der Kunde bestätigt die Durchführung der oben dokumentierten Arbeiten.
+          </div>
+
+          <div class="footer">
+            <div>
+              <div class="line">
+                Techniker: ${technicianSignature || ticket.technician_signature || "Nicht signiert"}
+              </div>
+            </div>
+
+            <div>
+              <div class="line">
+                Kunde: ${customerApprovalName || ticket.customer_approval_name || "-"}
+                <br/>
+                Signatur: ${customerSignature || ticket.customer_signature || "Nicht signiert"}
+              </div>
+            </div>
+          </div>
+
+          <button onclick="window.print()" style="margin-top:40px;padding:14px 22px;border-radius:14px;border:0;background:#16a34a;color:white;font-weight:bold;">Drucken / als PDF speichern</button>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      alert("Popup wurde blockiert. Bitte Popups erlauben.");
+      return;
+    }
+
+    printWindow.document.write(reportHtml);
+    printWindow.document.close();
+
+    createDeviceHistory(
+      relatedDevice?.id || null,
+      "PDF-Servicebericht erstellt",
+      `${ticket.ticket_number || "Ticket"} · ${ticket.issue || ""}`,
+      "PDF",
+    );
+  }
+
+  async function updateServiceStatus(ticketId: number, newServiceStatus: string) {
+    const changedTicket = tickets.find((ticket) => ticket.id === ticketId);
+    const newMainStatus =
+      newServiceStatus === "Gestartet"
+        ? "In Bearbeitung"
+        : newServiceStatus === "Abgeschlossen"
+          ? "Abgeschlossen"
+          : changedTicket?.status || "Zugewiesen";
+
+    const { error } = await supabase
+      .from("tickets")
+      .update({
+        service_status: newServiceStatus,
+        status: newMainStatus,
+      })
+      .eq("id", ticketId);
+
+    if (error) {
+      alert(`Einsatzstatus konnte nicht gespeichert werden: ${error.message}`);
+      return;
+    }
+
+    const relatedDevice = devices.find(
+      (item) => item.name === changedTicket?.device,
+    );
+
+    await createDeviceHistory(
+      relatedDevice?.id || null,
+      "Einsatzstatus geändert",
+      `${changedTicket?.ticket_number || "Ticket"}: ${newServiceStatus}`,
+      "Einsatz",
+    );
+
+    setTickets((prev) =>
+      prev.map((ticket) =>
+        ticket.id === ticketId
+          ? { ...ticket, service_status: newServiceStatus, status: newMainStatus }
+          : ticket,
+      ),
+    );
+  }
+
+  async function deleteTicket(ticketId: number) {
+    if (!confirm("Ticket wirklich löschen?")) return;
+
+    const { error } = await supabase
+      .from("tickets")
+      .delete()
+      .eq("id", ticketId);
+
+    if (error) {
+      alert("Löschen fehlgeschlagen.");
+      return;
+    }
+
+    await loadTickets();
+  }
+
+  async function saveManufacturer() {
+    if (!isAdmin) {
+      alert("Nur Admins können Hersteller verwalten.");
+      return;
+    }
+
+    if (!manufacturerName.trim()) {
+      alert("Bitte Herstellername eingeben.");
+      return;
+    }
+
+    const payload = {
+      name: manufacturerName.trim(),
+      website: manufacturerWebsite.trim() || null,
+      phone: manufacturerPhone.trim() || null,
+      email: manufacturerEmail.trim() || null,
+      contact_person: manufacturerContactPerson.trim() || null,
+      address: manufacturerAddress.trim() || null,
+      parts_url: manufacturerPartsUrl.trim() || null,
+      note: manufacturerNote.trim() || null,
+    };
+
+    const result = editingManufacturer
+      ? await supabase
+          .from("manufacturers")
+          .update(payload)
+          .eq("id", editingManufacturer.id)
+      : await supabase.from("manufacturers").insert([payload]);
+
+    if (result.error) {
+      alert(`Hersteller konnte nicht gespeichert werden: ${result.error.message}`);
+      return;
+    }
+
+    resetManufacturerForm();
+    await loadManufacturers();
+    alert("Hersteller wurde gespeichert.");
+  }
+
+  async function deleteManufacturer(item: Manufacturer) {
+    if (!isAdmin) {
+      alert("Nur Admins können Hersteller löschen.");
+      return;
+    }
+
+    const usedByDevices = devices.filter(
+      (deviceItem) =>
+        deviceItem.manufacturer_id === item.id ||
+        deviceItem.manufacturer === item.name,
+    );
+
+    if (usedByDevices.length > 0) {
+      alert(
+        `Dieser Hersteller ist noch ${usedByDevices.length} Gerät(en) zugeordnet und kann nicht gelöscht werden.`,
+      );
+      return;
+    }
+
+    if (!confirm(`Hersteller "${item.name}" wirklich löschen?`)) return;
+
+    const { error } = await supabase
+      .from("manufacturers")
+      .delete()
+      .eq("id", item.id);
+
+    if (error) {
+      alert(`Hersteller konnte nicht gelöscht werden: ${error.message}`);
+      return;
+    }
+
+    await loadManufacturers();
+  }
+
+  async function createDevice() {
+    if (!isAdmin) {
+      alert("Nur Admins können Geräte anlegen.");
+      return;
+    }
+
+    if (!deviceName) {
+      alert("Bitte Gerätename eingeben.");
+      return;
+    }
+
+    const selectedManufacturer = manufacturers.find(
+      (item) => item.id === Number(deviceManufacturerId),
+    );
+
+    const { error } = await supabase.from("devices").insert([
+      {
+        name: deviceName,
+        manufacturer: selectedManufacturer?.name || deviceManufacturer || null,
+        manufacturer_id: selectedManufacturer?.id || null,
+        serial_number: deviceSerial,
+        location: deviceLocation,
+        status: deviceStatus,
+        next_check: deviceNextCheck || null,
+        note: deviceNote,
+      },
+    ]);
+
+    if (error) {
+      alert("Gerät konnte nicht gespeichert werden.");
+      return;
+    }
+
+    resetDeviceForm();
+    await loadDevices();
+  }
+
+  async function updateDevice() {
+    if (!isAdmin) {
+      alert("Nur Admins können Geräte bearbeiten.");
+      return;
+    }
+
+    if (!editingDevice) return;
+
+    if (!deviceName) {
+      alert("Bitte Gerätename eingeben.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("devices")
+      .update({
+        name: deviceName,
+        manufacturer: deviceManufacturer || null,
+        serial_number: deviceSerial,
+        location: deviceLocation,
+        status: deviceStatus,
+        next_check: deviceNextCheck || null,
+        note: deviceNote,
+      })
+      .eq("id", editingDevice.id);
+
+    if (error) {
+      alert("Gerät konnte nicht bearbeitet werden.");
+      return;
+    }
+
+    await createDeviceHistory(
+      editingDevice.id,
+      "Gerät aktualisiert",
+      `Status: ${deviceStatus} · Nächste Prüfung: ${deviceNextCheck || "nicht geplant"}`,
+      "Gerät",
+    );
+
+    resetDeviceForm();
+    await loadDevices();
+  }
+
+  async function deleteDevice(deviceId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Geräte löschen.");
+      return;
+    }
+
+    if (!confirm("Gerät wirklich löschen?")) return;
+
+    const { error } = await supabase
+      .from("devices")
+      .delete()
+      .eq("id", deviceId);
+
+    if (error) {
+      alert("Gerät konnte nicht gelöscht werden.");
+      return;
+    }
+
+    await loadDevices();
+  }
+
+  async function createCustomer() {
+    if (!isAdmin) {
+      alert("Nur Admins können Kunden anlegen.");
+      return;
+    }
+
+    if (!customerCompany) {
+      alert("Bitte Firmenname eingeben.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("customers")
+      .insert([
+        {
+          company: customerCompany,
+          contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
+          first_name: customerFirstName.trim() || null,
+          last_name: customerLastName.trim() || null,
+          email: customerEmail,
+          phone: customerPhone,
+          address: buildCustomerAddressFromForm() || customerAddress,
+          street: customerStreet.trim() || null,
+          house_number: customerHouseNumber.trim() || null,
+          postal_code: customerPostalCode.trim() || null,
+          city: customerCity.trim() || null,
+          country: customerCountry.trim() || null,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      alert("Kunde konnte nicht gespeichert werden.");
+      return;
+    }
+
+    if (assignedDeviceIds.length > 0) {
+      await supabase
+        .from("devices")
+        .update({ customer_id: data.id })
+        .in("id", assignedDeviceIds.map(Number));
+    }
+
+    resetCustomerForm();
+    await loadCustomers();
+    await loadDevices();
+  }
+
+  async function updateCustomer() {
+    if (!isAdmin) {
+      alert("Nur Admins können Kunden bearbeiten.");
+      return;
+    }
+
+    if (!editingCustomer) return;
+
+    if (!customerCompany) {
+      alert("Bitte Firmenname eingeben.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("customers")
+      .update({
+        company: customerCompany,
+        contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
+        first_name: customerFirstName.trim() || null,
+        last_name: customerLastName.trim() || null,
+        email: customerEmail,
+        phone: customerPhone,
+        address: buildCustomerAddressFromForm() || customerAddress,
+        street: customerStreet.trim() || null,
+        house_number: customerHouseNumber.trim() || null,
+        postal_code: customerPostalCode.trim() || null,
+        city: customerCity.trim() || null,
+        country: customerCountry.trim() || null,
+      })
+      .eq("id", editingCustomer.id);
+
+    if (error) {
+      alert("Kunde konnte nicht bearbeitet werden.");
+      return;
+    }
+
+    await supabase
+      .from("devices")
+      .update({ customer_id: null })
+      .eq("customer_id", editingCustomer.id);
+
+    if (assignedDeviceIds.length > 0) {
+      await supabase
+        .from("devices")
+        .update({ customer_id: editingCustomer.id })
+        .in("id", assignedDeviceIds.map(Number));
+    }
+
+    resetCustomerForm();
+    await loadCustomers();
+    await loadDevices();
+  }
+
+  async function deleteCustomer(customerId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Kunden löschen.");
+      return;
+    }
+
+    if (!confirm("Kunde wirklich löschen?")) return;
+
+    await supabase
+      .from("devices")
+      .update({ customer_id: null })
+      .eq("customer_id", customerId);
+    await supabase
+      .from("tickets")
+      .update({ customer_id: null })
+      .eq("customer_id", customerId);
+    await supabase
+      .from("documents")
+      .update({ customer_id: null })
+      .eq("customer_id", customerId);
+
+    const { error } = await supabase
+      .from("customers")
+      .delete()
+      .eq("id", customerId);
+
+    if (error) {
+      alert(
+        "Kunde konnte nicht gelöscht werden. Prüfe, ob noch verknüpfte Daten existieren.",
+      );
+      return;
+    }
+
+    await loadCustomers();
+    await loadDevices();
+    await loadTickets();
+    await loadDocuments();
+  }
+
+  function createTicketFromDevice(item: Device) {
+    const linkedCustomer = item.customer_id
+      ? customers.find((customerItem) => customerItem.id === item.customer_id)
+      : null;
+
+    setActivePage("Service-Tickets");
+    setCustomer(linkedCustomer?.company || "");
+    setDevice(item.name);
+    setCustomDeviceName("");
+    setIssue(`Service für ${item.name}`);
+    setDescription(item.note || "");
+    setPriority(item.status === "Prüfung erforderlich" ? "Hoch" : "Mittel");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function createTicketFromCustomer(item: Customer) {
+    setActivePage("Service-Tickets");
+    setCustomer(item.company || "");
+    setIssue(`Service-Anfrage ${item.company || ""}`);
+    setDescription(
+      `Ansprechpartner: ${item.contact_person || "nicht angegeben"}\nTelefon: ${
+        item.phone || "nicht angegeben"
+      }\nE-Mail: ${item.email || "nicht angegeben"}`,
+    );
+    setPriority("Mittel");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function createInspectionTicket(item: Device) {
+    setActivePage("Service-Tickets");
+    setDevice(item.name);
+    setIssue(`Prüfung / Prüfsiegel für ${item.name}`);
+    setDescription(
+      `Bitte Prüfung für ${item.name} einplanen. Seriennummer: ${
+        item.serial_number || "nicht angegeben"
+      }. Standort: ${item.location || "nicht angegeben"}. Nächste Prüfung: ${
+        item.next_check || "kein Datum hinterlegt"
+      }.`,
+    );
+    setPriority("Hoch");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function priorityClass(priorityValue: string) {
+    if (priorityValue === "Hoch") return "bg-red-100 text-red-700";
+    if (priorityValue === "Mittel") return "bg-yellow-100 text-yellow-700";
+    return "bg-green-100 text-green-700";
+  }
+
+  function statusClass(statusValue: string) {
+    if (statusValue === "Abgeschlossen" || statusValue === "Erledigt")
+      return "bg-blue-100 text-blue-700";
+    if (statusValue === "In Bearbeitung")
+      return "bg-yellow-100 text-yellow-700";
+    if (statusValue === "Wartet auf Teile")
+      return "bg-orange-100 text-orange-700";
+    if (statusValue === "Zugewiesen") return "bg-purple-100 text-purple-700";
+    return "bg-green-100 text-green-700";
+  }
+
+  function deviceStatusClass(statusValue: string | null) {
+    if (statusValue === "Aktiv") return "bg-green-100 text-green-700";
+    if (statusValue === "Wartung bald fällig") {
+      return "bg-yellow-100 text-yellow-700";
+    }
+    if (statusValue === "Außer Betrieb") return "bg-slate-200 text-slate-700";
+    return "bg-red-100 text-red-700";
+  }
+
+  function getInspectionStatus(nextCheck: string | null) {
+    if (!nextCheck) {
+      return {
+        label: "Kein Datum",
+        daysText: "Keine Prüfung geplant",
+        className: "bg-slate-200 text-slate-700",
+      };
+    }
+
+    const today = new Date();
+    const checkDate = new Date(nextCheck);
+
+    today.setHours(0, 0, 0, 0);
+    checkDate.setHours(0, 0, 0, 0);
+
+    const diffMs = checkDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return {
+        label: "Überfällig",
+        daysText: `${Math.abs(diffDays)} Tage überfällig`,
+        className: "bg-red-100 text-red-700",
+      };
+    }
+
+    if (diffDays <= 30) {
+      return {
+        label: "Bald fällig",
+        daysText: `${diffDays} Tage bis Ablauf`,
+        className: "bg-yellow-100 text-yellow-700",
+      };
+    }
+
+    return {
+      label: "Gültig",
+      daysText: `${diffDays} Tage gültig`,
+      className: "bg-green-100 text-green-700",
+    };
+  }
+
+  function categoryCount(category: string) {
+    if (category === "Alle") return visibleDocuments.length;
+    return visibleDocuments.filter((item) => item.category === category).length;
+  }
+
+  function fileSizeText(size: number | null) {
+    if (!size) return "Größe unbekannt";
+    return `${Math.round(size / 1024)} KB`;
+  }
+
+  function formatDate(value: string) {
+    return new Date(value).toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function getDeviceNameById(deviceId: number | null) {
+    if (!deviceId) return "Kein Gerät zugeordnet";
+
+    const foundDevice = devices.find((item) => item.id === deviceId);
+
+    return foundDevice?.name || "Gerät nicht gefunden";
+  }
+
+  function getDocumentCustomerName(item: DocumentItem) {
+    if (item.customer_id) {
+      return getCustomerNameById(item.customer_id);
+    }
+
+    if (item.device_id) {
+      const linkedDevice = devices.find((deviceItem) => deviceItem.id === item.device_id);
+      if (linkedDevice?.customer_id) {
+        return getCustomerNameById(linkedDevice.customer_id);
+      }
+    }
+
+    if (item.ticket_id) {
+      const linkedTicket = tickets.find((ticketItem) => ticketItem.id === item.ticket_id);
+      if (linkedTicket?.customer_id) {
+        return getCustomerNameById(linkedTicket.customer_id);
+      }
+      if (linkedTicket?.customer) {
+        return linkedTicket.customer;
+      }
+    }
+
+    return "Nicht zugeordnet";
+  }
+
+  function getDocumentTicketNumber(item: DocumentItem) {
+    if (!item.ticket_id) return "Kein Ticket";
+    const linkedTicket = tickets.find((ticketItem) => ticketItem.id === item.ticket_id);
+    return linkedTicket?.ticket_number || `Ticket ${item.ticket_id}`;
+  }
+
+  function getDocumentTechnicianName(item: DocumentItem) {
+    if (!item.ticket_id) return "Nicht zugewiesen";
+    const linkedTicket = tickets.find((ticketItem) => ticketItem.id === item.ticket_id);
+    return getTechnicianNameById(linkedTicket?.assigned_to || null);
+  }
+
+  function canDeleteDocument(item: DocumentItem) {
+    if (isAdmin) return true;
+
+    if (isCustomer) return false;
+
+    if (isTechnician) {
+      if (item.category === "Abnahmeprotokolle") return false;
+      if (item.file_path?.startsWith("Abnahmeprotokolle/")) return false;
+      if (item.file_name?.toLowerCase().includes("abnahmeprotokoll")) return false;
+      return true;
+    }
+
+    return false;
+  }
+
+  function documentDeleteLockedReason(item: DocumentItem) {
+    if (isTechnician && item.category === "Abnahmeprotokolle") {
+      return "Abnahmeprotokolle sind geschützt und können nur vom Admin gelöscht werden.";
+    }
+
+    return "Keine Löschberechtigung.";
+  }
+
+
+
+  function openDeviceFromQr(item: Device) {
+    setSelectedDeviceView(item);
+    setActivePage("Geräte");
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("device", String(item.id));
+      window.history.replaceState(null, "", url.toString());
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function printDeviceQrLabel(item: Device) {
+    const qrUrl = getDeviceQrCodeUrl(item);
+    const linkedCustomer = item.customer_id
+      ? customers.find((customerItem) => customerItem.id === item.customer_id)
+      : null;
+
+    const html = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>FE-SERVICE QR ${item.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px; color: #0f172a; }
+            .label { width: 360px; border: 2px solid #16a34a; border-radius: 24px; padding: 22px; text-align: center; }
+            h1 { margin: 0; color: #16a34a; letter-spacing: 3px; font-size: 20px; }
+            h2 { margin: 12px 0 4px; font-size: 22px; }
+            p { margin: 4px 0; color: #334155; font-size: 13px; }
+            img { margin: 18px auto; width: 220px; height: 220px; display: block; }
+            .small { font-size: 11px; color: #64748b; word-break: break-all; }
+            @media print { button { display: none; } body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="label">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
+            <p>Geräteakte / Service-QR</p>
+            <img src="${qrUrl}" />
+            <h2>${item.name}</h2>
+            <p><strong>Kunde:</strong> ${linkedCustomer?.company || "Nicht zugeordnet"}</p>
+            <p><strong>Seriennummer:</strong> ${item.serial_number || "-"}</p>
+            <p><strong>Standort:</strong> ${item.location || "-"}</p>
+            <p class="small">${getDeviceDirectUrl(item)}</p>
+          </div>
+          <button onclick="window.print()" style="margin-top:20px;padding:12px 18px;border:0;border-radius:12px;background:#16a34a;color:white;font-weight:bold;">
+            QR-Etikett drucken
+          </button>
+        </body>
+      </html>
+    `;
+
+    
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      alert("Popup wurde blockiert. Bitte Popups erlauben.");
+      return;
+    }
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+
+  function FeServiceLogo({ dark = false }: { dark?: boolean }) {
+    return (
+      <div className="flex w-full flex-col items-center justify-center text-center">
+        <img
+          src="/fe-service-logo.png"
+          alt="Fitness Equipment Service"
+          className="h-auto w-full max-w-[280px] object-contain drop-shadow-xl"
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+        />
+
+        <p
+          className={`mt-4 text-sm font-black uppercase tracking-[0.28em] ${
+            dark ? "text-[var(--fe-green)]" : "text-green-600"
+          }`}
+        >
+          FE-SERVICE
+        </p>
+
+        <p
+          className={`mt-1 text-[10px] font-bold uppercase tracking-[0.22em] ${
+            dark ? "text-green-400" : "text-green-600"
+          }`}
+        >
+          Serviceplattform
+        </p>
       </div>
+    );
+  }
+
+  function findDeviceFromQrInput(input: string) {
+    const raw = input.trim();
+
+    if (!raw) return null;
+
+    let normalized = raw.toLowerCase();
+
+    try {
+      const parsedUrl = new URL(raw);
+      normalized =
+        parsedUrl.searchParams.get("device")?.toLowerCase() ||
+        parsedUrl.searchParams.get("deviceId")?.toLowerCase() ||
+        parsedUrl.pathname.split("/").filter(Boolean).pop()?.toLowerCase() ||
+        normalized;
+    } catch {
+      // Eingabe ist kein URL.
+    }
+
+    return (
+      devices.find((item) => String(item.id).toLowerCase() === normalized) ||
+      devices.find((item) => String(item.serial_number || "").toLowerCase() === normalized) ||
+      devices.find((item) => String(item.name || "").toLowerCase() === normalized) ||
+      devices.find((item) => String(item.name || "").toLowerCase().includes(normalized)) ||
+      devices.find((item) => String(item.serial_number || "").toLowerCase().includes(normalized)) ||
+      null
+    );
+  }
+
+  function openDeviceFromScanValue(value: string) {
+    const foundDevice = findDeviceFromQrInput(value);
+
+    if (!foundDevice) {
+      setQrScanStatus("Kein passendes Gerät gefunden. Bitte Geräte-ID, Seriennummer oder QR-Link prüfen.");
+      return;
+    }
+
+    setQrScanStatus(`Gerät gefunden: ${foundDevice.name}`);
+    stopQrScanner();
+    openDeviceFromQr(foundDevice);
+  }
+
+  async function startQrScanner() {
+    if (typeof window === "undefined") return;
+
+    try {
+      setQrScannerActive(true);
+      setQrScanStatus("Scanner wird vorbereitet...");
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      const readerElement = document.getElementById("fe-service-qr-reader");
+
+      if (!readerElement) {
+        setQrScanStatus("Scanner-Feld wurde noch nicht geladen. Bitte erneut QR-Scan starten.");
+        return;
+      }
+
+      const { Html5Qrcode } = await import("html5-qrcode");
+
+      if (qrScannerRef.current) {
+        try {
+          await qrScannerRef.current.stop();
+          await qrScannerRef.current.clear();
+        } catch {
+          // Scanner war nicht aktiv.
+        }
+      }
+
+      const scanner = new Html5Qrcode("fe-service-qr-reader");
+      qrScannerRef.current = scanner;
+
+      setQrScanStatus("Kamera-Berechtigung wird angefragt...");
+
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 260, height: 260 },
+          aspectRatio: 1.0,
+        },
+        (decodedText: string) => {
+          openDeviceFromScanValue(decodedText);
+        },
+        () => {
+          // Kein Fehlerspamming im Live-Scan.
+        },
+      );
+
+      setQrScanStatus("Kamera aktiv. QR-Code am Gerät in den Rahmen halten.");
+    } catch (error) {
+      console.error(error);
+      setQrScannerActive(false);
+      setQrScanStatus(
+        "Kamera konnte nicht geöffnet werden. Bitte HTTPS, Kamera-Berechtigung und Browser-Einstellungen prüfen.",
+      );
+    }
+  }
+
+  async function stopQrScanner() {
+    try {
+      if (qrScannerRef.current) {
+        await qrScannerRef.current.stop();
+        await qrScannerRef.current.clear();
+        qrScannerRef.current = null;
+      }
+    } catch {
+      qrScannerRef.current = null;
+    }
+
+    setQrScannerActive(false);
+  }
+
+  function getDeviceDirectUrl(item: Device) {
+    if (typeof window === "undefined") {
+      return `FE-SERVICE Gerät ${item.id}`;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("device", String(item.id));
+
+    return url.toString();
+  }
+
+  function getDeviceQrCodeUrl(item: Device) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+      getDeviceDirectUrl(item),
+    )}`;
+  }
+
+  async function copyDeviceLink(item: Device) {
+    await navigator.clipboard.writeText(getDeviceDirectUrl(item));
+    alert("Geräte-Link wurde kopiert.");
+  }
+
+  function getMaintenanceStatus(nextDue: string | null) {
+    if (!nextDue) {
+      return {
+        label: "Nicht geplant",
+        className: "bg-slate-200 text-slate-700",
+      };
+    }
+
+    const today = new Date();
+    const dueDate = new Date(nextDue);
+
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil(
+      (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    if (diffDays < 0) {
+      return {
+        label: `${Math.abs(diffDays)} Tage überfällig`,
+        className: "bg-red-100 text-red-700",
+      };
+    }
+
+    if (diffDays <= 30) {
+      return {
+        label: `${diffDays} Tage bis Wartung`,
+        className: "bg-yellow-100 text-yellow-700",
+      };
+    }
+
+    return {
+      label: `${diffDays} Tage geplant`,
+      className: "bg-green-100 text-green-700",
+    };
+  }
+
+  function getMaintenancePlanForDevice(deviceId: number) {
+    return maintenancePlans.find((plan) => plan.device_id === deviceId) || null;
+  }
+
+  function getMaintenanceAssignedName(assignedTo?: string | null) {
+    if (!assignedTo) return "Nicht zugewiesen";
+    return getTechnicianNameById(assignedTo);
+  }
+
+  function getCustomerNameById(customerId?: number | null) {
+    if (!customerId) return "Nicht zugeordnet";
+    const customer = customers.find((item) => item.id === customerId);
+    return customer?.company || customer?.contact_person || `Kunde ${customerId}`;
+  }
+
+  function getDevicesForCustomer(customerId?: number | null) {
+    if (!customerId) return [];
+    return devices.filter((deviceItem) => deviceItem.customer_id === customerId);
+  }
+
+  function getManufacturerNameById(manufacturerId?: number | null) {
+    if (!manufacturerId) return "";
+    return manufacturers.find((item) => item.id === manufacturerId)?.name || "";
+  }
+
+  function resetManufacturerForm() {
+    setEditingManufacturer(null);
+    setManufacturerName("");
+    setManufacturerWebsite("");
+    setManufacturerPhone("");
+    setManufacturerEmail("");
+    setManufacturerContactPerson("");
+    setManufacturerAddress("");
+    setManufacturerPartsUrl("");
+    setManufacturerNote("");
+  }
+
+  function startEditManufacturer(item: Manufacturer) {
+    setActivePage("Hersteller");
+    setEditingManufacturer(item);
+    setManufacturerName(item.name || "");
+    setManufacturerWebsite(item.website || "");
+    setManufacturerPhone(item.phone || "");
+    setManufacturerEmail(item.email || "");
+    setManufacturerContactPerson(item.contact_person || "");
+    setManufacturerAddress(item.address || "");
+    setManufacturerPartsUrl(item.parts_url || "");
+    setManufacturerNote(item.note || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+
+  function belongsToCurrentCustomer(customerId?: number | null) {
+    if (!isCustomer) return true;
+    if (!userProfile?.customer_id) return false;
+    return customerId === userProfile.customer_id;
+  }
+
+
+  function getCustomerDisplayName(customer?: Customer | null) {
+    if (!customer) return "";
+    const fullName = `${customer.first_name || ""} ${customer.last_name || ""}`.trim();
+    return fullName || customer.contact_person || customer.company || customer.email || `Kunde ${customer.id}`;
+  }
+
+  function buildCustomerAddress(customer?: Customer | null) {
+    if (!customer) return "";
+
+    const structuredAddress = [
+      `${customer.street || ""} ${customer.house_number || ""}`.trim(),
+      `${customer.postal_code || ""} ${customer.city || ""}`.trim(),
+      customer.country || "",
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    return structuredAddress || customer.address || "";
+  }
+
+  function buildCustomerAddressFromForm() {
+    return [
+      `${customerStreet.trim()} ${customerHouseNumber.trim()}`.trim(),
+      `${customerPostalCode.trim()} ${customerCity.trim()}`.trim(),
+      customerCountry.trim(),
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  function getCustomerSearchText(customer?: Customer | null) {
+    if (!customer) return "";
+    return [
+      customer.company,
+      customer.contact_person,
+      customer.first_name,
+      customer.last_name,
+      customer.email,
+      customer.phone,
+      customer.address,
+      customer.street,
+      customer.house_number,
+      customer.postal_code,
+      customer.city,
+      customer.country,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  }
+
+  function getCustomerLabel(customer: Customer) {
+    return (
+      customer.company ||
+      getCustomerDisplayName(customer) ||
+      customer.email ||
+      `Kunde ${customer.id}`
+    );
+  }
+
+  const maintenanceFilteredDevices = maintenanceCustomerId
+    ? devices.filter((item) => item.customer_id === Number(maintenanceCustomerId))
+    : devices;
+
+  function resetMaintenanceForm() {
+    setMaintenanceCustomerId("");
+    setMaintenanceDeviceId("");
+    setMaintenanceType("Regelwartung");
+    setMaintenanceIntervalDays("365");
+    setMaintenanceNextDue("");
+    setMaintenanceAssignedTo("");
+    setMaintenanceStatus("Geplant");
+    setMaintenanceNote("");
+  }
+
+  async function saveMaintenancePlan() {
+    if (!isAdmin && !isTechnician) {
+      alert("Nur Admins und Techniker können Wartungen planen.");
+      return;
+    }
+
+    if (!maintenanceCustomerId || !maintenanceDeviceId || !maintenanceNextDue) {
+      alert("Bitte Kunde, Gerät und nächsten Wartungstermin auswählen.");
+      return;
+    }
+
+    const customerId = Number(maintenanceCustomerId);
+    const deviceId = Number(maintenanceDeviceId);
+    const selectedCustomer = customers.find((item) => item.id === customerId);
+    const selectedDevice = devices.find(
+      (item) => item.id === deviceId && item.customer_id === customerId,
+    );
+
+    if (!selectedCustomer) {
+      alert("Kunde wurde nicht gefunden.");
+      return;
+    }
+
+    if (!selectedDevice) {
+      alert("Gerät wurde nicht gefunden oder gehört nicht zu diesem Kunden.");
+      return;
+    }
+
+    const payload = {
+      device_id: deviceId,
+      customer_id: customerId,
+      title: `${maintenanceType} · ${selectedCustomer.company || "Kunde"} · ${selectedDevice.name}`,
+      maintenance_type: maintenanceType,
+      interval_days: Number(maintenanceIntervalDays) || null,
+      next_due: maintenanceNextDue,
+      assigned_to: maintenanceAssignedTo || null,
+      status: maintenanceStatus,
+      note: maintenanceNote.trim() || null,
+      completed_at: maintenanceStatus === "Abgeschlossen" ? new Date().toISOString() : null,
+    };
+
+    const { error } = await supabase.from("maintenance_plans").insert([payload]);
+
+    if (error) {
+      alert(`Wartung konnte nicht gespeichert werden: ${error.message}`);
+      return;
+    }
+
+    await createDeviceHistory(
+      deviceId,
+      "Wartung geplant",
+      `${maintenanceType} · Kunde: ${selectedCustomer.company || "Nicht angegeben"} · Termin: ${maintenanceNextDue} · Techniker: ${getMaintenanceAssignedName(maintenanceAssignedTo)} · Status: ${maintenanceStatus}`,
+      "Wartung",
+    );
+
+    resetMaintenanceForm();
+    await loadMaintenancePlans();
+    alert("Wartung wurde geplant.");
+  }
+
+  async function updateMaintenanceStatus(plan: MaintenancePlan, newStatus: string) {
+    const updatePayload = {
+      status: newStatus,
+      completed_at: newStatus === "Abgeschlossen" ? new Date().toISOString() : null,
+    };
+
+    const { error } = await supabase
+      .from("maintenance_plans")
+      .update(updatePayload)
+      .eq("id", plan.id);
+
+    if (error) {
+      alert(`Wartungsstatus konnte nicht gespeichert werden: ${error.message}`);
+      return;
+    }
+
+    await createDeviceHistory(
+      plan.device_id || null,
+      "Wartungsstatus geändert",
+      `${plan.title || "Wartung"}: ${newStatus}`,
+      "Wartung",
+    );
+
+    setMaintenancePlans((prev) =>
+      prev.map((item) =>
+        item.id === plan.id ? { ...item, ...updatePayload } : item,
+      ),
+    );
+  }
+
+  async function createMaintenancePlanForDevice(item: Device) {
+    const intervalInput = prompt("Wartungsintervall in Tagen", "365");
+
+    if (!intervalInput) return;
+
+    const intervalDays = Number(intervalInput);
+
+    if (!Number.isFinite(intervalDays) || intervalDays <= 0) {
+      alert("Bitte eine gültige Tageszahl eingeben.");
+      return;
+    }
+
+    const nextDue = new Date();
+    nextDue.setDate(nextDue.getDate() + intervalDays);
+
+    const existingPlan = getMaintenancePlanForDevice(item.id);
+
+    const payload = {
+      device_id: item.id,
+      customer_id: item.customer_id || null,
+      title: `Regelwartung ${getCustomerNameById(item.customer_id)} · ${item.name}`,
+      maintenance_type: "Regelwartung",
+      interval_days: intervalDays,
+      next_due: nextDue.toISOString().split("T")[0],
+      assigned_to: isTechnician ? userProfile?.id || null : null,
+      status: "Geplant",
+      note: null,
+    };
+
+    const result = existingPlan
+      ? await supabase
+          .from("maintenance_plans")
+          .update(payload)
+          .eq("id", existingPlan.id)
+      : await supabase.from("maintenance_plans").insert([payload]);
+
+    if (result.error) {
+      alert("Wartungsplan konnte nicht gespeichert werden.");
+      return;
+    }
+
+    await createDeviceHistory(
+      item.id,
+      existingPlan ? "Wartungsplan aktualisiert" : "Wartungsplan erstellt",
+      `Intervall: ${intervalDays} Tage · Nächste Wartung: ${payload.next_due}`,
+      "Wartung",
+    );
+
+    await loadMaintenancePlans();
+    alert("Wartungsplan gespeichert.");
+  }
+
+  async function deleteMaintenancePlan(planId: number) {
+    if (!confirm("Wartungsplan wirklich löschen?")) return;
+
+    const { error } = await supabase
+      .from("maintenance_plans")
+      .delete()
+      .eq("id", planId);
+
+    if (error) {
+      alert("Wartungsplan konnte nicht gelöscht werden.");
+      return;
+    }
+
+    await loadMaintenancePlans();
+  }
+
+  function resetInspectionForm() {
+    setInspectionDeviceId("");
+    setInspectionBadgeNumber("");
+    setInspectionDate("");
+    setInspectionExpires("");
+    setInspectionResult("Bestanden");
+    setInspectionComment("");
+  }
+
+  async function saveInspectionBadge() {
+    if (!isAdmin && !isTechnician) {
+      alert("Nur Admin und Techniker können Prüfsiegel eintragen.");
+      return;
+    }
+
+    if (
+      !inspectionDeviceId ||
+      !inspectionDate ||
+      !inspectionExpires ||
+      !inspectionBadgeNumber.trim()
+    ) {
+      alert(
+        "Bitte Gerät, Prüfsiegelnummer, Prüfdatum und Ablaufdatum ausfüllen.",
+      );
+      return;
+    }
+
+    const deviceId = Number(inspectionDeviceId);
+    const selectedDevice = devices.find((item) => item.id === deviceId);
+
+    const { error } = await supabase
+      .from("devices")
+      .update({
+        next_check: inspectionExpires,
+        status:
+          inspectionResult === "Bestanden" ? "Aktiv" : "Prüfung erforderlich",
+        inspection_badge_number: inspectionBadgeNumber.trim(),
+        inspection_date: inspectionDate,
+        inspection_expires: inspectionExpires,
+        inspection_result: inspectionResult,
+        inspection_comment: inspectionComment.trim() || null,
+        inspection_done_by: userProfile?.id || null,
+      })
+      .eq("id", deviceId);
+
+    if (error) {
+      alert(
+        `Prüfsiegel konnte nicht gespeichert werden: ${error.message}\n\nBitte zuerst die SQL-Datei aus Schritt 16 in Supabase ausführen.`,
+      );
+      return;
+    }
+
+    await createDeviceHistory(
+      deviceId,
+      "Prüfsiegel eingetragen",
+      `Siegel: ${inspectionBadgeNumber} · Ergebnis: ${inspectionResult} · gültig bis ${inspectionExpires}${inspectionComment ? ` · ${inspectionComment}` : ""}`,
+      "Prüfsiegel",
+    );
+
+    if (selectedDevice) {
+      await createDeviceHistory(
+        deviceId,
+        "Prüfung dokumentiert",
+        `${selectedDevice.name} wurde am ${inspectionDate} geprüft. Ablaufdatum: ${inspectionExpires}`,
+        "Prüfung",
+      );
+    }
+
+    resetInspectionForm();
+    await loadDevices();
+    alert("Prüfsiegel wurde gespeichert.");
+  }
+
+  async function customerCreateDeviceTicketAndRequest() {
+    if (!isCustomer) {
+      alert("Diese Funktion ist nur für Kunden vorgesehen.");
+      return;
+    }
+
+    if (!customerDeviceName.trim() || !customerDefectDescription.trim()) {
+      alert("Bitte Gerätename und Beschreibung ausfüllen.");
+      return;
+    }
+
+    const customerName =
+      profileCustomer?.company || userProfile?.company || "Kunde";
+    const customerId = userProfile?.customer_id || null;
+
+    const deviceInsert = await supabase
+      .from("devices")
+      .insert([
+        {
+          name: customerDeviceName.trim(),
+          manufacturer: customerDeviceManufacturer.trim() || null,
+          serial_number: customerDeviceSerial.trim() || null,
+          location: customerDeviceLocation.trim() || null,
+          status:
+            customerServiceType === "Prüfung / Prüfsiegel"
+              ? "Prüfung erforderlich"
+              : "Aktiv",
+          note: customerDefectDescription.trim(),
+          customer_id: customerId,
+          next_check:
+            customerServiceType === "Prüfung / Prüfsiegel"
+              ? customerPreferredDate || null
+              : null,
+        },
+      ])
+      .select("id,name")
+      .single();
+
+    if (deviceInsert.error || !deviceInsert.data) {
+      alert(
+        `Gerät konnte nicht angelegt werden: ${deviceInsert.error?.message || "Unbekannter Fehler"}\n\nBitte zuerst die SQL-Datei aus Schritt 16 in Supabase ausführen.`,
+      );
+      return;
+    }
+
+    const issuePrefix =
+      customerServiceType === "Prüfung / Prüfsiegel"
+        ? "Prüfung / Prüfsiegel angefordert"
+        : customerServiceType === "Wartung"
+          ? "Wartung angefragt"
+          : "Defekt gemeldet";
+
+    const ticketDescription = [
+      customerDefectDescription.trim(),
+      customerPreferredDate ? `Wunschtermin: ${customerPreferredDate}` : "",
+      customerDeviceManufacturer
+        ? `Hersteller: ${customerDeviceManufacturer}`
+        : "",
+      customerDeviceSerial ? `Seriennummer: ${customerDeviceSerial}` : "",
+      customerDeviceLocation ? `Standort: ${customerDeviceLocation}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const ticketInsert = await supabase.from("tickets").insert([
+      {
+        ticket_number: `T-${Math.floor(Math.random() * 9000) + 1000}`,
+        customer: customerName,
+        customer_id: customerId,
+        device: deviceInsert.data.name,
+        issue: `${issuePrefix}: ${deviceInsert.data.name}`,
+        description: ticketDescription,
+        priority:
+          customerServiceType === "Reparatur / Defekt" ? "Hoch" : "Mittel",
+        status: "Offen",
+      },
+    ]);
+
+    if (ticketInsert.error) {
+      alert(
+        `Gerät wurde angelegt, aber Ticket konnte nicht erstellt werden: ${ticketInsert.error.message}`,
+      );
+      await loadDevices();
+      return;
+    }
+
+    if (
+      customerServiceType === "Wartung" ||
+      customerServiceType === "Prüfung / Prüfsiegel"
+    ) {
+      const nextDue =
+        customerPreferredDate || new Date().toISOString().split("T")[0];
+      await supabase.from("maintenance_plans").insert([
+        {
+          device_id: deviceInsert.data.id,
+          title: `${customerServiceType} angefragt · ${deviceInsert.data.name}`,
+          interval_days: null,
+          next_due: nextDue,
+        },
+      ]);
+    }
+
+    await createDeviceHistory(
+      deviceInsert.data.id,
+      "Kundenmeldung erstellt",
+      `${customerServiceType} · ${ticketDescription}`,
+      "Kundenportal",
+    );
+
+    setCustomerDeviceName("");
+    setCustomerDeviceManufacturer("");
+    setCustomerDeviceSerial("");
+    setCustomerDeviceLocation("");
+    setCustomerDefectDescription("");
+    setCustomerServiceType("Reparatur");
+    setCustomerPreferredDate("");
+
+    await loadDevices();
+    await loadTickets();
+    await loadMaintenancePlans();
+    alert("Gerät und Service-Anfrage wurden gespeichert.");
+  }
+
+  function generateInspectionPdf(item: Device) {
+    const inspection = getInspectionStatus(item.next_check);
+    const plan = getMaintenancePlanForDevice(item.id);
+
+    const reportHtml = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>FE-SERVICE Prüfbericht</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
+            h1 { color: #15803d; margin-bottom: 4px; }
+            h2 { margin-top: 32px; }
+            .box { border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px; margin: 16px 0; }
+            .muted { color: #64748b; font-size: 13px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+            .footer { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+            .line { border-top: 1px solid #0f172a; padding-top: 8px; }
+          </style>
+        </head>
+        <body>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
+          <p class="muted">Fitness Equipment Service · Automatischer Prüfbericht</p>
+
+          <h2>Prüfbericht</h2>
+          <div class="box grid">
+            <div><strong>Gerät</strong><br />${item.name}</div>
+            <div><strong>Seriennummer</strong><br />${item.serial_number || "Nicht angegeben"}</div>
+            <div><strong>Standort</strong><br />${item.location || "Nicht angegeben"}</div>
+            <div><strong>Status</strong><br />${item.status || "Aktiv"}</div>
+            <div><strong>Nächste Prüfung</strong><br />${item.next_check || "Nicht geplant"}</div>
+            <div><strong>Prüfstatus</strong><br />${inspection.label}</div>
+          </div>
+
+          <h2>UVV- und UVV-/Wartungsplanung</h2>
+          <div class="box">
+            <p><strong>UVV-/Wartungsplan:</strong> ${plan?.title || "Kein Wartungsplan hinterlegt"}</p>
+            <p><strong>Intervall:</strong> ${plan?.interval_days || "-"} Tage</p>
+            <p><strong>Nächste UVV/Wartung:</strong> ${plan?.next_due || "Nicht geplant"}</p>
+          </div>
+
+          <h2>Hinweise</h2>
+          <div class="box">
+            ${item.note || "Keine Hinweise vorhanden."}
+          </div>
+
+          <div class="footer">
+            <div class="line">Prüfer / Techniker</div>
+            <div class="line">Kunde / Unterschrift</div>
+          </div>
+
+          <script>window.print();</script>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      alert("Popup wurde blockiert. Bitte Popups erlauben.");
+      return;
+    }
+
+    printWindow.document.write(reportHtml);
+    printWindow.document.close();
+
+    createDeviceHistory(
+      item.id,
+      "PDF-Prüfbericht erstellt",
+      `Prüfbericht für ${item.name}`,
+      "PDF",
+    );
+  }
+
+  function prepareInspectionMail(item: Device) {
+    const relatedTicket = tickets.find((ticket) => ticket.device === item.name);
+    const relatedCustomer = customers.find(
+      (customerItem) => customerItem.company === relatedTicket?.customer,
+    );
+
+    const recipient = relatedCustomer?.email || "";
+    const subject = encodeURIComponent(`Prüfbericht ${item.name}`);
+    const body = encodeURIComponent(
+      `Hallo,
+
+anbei bzw. im FE-SERVICE Portal finden Sie den Prüfbericht für folgendes Gerät:
+
+Gerät: ${item.name}
+Seriennummer: ${item.serial_number || "nicht angegeben"}
+Standort: ${item.location || "nicht angegeben"}
+
+Viele Grüße
+FE-SERVICE`,
+    );
+
+    window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+  }
+
+  function stockStatus(part: ServicePart) {
+    const stock = Number(part.stock || 0);
+    const minStock = Number(part.min_stock || 0);
+
+    if (stock <= 0) {
+      return { label: "Leer", className: "bg-red-100 text-red-700" };
+    }
+
+    if (stock <= minStock) {
+      return {
+        label: "Nachbestellen",
+        className: "bg-yellow-100 text-yellow-700",
+      };
+    }
+
+    return { label: "OK", className: "bg-green-100 text-green-700" };
+  }
+
+  function getPartNameById(partId: number | null) {
+    if (!partId) return "Unbekanntes Teil";
+    return (
+      serviceParts.find((part) => part.id === partId)?.name ||
+      "Unbekanntes Teil"
+    );
+  }
+
+  function startEditPart(part: ServicePart) {
+    setEditingPart(part);
+    setPartName(part.name || "");
+    setPartSku(part.sku || "");
+    setPartCategory(part.category || "");
+    setPartStock(String(part.stock ?? 0));
+    setPartMinStock(String(part.min_stock ?? 1));
+    setPartUnit(part.unit || "Stück");
+    setPartLocation(part.location || "");
+    setPartNote(part.note || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function saveServicePart() {
+    if (!isAdmin) {
+      alert("Nur Admins können Ersatzteile anlegen oder bearbeiten.");
+      return;
+    }
+
+    if (!partName.trim()) {
+      alert("Bitte Teilebezeichnung eingeben.");
+      return;
+    }
+
+    const payload = {
+      name: partName.trim(),
+      sku: partSku.trim() || null,
+      category: partCategory.trim() || null,
+      stock: Number(partStock) || 0,
+      min_stock: Number(partMinStock) || 0,
+      unit: partUnit.trim() || "Stück",
+      location: partLocation.trim() || null,
+      note: partNote.trim() || null,
+    };
+
+    const result = editingPart
+      ? await supabase
+          .from("service_parts")
+          .update(payload)
+          .eq("id", editingPart.id)
+      : await supabase.from("service_parts").insert([payload]);
+
+    if (result.error) {
+      alert(
+        `Ersatzteil konnte nicht gespeichert werden: ${result.error.message}`,
+      );
+      return;
+    }
+
+    resetPartForm();
+    await loadServiceParts();
+  }
+
+  async function deleteServicePart(partId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Ersatzteile löschen.");
+      return;
+    }
+
+    if (!confirm("Ersatzteil wirklich löschen?")) return;
+
+    const { error } = await supabase
+      .from("service_parts")
+      .delete()
+      .eq("id", partId);
+
+    if (error) {
+      alert(`Ersatzteil konnte nicht gelöscht werden: ${error.message}`);
+      return;
+    }
+
+    await loadServiceParts();
+  }
+
+  async function consumeServicePart() {
+    const part = serviceParts.find(
+      (item) => String(item.id) === selectedPartId,
+    );
+    const quantity = Number(partUsageQuantity);
+
+    if (!part) {
+      alert("Bitte Ersatzteil auswählen.");
+      return;
+    }
+
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      alert("Bitte gültige Menge eingeben.");
+      return;
+    }
+
+    const currentStock = Number(part.stock || 0);
+
+    if (quantity > currentStock) {
+      const proceed = confirm(
+        "Die Menge ist größer als der aktuelle Bestand. Trotzdem buchen?",
+      );
+      if (!proceed) return;
+    }
+
+    const newStock = Math.max(0, currentStock - quantity);
+
+    const usageResult = await supabase.from("part_usages").insert([
+      {
+        part_id: part.id,
+        device_id: partUsageDeviceId ? Number(partUsageDeviceId) : null,
+        ticket_id: partUsageTicketId ? Number(partUsageTicketId) : null,
+        quantity,
+        note: partUsageNote.trim() || null,
+        used_by: userProfile?.id || null,
+      },
+    ]);
+
+    if (usageResult.error) {
+      alert(
+        `Verbrauch konnte nicht gebucht werden: ${usageResult.error.message}`,
+      );
+      return;
+    }
+
+    const updateResult = await supabase
+      .from("service_parts")
+      .update({ stock: newStock })
+      .eq("id", part.id);
+
+    if (updateResult.error) {
+      alert(
+        `Bestand konnte nicht aktualisiert werden: ${updateResult.error.message}`,
+      );
+      return;
+    }
+
+    await createDeviceHistory(
+      partUsageDeviceId ? Number(partUsageDeviceId) : null,
+      "Ersatzteil verbraucht",
+      `${quantity} ${part.unit || "Stück"} · ${part.name}${partUsageNote ? ` · ${partUsageNote}` : ""}`,
+      "Ersatzteil",
+    );
+
+    setSelectedPartId("");
+    setPartUsageQuantity("1");
+    setPartUsageDeviceId("");
+    setPartUsageTicketId("");
+    setPartUsageNote("");
+
+    await loadServiceParts();
+    await loadPartUsages();
+  }
+
+  async function generateMaintenanceFromContract(contract: ServiceContract) {
+    if (!contract.customer_id) {
+      alert("Dieser Vertrag ist keinem Kunden zugeordnet.");
+      return;
+    }
+
+    const customerDevices = devices.filter(
+      (deviceItem) => deviceItem.customer_id === contract.customer_id,
+    );
+
+    if (customerDevices.length === 0) {
+      alert("Für diesen Kunden sind keine Geräte vorhanden.");
+      return;
+    }
+
+    const intervalMonths = Number(contract.maintenance_interval_months || 6);
+    const baseDate = contract.start_date
+      ? new Date(contract.start_date)
+      : new Date();
+
+    const nextDue = new Date(baseDate);
+    nextDue.setMonth(nextDue.getMonth() + intervalMonths);
+
+    const maintenanceRows = customerDevices.map((deviceItem) => ({
+      device_id: deviceItem.id,
+      customer_id: contract.customer_id,
+      title: `Automatische UVV/Wartung · ${contract.contract_number} · ${deviceItem.name}`,
+      maintenance_type: contract.contract_type || "Wartungsvertrag",
+      interval_days: intervalMonths * 30,
+      next_due: nextDue.toISOString().split("T")[0],
+      assigned_to: null,
+      status: "Geplant",
+      note: `Automatisch aus Vertrag ${contract.contract_number} erzeugt. SLA: ${contract.sla_hours || "-"}h`,
+    }));
+
+    const { error } = await supabase
+      .from("maintenance_plans")
+      .insert(maintenanceRows);
+
+    if (error) {
+      alert(`Wartungen konnten nicht erzeugt werden: ${error.message}`);
+      return;
+    }
+
+    for (const deviceItem of customerDevices) {
+      await createDeviceHistory(
+        deviceItem.id,
+        "UVV/Wartung automatisch erzeugt",
+        `${contract.contract_number} · nächste Wartung: ${nextDue.toISOString().split("T")[0]}`,
+        "Vertrag",
+      );
+    }
+
+    await loadMaintenancePlans();
+    alert(`${maintenanceRows.length} Wartung(en) aus Vertrag erzeugt.`);
+  }
+
+  function resetContractForm() {
+    setEditingContractId(null);
+    setContractCustomerId("");
+    setContractTitle("");
+    setContractType("Wartungsvertrag");
+    setContractSlaHours("24");
+    setContractMonthlyAmount("");
+    setContractMaintenanceInterval("6");
+    setContractStartDate("");
+    setContractEndDate("");
+    setContractStatus("Aktiv");
+    setContractNote("");
+  }
+
+  function startEditContract(contract: ServiceContract) {
+    setEditingContractId(contract.id);
+    setContractCustomerId(contract.customer_id ? String(contract.customer_id) : "");
+    setContractTitle(contract.title || "");
+    setContractType(contract.contract_type || "Wartungsvertrag");
+    setContractSlaHours(String(contract.sla_hours || 24));
+    setContractMonthlyAmount(String(contract.monthly_amount || ""));
+    setContractMaintenanceInterval(String(contract.maintenance_interval_months || 6));
+    setContractStartDate(contract.start_date || "");
+    setContractEndDate(contract.end_date || "");
+    setContractStatus(contract.status || "Aktiv");
+    setContractNote(contract.note || "");
+
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  async function saveContract() {
+    if (!contractCustomerId || !contractTitle.trim()) {
+      alert("Bitte Kunde und Vertragstitel auswählen.");
+      return;
+    }
+
+    const payload = {
+      customer_id: Number(contractCustomerId),
+      title: contractTitle.trim(),
+      contract_type: contractType,
+      sla_hours: Number(contractSlaHours || 0),
+      monthly_amount: Number(contractMonthlyAmount || 0),
+      maintenance_interval_months: Number(contractMaintenanceInterval || 0),
+      start_date: contractStartDate || null,
+      end_date: contractEndDate || null,
+      status: contractStatus,
+      note: contractNote.trim() || null,
+    };
+
+    if (editingContractId) {
+      const { error } = await supabase
+        .from("service_contracts")
+        .update(payload)
+        .eq("id", editingContractId);
+
+      if (error) {
+        alert(`Vertrag konnte nicht aktualisiert werden: ${error.message}`);
+        return;
+      }
+
+      resetContractForm();
+      await loadContracts();
+      alert("Vertrag wurde aktualisiert.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("service_contracts")
+      .insert([
+        {
+          ...payload,
+          contract_number: `SV-${Date.now().toString().slice(-6)}`,
+        },
+      ]);
+
+    if (error) {
+      alert(`Vertrag konnte nicht gespeichert werden: ${error.message}`);
+      return;
+    }
+
+    resetContractForm();
+    await loadContracts();
+
+    alert("Vertrag gespeichert.");
+  }
+
+  async function deleteContract(contractId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Verträge löschen.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Diesen Vertrag wirklich löschen? Bereits erzeugte Wartungen bleiben erhalten.",
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("service_contracts")
+      .delete()
+      .eq("id", contractId);
+
+    if (error) {
+      alert(`Vertrag konnte nicht gelöscht werden: ${error.message}`);
+      return;
+    }
+
+    if (editingContractId === contractId) {
+      resetContractForm();
+    }
+
+    setContracts((prev) => prev.filter((item) => item.id !== contractId));
+    alert("Vertrag wurde gelöscht.");
+  }
+
+  async function updateContractStatus(
+    contractId: number,
+    nextStatus: string,
+  ) {
+    const { error } = await supabase
+      .from("service_contracts")
+      .update({ status: nextStatus })
+      .eq("id", contractId);
+
+    if (error) {
+      alert(`Status konnte nicht geändert werden: ${error.message}`);
+      return;
+    }
+
+    setContracts((prev) =>
+      prev.map((item) =>
+        item.id === contractId
+          ? { ...item, status: nextStatus }
+          : item,
+      ),
+    );
+  }
+
+  function resetNotificationForm() {
+    setNotificationType("Einsatzbestätigung");
+    setNotificationRecipient("");
+    setNotificationSubject("");
+    setNotificationMessage("");
+    setNotificationTicketId("");
+  }
+
+  async function saveNotification() {
+    if (!notificationRecipient.trim() || !notificationSubject.trim()) {
+      alert("Bitte Empfänger und Betreff ausfüllen.");
+      return;
+    }
+
+    const payload = {
+      type: notificationType,
+      recipient: notificationRecipient.trim(),
+      subject: notificationSubject.trim(),
+      message: notificationMessage.trim(),
+      related_ticket_id: notificationTicketId
+        ? Number(notificationTicketId)
+        : null,
+      status: "Geplant",
+    };
+
+    const { error } = await supabase
+      .from("notifications")
+      .insert([payload]);
+
+    if (error) {
+      alert(`Benachrichtigung konnte nicht gespeichert werden: ${error.message}`);
+      return;
+    }
+
+    await loadNotifications();
+    resetNotificationForm();
+
+    alert("Benachrichtigung gespeichert.");
+  }
+
+  async function updateNotificationStatus(
+    notificationId: number,
+    nextStatus: string,
+  ) {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ status: nextStatus })
+      .eq("id", notificationId);
+
+    if (error) {
+      alert(`Status konnte nicht geändert werden: ${error.message}`);
+      return;
+    }
+
+    setNotifications((prev) =>
+      prev.map((item) =>
+        item.id === notificationId
+          ? { ...item, status: nextStatus }
+          : item,
+      ),
+    );
+  }
+
+  function resetInvoiceForm() {
+    setInvoiceType("Rechnung");
+    setInvoiceTicketId("");
+    setInvoiceTitle("");
+    setInvoiceAmountNet("");
+    setInvoiceTaxRate("19");
+    setInvoiceStatus("Entwurf");
+    setInvoiceNote("");
+  }
+
+  function getInvoiceCustomerName(item: InvoiceItem) {
+    if (item.customer_id) {
+      return getCustomerNameById(item.customer_id);
+    }
+
+    const ticket = tickets.find((ticketItem) => ticketItem.id === item.ticket_id);
+    return ticket?.customer || "Nicht zugeordnet";
+  }
+
+
+  function resetAbnahmeProtocolForm() {
+    setAbnahmeCustomerId("");
+    setAbnahmeDeviceId("");
+    setAbnahmeTicketId("");
+    setAbnahmeDate(new Date().toISOString().split("T")[0]);
+    setAbnahmeAddressObject("");
+    setAbnahmeOrderNumber("");
+    setAbnahmeCustomerNumber("");
+    setAbnahmeContractType("Wartungsvertrag");
+    setAbnahmeDguvChecked(true);
+    setAbnahmeUvvChecked(true);
+    setAbnahmePage("1");
+    setAbnahmePagesTotal("1");
+    setAbnahmeManufacturer("");
+    setAbnahmeModel("");
+    setAbnahmeSerial("");
+    setAbnahmeDefects("");
+    setAbnahmeDeviceResult("OK");
+    setAbnahmeChecks(
+      abnahmeProtocolQuestions.map((question) => ({
+        question,
+        ja: false,
+        ok: false,
+        vs: false,
+        df: false,
+        comment: "",
+      })),
+    );
+    setAbnahmeBadgeApplied(false);
+    setAbnahmeRecommendation("");
+    setAbnahmeRepairRecommendedAt("");
+    setAbnahmeOfferFollows("Ja");
+    setAbnahmeNextInspection("");
+    setAbnahmeTechnicianName("");
+    setAbnahmeTechnicianShort("");
+    setAbnahmeCustomerResponsible("");
+    setAbnahmeTechnicianSignature("");
+    setAbnahmeCustomerSignature("");
+    clearSignatureCanvas("technician");
+    clearSignatureCanvas("customer");
+  }
+
+  function updateAbnahmeCheck(
+    index: number,
+    field: "ja" | "ok" | "vs" | "df" | "comment",
+    value: boolean | string,
+  ) {
+    setAbnahmeChecks((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  }
+
+  function fillAbnahmeFromDevice(deviceId: string) {
+    setAbnahmeDeviceId(deviceId);
+
+    const selectedDevice = devices.find((item) => item.id === Number(deviceId));
+
+    if (!selectedDevice) return;
+
+    if (selectedDevice.customer_id) {
+      setAbnahmeCustomerId(String(selectedDevice.customer_id));
+      const linkedCustomer = customers.find((item) => item.id === selectedDevice.customer_id);
+      if (linkedCustomer) {
+        setAbnahmeCustomerNumber(String(linkedCustomer.id));
+        setAbnahmeAddressObject(buildCustomerAddress(linkedCustomer) || selectedDevice.location || "");
+      }
+    }
+
+    setAbnahmeManufacturer(selectedDevice.manufacturer || getManufacturerNameById(selectedDevice.manufacturer_id) || "");
+    setAbnahmeModel(selectedDevice.name || "");
+    setAbnahmeSerial(selectedDevice.serial_number || "");
+    setAbnahmeAddressObject(selectedDevice.location || "");
+    setAbnahmeDefects(selectedDevice.note || "");
+  }
+
+  function getAbnahmeCanvasContext(canvas: HTMLCanvasElement | null) {
+    if (!canvas) return null;
+
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+
+    if (canvas.width !== Math.floor(rect.width * ratio)) {
+      canvas.width = Math.floor(rect.width * ratio);
+      canvas.height = Math.floor(rect.height * ratio);
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.scale(ratio, ratio);
+        context.lineWidth = 2.5;
+        context.lineCap = "round";
+        context.strokeStyle = "#0f172a";
+      }
+    }
+
+    return canvas.getContext("2d");
+  }
+
+  function signaturePoint(
+    event: any,
+    canvas: HTMLCanvasElement,
+  ) {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+  }
+
+  function startSignature(
+    who: "technician" | "customer",
+    event: any,
+  ) {
+    const canvas =
+      who === "technician"
+        ? abnahmeTechnicianCanvasRef.current
+        : abnahmeCustomerCanvasRef.current;
+
+    if (!canvas) return;
+
+    const context = getAbnahmeCanvasContext(canvas);
+    if (!context) return;
+
+    canvas.setPointerCapture(event.pointerId);
+
+    const point = signaturePoint(event, canvas);
+
+    if (who === "technician") {
+      abnahmeTechnicianDrawingRef.current = true;
+    } else {
+      abnahmeCustomerDrawingRef.current = true;
+    }
+
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+  }
+
+  function drawSignature(
+    who: "technician" | "customer",
+    event: any,
+  ) {
+    const isDrawing =
+      who === "technician"
+        ? abnahmeTechnicianDrawingRef.current
+        : abnahmeCustomerDrawingRef.current;
+
+    if (!isDrawing) return;
+
+    const canvas =
+      who === "technician"
+        ? abnahmeTechnicianCanvasRef.current
+        : abnahmeCustomerCanvasRef.current;
+
+    if (!canvas) return;
+
+    const context = getAbnahmeCanvasContext(canvas);
+    if (!context) return;
+
+    const point = signaturePoint(event, canvas);
+    context.lineTo(point.x, point.y);
+    context.stroke();
+  }
+
+  function finishSignature(who: "technician" | "customer") {
+    const canvas =
+      who === "technician"
+        ? abnahmeTechnicianCanvasRef.current
+        : abnahmeCustomerCanvasRef.current;
+
+    if (who === "technician") {
+      abnahmeTechnicianDrawingRef.current = false;
+      setAbnahmeTechnicianSignature(canvas?.toDataURL("image/png") || "");
+    } else {
+      abnahmeCustomerDrawingRef.current = false;
+      setAbnahmeCustomerSignature(canvas?.toDataURL("image/png") || "");
+    }
+  }
+
+  function clearSignatureCanvas(who: "technician" | "customer") {
+    const canvas =
+      who === "technician"
+        ? abnahmeTechnicianCanvasRef.current
+        : abnahmeCustomerCanvasRef.current;
+
+    if (!canvas) return;
+
+    const context = canvas.getContext("2d");
+    context?.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (who === "technician") {
+      setAbnahmeTechnicianSignature("");
+    } else {
+      setAbnahmeCustomerSignature("");
+    }
+  }
+
+  function buildAbnahmeProtocolHtml() {
+    const selectedCustomer = customers.find(
+      (item) => item.id === Number(abnahmeCustomerId),
+    );
+    const selectedDevice = devices.find(
+      (item) => item.id === Number(abnahmeDeviceId),
+    );
+    const selectedTicket = tickets.find(
+      (item) => item.id === Number(abnahmeTicketId),
+    );
+    const technicianName =
+      abnahmeTechnicianName ||
+      userProfile?.full_name ||
+      userProfile?.company ||
+      session?.user?.email ||
+      "Nicht angegeben";
+
+    const checkRows = abnahmeChecks
+      .map(
+        (item, index) => `
+          <tr>
+            <td class="question">${index + 1}. ${item.question}</td>
+            <td>${item.ja ? "X" : ""}</td>
+            <td>${item.ok ? "X" : ""}</td>
+            <td>${item.vs ? "X" : ""}</td>
+            <td>${item.df ? "X" : ""}</td>
+            <td>${index + 1}</td>
+            <td>${abnahmeManufacturer || selectedDevice?.manufacturer || ""}</td>
+            <td>${abnahmeModel || selectedDevice?.name || ""}</td>
+            <td>${abnahmeSerial || selectedDevice?.serial_number || ""}</td>
+            <td>${item.comment || (index === 0 ? abnahmeDefects : "")}</td>
+            <td>${abnahmeDeviceResult}</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    return `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              color: #111827;
+              margin: 0;
+              padding: 22px;
+              background: white;
+              font-size: 11px;
+            }
+            .page {
+              width: 100%;
+              max-width: 1120px;
+              margin: 0 auto;
+              border: 1px solid #111827;
+              padding: 14px;
+            }
+            .top {
+              display: grid;
+              grid-template-columns: 1fr 2fr 1fr;
+              gap: 12px;
+              align-items: start;
+            }
+            .logo {
+              height: 42px;
+              max-width: 180px;
+              object-fit: contain;
+            }
+            h1 {
+              margin: 0;
+              text-align: center;
+              font-size: 16px;
+              text-decoration: underline;
+            }
+            .small { font-size: 10px; }
+            .line {
+              display: inline-block;
+              min-width: 160px;
+              border-bottom: 1px solid #111827;
+              min-height: 16px;
+              padding: 0 4px;
+            }
+            .line.short { min-width: 70px; }
+            .line.mid { min-width: 120px; }
+            .row { margin-top: 7px; }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 12px;
+            }
+            th, td {
+              border: 1px solid #111827;
+              padding: 4px;
+              vertical-align: top;
+              text-align: center;
+            }
+            th {
+              font-size: 10px;
+              font-weight: 700;
+              background: #f3f4f6;
+            }
+            td.question {
+              text-align: left;
+              width: 280px;
+              font-weight: 600;
+            }
+            .footer-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 16px;
+              margin-top: 14px;
+            }
+            .footer-line {
+              border-bottom: 1px solid #111827;
+              min-height: 20px;
+              padding: 2px 4px;
+            }
+            .signature-row {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 24px;
+              margin-top: 20px;
+            }
+            .signature-box {
+              border-top: 1px solid #111827;
+              padding-top: 8px;
+              min-height: 72px;
+            }
+            .signature-img {
+              max-height: 64px;
+              max-width: 240px;
+              object-fit: contain;
+              display: block;
+              margin-bottom: 6px;
+            }
+            .company {
+              display: grid;
+              grid-template-columns: 170px 1fr 130px;
+              gap: 14px;
+              align-items: end;
+              margin-top: 22px;
+              font-size: 8.5px;
+              line-height: 1.25;
+            }
+            .footer-brand {
+              font-weight: 900;
+              font-size: 13px;
+              line-height: 1;
+            }
+            .footer-service-logo {
+              font-weight: 900;
+              font-size: 14px;
+              letter-spacing: -0.04em;
+            }
+            .footer-service-sub {
+              font-size: 7.5px;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+            }
+            .footer-details {
+              font-weight: 700;
+            }
+            .footer-partner {
+              text-align: right;
+              font-weight: 900;
+              font-size: 9px;
+            }
+            .company-logo {
+              height: 26px;
+              object-fit: contain;
+            }
+            .print-button {
+              margin-top: 18px;
+              padding: 12px 18px;
+              border: 0;
+              border-radius: 12px;
+              background: #16a34a;
+              color: white;
+              font-weight: 800;
+            }
+            @media print {
+              body { padding: 0; }
+              .page { border: 0; max-width: none; }
+              .print-button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <div class="top">
+              <div>
+                <img src="/fe-service-logo.png" class="logo" onerror="this.style.display='none'" />
+              </div>
+              <div>
+                <h1>Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung für Sport-Fitness – Kraft & Medizin Geräte</h1>
+              </div>
+              <div class="small" style="text-align:right;">
+                Seite <span class="line short">${abnahmePage}</span> von
+                <span class="line short">${abnahmePagesTotal}</span> Seiten Insgesamt:
+              </div>
+            </div>
+
+            <div class="row">
+              Datum der Prüfung <span class="line mid">${abnahmeDate}</span>
+              Adresse / Objekt <span class="line">${abnahmeAddressObject || (selectedCustomer ? buildCustomerAddress(selectedCustomer) : selectedDevice?.location || "")}</span>
+            </div>
+
+            <div class="row">
+              Auftr. Nr. / Kunden Nr. <span class="line mid">${abnahmeOrderNumber || selectedTicket?.ticket_number || ""}</span>
+              <span class="line mid">${abnahmeCustomerNumber || selectedCustomer?.id || ""}</span>
+              Wartungsvertrag ( ${abnahmeContractType === "Wartungsvertrag" ? "X" : ""} )
+              Einmalige Wartung ( ${abnahmeContractType === "Einmalige Wartung" ? "X" : ""} )
+              Abnahme ( ${abnahmeContractType === "Abnahme" ? "X" : ""} )
+              DGUV202-044 ( ${abnahmeDguvChecked ? "X" : ""} )
+              UVV-Unfallverhütungsvorschrift Prüfung ( ${abnahmeUvvChecked ? "X" : ""} )
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Prüfpunkt</th>
+                  <th>Ja</th>
+                  <th>OK</th>
+                  <th>VS</th>
+                  <th>DF</th>
+                  <th>P.-Nr.</th>
+                  <th>Hersteller</th>
+                  <th>Modell / NR</th>
+                  <th>Seriennr.</th>
+                  <th>Mängel</th>
+                  <th>DF / OK / Rep</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${checkRows}
+                <tr>
+                  <td class="question">Prüfplakette angebracht</td>
+                  <td colspan="2">N ( ${abnahmeBadgeApplied ? "" : "X"} )</td>
+                  <td colspan="2">OK ( ${abnahmeBadgeApplied ? "X" : ""} )</td>
+                  <td colspan="6"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="footer-grid">
+              <div>
+                Techniker:
+                <div class="footer-line">${technicianName}</div>
+              </div>
+              <div>
+                Datum:
+                <div class="footer-line">${abnahmeDate}</div>
+              </div>
+              <div>
+                Kürzel:
+                <div class="footer-line">${abnahmeTechnicianShort}</div>
+              </div>
+            </div>
+
+            <div class="row">
+              Empfehlung: <span class="line">${abnahmeRecommendation}</span>
+            </div>
+
+            <div class="row">
+              Folge Reparatur-Auftrag empfohlen bei:
+              <span class="line">${abnahmeRepairRecommendedAt}</span>
+              Angebot folgt Ja ( ${abnahmeOfferFollows === "Ja" ? "X" : ""} )
+              Nein ( ${abnahmeOfferFollows === "Nein" ? "X" : ""} )
+            </div>
+
+            <div class="row">
+              Nächste Prüfung:
+              <span class="line mid">${abnahmeNextInspection}</span>
+            </div>
+
+            <div class="signature-row">
+              <div class="signature-box">
+                ${abnahmeTechnicianSignature ? `<img src="${abnahmeTechnicianSignature}" class="signature-img" />` : ""}
+                Unterschrift Techniker
+              </div>
+              <div class="signature-box">
+                ${abnahmeCustomerSignature ? `<img src="${abnahmeCustomerSignature}" class="signature-img" />` : ""}
+                Unterschrift Kunde / Verantwortlicher: ${abnahmeCustomerResponsible || "-"}
+              </div>
+            </div>
+
+            <div class="company">
+              <div>
+                <div class="footer-service-logo">FE-Service e.K.</div>
+                <div class="footer-service-sub">Fitness Equipment Service</div>
+              </div>
+
+              <div class="footer-details">
+                Lochhamerstr. 1, 51491 Overath&nbsp;&nbsp;&nbsp; Lager: Mathildenstr. 5, 53797 Lohmar<br/>
+                Tel. 02206-9389333, Fax 02206-9389339<br/>
+                E-Mail: info@fe-service.de, URL: www.fe-service.de<br/>
+                Inhaber-Geschäftsführer: Frank Ehlers&nbsp;&nbsp; USt.Id: DE233560663&nbsp;&nbsp; HRA 37460 Amtsgericht Köln
+              </div>
 
               <div class="footer-partner">
                 IN STYLE<br/>FITNESS
@@ -5313,7 +7808,7 @@ const filteredDocuments = useMemo(() => {
                     <img
                       src={getDeviceQrCodeUrl(selectedDeviceView)}
                       alt={`QR-Code für ${selectedDeviceView.name}`}
-                      className="mx-auto h-28 w-44 rounded-2xl bg-white p-3"
+                      className="mx-auto h-44 w-44 rounded-2xl bg-white p-3"
                     />
 
                     <p className="mt-3 text-xs text-slate-600">
@@ -6458,7 +8953,7 @@ const filteredDocuments = useMemo(() => {
                         onPointerMove={(e) => drawSignature("technician", e)}
                         onPointerUp={() => finishSignature("technician")}
                         onPointerCancel={() => finishSignature("technician")}
-                        className="h-24 w-full touch-none rounded-2xl border border-slate-300 bg-white"
+                        className="h-36 w-full touch-none rounded-2xl border border-slate-300 bg-white"
                       />
                     </div>
 
@@ -6478,7 +8973,7 @@ const filteredDocuments = useMemo(() => {
                         onPointerMove={(e) => drawSignature("customer", e)}
                         onPointerUp={() => finishSignature("customer")}
                         onPointerCancel={() => finishSignature("customer")}
-                        className="h-24 w-full touch-none rounded-2xl border border-slate-300 bg-white"
+                        className="h-36 w-full touch-none rounded-2xl border border-slate-300 bg-white"
                       />
                     </div>
                   </div>
