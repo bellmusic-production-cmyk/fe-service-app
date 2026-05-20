@@ -732,6 +732,42 @@ export default function Home() {
     );
   }
 
+
+  function getDocumentTicketNumber(item: any): string {
+    const possibleTicketId =
+      item?.ticket_id ??
+      item?.ticketId ??
+      item?.ticket_number ??
+      item?.ticketNumber ??
+      item?.ticket ??
+      null;
+
+    if (item?.ticket_number) return String(item.ticket_number);
+    if (item?.ticketNumber) return String(item.ticketNumber);
+    if (item?.ticket) return String(item.ticket);
+
+    const ticket = (typeof serviceTickets !== "undefined" ? serviceTickets : tickets).find((ticketItem: any) => {
+      return (
+        ticketItem.id === possibleTicketId ||
+        String(ticketItem.id) === String(possibleTicketId) ||
+        ticketItem.ticket_number === possibleTicketId ||
+        String(ticketItem.ticket_number) === String(possibleTicketId)
+      );
+    });
+
+    if (!ticket) {
+      return "";
+    }
+
+    return String(
+      ticket.ticket_number ||
+        ticket.ticketNumber ||
+        ticket.number ||
+        ticket.id ||
+        ""
+    );
+  }
+
 const filteredDocuments = useMemo(() => {
     const search = documentSearchTerm.toLowerCase().trim();
 
