@@ -4525,10 +4525,10 @@ FE-SERVICE`,
               </div>
 
               <div class="footer-details">
-                Lochhamerstr. 1, 51491 Overath&nbsp;&nbsp;&nbsp; Lager: Mathildenstr. 5, 53797 Lohmar<br/>
+                Lockenbach 1, 51491 Overath&nbsp;&nbsp;&nbsp; Lager: Mathildenstr. 5, 53797 Lohmar<br/>
                 Tel. 02206-9389333, Fax 02206-9389339<br/>
                 E-Mail: info@fe-service.de, URL: www.fe-service.de<br/>
-                Inhaber-Geschäftsführer: Frank Ehlers&nbsp;&nbsp; USt.Id: DE233560663&nbsp;&nbsp; HRA 37460 Amtsgericht Köln
+                Inhaber-Geschäftsführer: Frank Ehlers&nbsp;&nbsp; Ust_iD: DE2335605663&nbsp;&nbsp; HRA 37460 Amtsgericht Köln
               </div>
 
               <div class="footer-partner">
@@ -4745,10 +4745,10 @@ FE-SERVICE`,
 
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(5.0);
-    pdf.text("Lochhamerstr. 1, 51491 Overath   Lager: Mathildenstr. 5, 53797 Lohmar", 58, footerY);
+    pdf.text("Lockenbach 1, 51491 Overath   Lager: Mathildenstr. 5, 53797 Lohmar", 58, footerY);
     pdf.text("Tel. 02206-9389333, Fax 02206-9389339", 58, footerY + 3.8);
     pdf.text("E-Mail: info@fe-service.de, URL: www.fe-service.de", 58, footerY + 7.6);
-    pdf.text("Inhaber-Geschäftsführer: Frank Ehlers   USt.Id: DE233560663   HRA 37460 Amtsgericht Köln", 58, footerY + 11.4);
+    pdf.text("Inhaber-Geschäftsführer: Frank Ehlers   Ust_iD: DE2335605663   HRA 37460 Amtsgericht Köln", 58, footerY + 11.4);
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(5.8);
