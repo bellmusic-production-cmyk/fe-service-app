@@ -7879,30 +7879,40 @@ FE-SERVICE`,
                   </p>
                 )}
 
-                <div className="mt-5 space-y-3">
-                  <input
-                    value={customerDirectorySearch}
-                    onChange={(e) => setCustomerDirectorySearch(e.target.value)}
-                    placeholder="Kunden suchen: Firma, Kundennummer, Ort, E-Mail, Telefon..."
-                    className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-green-500 focus:ring-4 focus:ring-green-100"
-                  />
+                <div className="mt-5 w-full max-w-full overflow-visible rounded-[28px] border border-slate-200 bg-slate-50 p-4">
+                  <div className="grid w-full max-w-full gap-3">
+                    <label className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                      Kundensuche
+                    </label>
 
-                  <select
-                    value={customerTypeFilter}
-                    onChange={(e) => setCustomerTypeFilter(e.target.value)}
-                    className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-black text-slate-900 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-100 md:max-w-xs"
-                  >
-                    <option value="Alle">Alle Kundentypen</option>
-                    <option value="B2B">Nur B2B</option>
-                    <option value="Privatkunde">Nur Privatkunden</option>
-                  </select>
+                    <input
+                      value={customerDirectorySearch}
+                      onChange={(e) => setCustomerDirectorySearch(e.target.value)}
+                      placeholder="Firma, Kundennummer, Ort, E-Mail oder Telefon eingeben..."
+                      className="block h-14 w-full min-w-0 rounded-2xl border border-slate-300 bg-white px-4 text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-green-500 focus:ring-4 focus:ring-green-100"
+                    />
+
+                    <div className="grid w-full max-w-full gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+                      <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm font-bold leading-6 text-green-800">
+                        {customerDirectorySearchIsActive
+                          ? `${filteredCustomerDirectory.length} Treffer werden angezeigt. Suche bei Bedarf weiter verfeinern.`
+                          : `Mindestens 2 Zeichen eingeben. Es werden nicht automatisch alle ${customers.length} Kunden geladen.`}
+                      </div>
+
+                      <select
+                        value={customerTypeFilter}
+                        onChange={(e) => setCustomerTypeFilter(e.target.value)}
+                        className="block h-14 w-full min-w-0 rounded-2xl border border-slate-300 bg-white px-4 text-base font-black text-slate-900 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-100"
+                      >
+                        <option value="Alle">Alle Kundentypen</option>
+                        <option value="B2B">Nur B2B</option>
+                        <option value="Privatkunde">Nur Privatkunden</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 p-4 text-sm font-bold text-green-800">
-                  {customerDirectorySearchIsActive
-                    ? `${filteredCustomerDirectory.length} Treffer werden angezeigt. Bitte Suche verfeinern, falls der Kunde nicht dabei ist.`
-                    : `Bitte mindestens 2 Zeichen eingeben. Es werden nicht automatisch alle ${customers.length} Kunden geladen.`}
-                </div>
+
 
                 <div className="mt-5 space-y-3">
                   {filteredCustomerDirectory.length === 0 ? (
@@ -7916,9 +7926,9 @@ FE-SERVICE`,
                           <p className="text-lg font-black text-slate-800">
                             Kundenliste bereit
                           </p>
-                          <p className="mt-2 text-sm font-semibold text-slate-500">
+                          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-500">
                             Aus Performance- und Übersichtsgründen werden nicht alle Kunden automatisch angezeigt.
-                            Nutze oben die Suche nach Firma, Kundennummer, Ort, E-Mail, Telefon oder Adresse.
+                            Suche oben nach Firma, Kundennummer, Ort, E-Mail, Telefon oder Adresse.
                           </p>
                         </div>
                       )}
@@ -10273,7 +10283,7 @@ FE-SERVICE`,
                 />
               </div>
 
-              <div className="rounded-[32px] bg-white p-6 shadow-sm">
+              <div className="min-w-0 overflow-hidden rounded-[32px] bg-white p-5 shadow-sm md:p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <h3 className="text-2xl font-black">Gerätesuche</h3>
