@@ -684,7 +684,7 @@ export default function Home() {
   ]);
 
   const filteredDocuments = useMemo(() => {
-    const search = normalizeSearchText(documentSearchTerm.trim());
+    const search = documentSearchTerm.toLowerCase().trim();
 
     const customerFilteredDocuments =
       userProfile?.role === "customer"
@@ -717,12 +717,12 @@ export default function Home() {
 
       const matchesSearch =
         !search ||
-        normalizeSearchText(item.file_name).includes(search) ||
-        normalizeSearchText(item.category).includes(search) ||
-        normalizeSearchText(customerName).includes(search) ||
-        normalizeSearchText(deviceName).includes(search) ||
-        normalizeSearchText(ticketNumber).includes(search) ||
-        normalizeSearchText(String(linkedTicket?.issue || "")).includes(search);
+        item.file_name.toLowerCase().includes(search) ||
+        item.category.toLowerCase().includes(search) ||
+        customerName.includes(search) ||
+        deviceName.includes(search) ||
+        ticketNumber.includes(search) ||
+        String(linkedTicket?.issue || "").toLowerCase().includes(search);
 
       return matchesCategory && matchesCustomer && matchesDevice && matchesSearch;
     });
@@ -3240,17 +3240,6 @@ export default function Home() {
       .join(", ");
   }
 
-  function normalizeSearchText(value: string) {
-    return value
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/ä/g, "ae")
-      .replace(/ö/g, "oe")
-      .replace(/ü/g, "ue")
-      .replace(/ß/g, "ss");
-  }
-
   function getCustomerSearchText(customer?: Customer | null) {
     if (!customer) return "";
     return [
@@ -3282,9 +3271,8 @@ export default function Home() {
       customer.contact_2_phone,
     ]
       .filter(Boolean)
-      .join(" ");
-
-    return normalizeSearchText(searchText);
+      .join(" ")
+      .toLowerCase();
   }
 
   function getCustomerLabel(customer: Customer) {
@@ -5819,7 +5807,7 @@ FE-SERVICE`,
       : customers;
 
   const filteredTicketCustomers = (() => {
-    const search = normalizeSearchText(ticketCustomerSearch.trim());
+    const search = ticketCustomerSearch.toLowerCase().trim();
 
     if (!search || search.length < 2) {
       return [];
@@ -5836,7 +5824,7 @@ FE-SERVICE`,
     null;
 
   const filteredTicketDevices = (() => {
-    const search = normalizeSearchText(ticketDeviceSearch.trim());
+    const search = ticketDeviceSearch.toLowerCase().trim();
 
     if (!search || search.length < 2) {
       return [];
@@ -5852,7 +5840,7 @@ FE-SERVICE`,
           ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
           : null;
 
-        const searchText = [
+        return [
           deviceItem.name,
           deviceItem.manufacturer,
           getManufacturerNameById(deviceItem.manufacturer_id),
@@ -5864,9 +5852,9 @@ FE-SERVICE`,
           linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
         ]
           .filter(Boolean)
-          .join(" ");
-
-        return normalizeSearchText(searchText).includes(search);
+          .join(" ")
+          .toLowerCase()
+          .includes(search);
       })
       .slice(0, 30);
   })();
@@ -5880,7 +5868,7 @@ FE-SERVICE`,
       : null;
 
   const filteredUploadCustomers = (() => {
-    const search = normalizeSearchText(uploadCustomerSearch.trim());
+    const search = uploadCustomerSearch.toLowerCase().trim();
 
     if (!search || search.length < 2) {
       return [];
@@ -5892,7 +5880,7 @@ FE-SERVICE`,
   })();
 
   const filteredUploadDevices = (() => {
-    const search = normalizeSearchText(uploadDeviceSearch.trim());
+    const search = uploadDeviceSearch.toLowerCase().trim();
 
     if (!search || search.length < 2) {
       return [];
@@ -5908,7 +5896,7 @@ FE-SERVICE`,
           ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
           : null;
 
-        const searchText = [
+        return [
           deviceItem.name,
           deviceItem.manufacturer,
           getManufacturerNameById(deviceItem.manufacturer_id),
@@ -5920,9 +5908,9 @@ FE-SERVICE`,
           linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
         ]
           .filter(Boolean)
-          .join(" ");
-
-        return normalizeSearchText(searchText).includes(search);
+          .join(" ")
+          .toLowerCase()
+          .includes(search);
       })
       .slice(0, 30);
   })();
@@ -5933,7 +5921,7 @@ FE-SERVICE`,
       : null;
 
   const filteredCustomerDirectory = (() => {
-    const search = normalizeSearchText(customerDirectorySearch.trim());
+    const search = customerDirectorySearch.toLowerCase().trim();
 
     if (!search || search.length < 2) {
       return [];
@@ -5954,7 +5942,7 @@ FE-SERVICE`,
     customerDirectorySearch.trim().length >= 2;
 
   const filteredDeviceDirectory = (() => {
-    const search = normalizeSearchText(deviceDirectorySearch.trim());
+    const search = deviceDirectorySearch.toLowerCase().trim();
     if (!search) return devices;
 
     return devices.filter((deviceItem) => {
@@ -5963,7 +5951,7 @@ FE-SERVICE`,
         : null;
       const linkedManufacturer = getManufacturerNameById(deviceItem.manufacturer_id);
 
-      const searchText = [
+      return [
         deviceItem.name,
         deviceItem.manufacturer,
         linkedManufacturer,
@@ -5975,18 +5963,18 @@ FE-SERVICE`,
         linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
       ]
         .filter(Boolean)
-        .join(" ");
-
-      return normalizeSearchText(searchText).includes(search);
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
     });
   })();
 
   const filteredManufacturerDirectory = (() => {
-    const search = normalizeSearchText(manufacturerDirectorySearch.trim());
+    const search = manufacturerDirectorySearch.toLowerCase().trim();
     if (!search) return manufacturers;
 
-    return manufacturers.filter((manufacturerItem) => {
-      const searchText = [
+    return manufacturers.filter((manufacturerItem) =>
+      [
         manufacturerItem.name,
         manufacturerItem.website,
         manufacturerItem.phone,
@@ -5997,14 +5985,14 @@ FE-SERVICE`,
         manufacturerItem.note,
       ]
         .filter(Boolean)
-        .join(" ");
-
-      return normalizeSearchText(searchText).includes(search);
-    });
+        .join(" ")
+        .toLowerCase()
+        .includes(search),
+    );
   })();
 
   const abnahmeCustomers = (() => {
-    const search = normalizeSearchText(abnahmeCustomerSearch.trim());
+    const search = abnahmeCustomerSearch.trim().toLowerCase();
 
     const baseCustomers =
       isCustomer && userProfile?.customer_id
@@ -6038,14 +6026,15 @@ FE-SERVICE`,
         buildCustomerAddress(customerItem),
       ]
         .filter(Boolean)
-        .join(" ");
+        .join(" ")
+        .toLowerCase();
 
-      return normalizeSearchText(searchableText).includes(search);
+      return searchableText.includes(search);
     });
   })();
 
   const abnahmeDevices = (() => {
-    const search = normalizeSearchText(abnahmeDeviceSearch.trim());
+    const search = abnahmeDeviceSearch.trim().toLowerCase();
 
     const baseDevices =
       isCustomer && userProfile?.customer_id
@@ -6088,9 +6077,10 @@ FE-SERVICE`,
         linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
       ]
         .filter(Boolean)
-        .join(" ");
+        .join(" ")
+        .toLowerCase();
 
-      return normalizeSearchText(searchableText).includes(search);
+      return searchableText.includes(search);
     });
   })();
 
@@ -6104,7 +6094,7 @@ FE-SERVICE`,
   );
 
   const customerDeviceAssignResults = (() => {
-    const search = normalizeSearchText(customerDeviceAssignSearch.trim());
+    const search = customerDeviceAssignSearch.trim().toLowerCase();
 
     if (!search || search.length < 2) return [];
 
@@ -6131,7 +6121,7 @@ FE-SERVICE`,
           .join(" ")
           .toLowerCase();
 
-        return normalizeSearchText(searchText).includes(search);
+        return searchText.includes(search);
       })
       .slice(0, 25);
   })();
@@ -6240,7 +6230,7 @@ FE-SERVICE`,
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--fe-black)] pb-8 font-sans text-slate-900 antialiased lg:bg-slate-100 lg:pb-0" style={{ fontFamily: "Arial, Helvetica, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <main className="min-h-screen overflow-x-hidden bg-[var(--fe-black)] pb-8 text-slate-900 lg:bg-slate-100 lg:pb-0">
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
         <aside className="hidden w-72 bg-[#07130d] p-6 text-white lg:flex lg:flex-col">
           <div className="flex flex-col items-center">
