@@ -106,6 +106,11 @@ type DocumentItem = {
   device_id: number | null;
   ticket_id?: number | null;
   customer_id?: number | null;
+  inspection_date?: string | null;
+  next_inspection_date?: string | null;
+  inspection_interval_months?: number | null;
+  inspection_badge_number?: string | null;
+  inspection_note?: string | null;
   created_at: string;
 };
 
@@ -524,6 +529,11 @@ export default function Home() {
   const [selectedUploadCustomerId, setSelectedUploadCustomerId] = useState("");
   const [uploadCustomerSearch, setUploadCustomerSearch] = useState("");
   const [uploadDeviceSearch, setUploadDeviceSearch] = useState("");
+  const [uploadInspectionDate, setUploadInspectionDate] = useState("");
+  const [uploadNextInspectionDate, setUploadNextInspectionDate] = useState("");
+  const [uploadInspectionIntervalMonths, setUploadInspectionIntervalMonths] = useState("12");
+  const [uploadInspectionBadgeNumber, setUploadInspectionBadgeNumber] = useState("");
+  const [uploadInspectionNote, setUploadInspectionNote] = useState("");
   const [selectedDeviceView, setSelectedDeviceView] = useState<Device | null>(
     null,
   );
@@ -1253,7 +1263,6 @@ export default function Home() {
 
   async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     const selectedUploadDevice = selectedDeviceId
@@ -1264,8 +1273,23 @@ export default function Home() {
       selectedUploadCustomerId ||
       (selectedUploadDevice?.customer_id ? String(selectedUploadDevice.customer_id) : "");
 
-    if (uploadCategory === "Abnahmeprotokolle" && !uploadCustomerId) {
+    const isAcceptanceProtocolUpload = uploadCategory === "Abnahmeprotokolle";
+    const finalNextInspectionDate = calculateNextInspectionDateFromUpload();
+
+    if (isAcceptanceProtocolUpload && !uploadCustomerId) {
       alert("Bitte für das Abnahmeprotokoll zuerst einen Kunden auswählen.");
+      event.target.value = "";
+      return;
+    }
+
+    if (isAcceptanceProtocolUpload && !uploadInspectionDate) {
+      alert("Bitte das Prüfdatum des Abnahmeprotokolls eingeben.");
+      event.target.value = "";
+      return;
+    }
+
+    if (isAcceptanceProtocolUpload && !finalNextInspectionDate) {
+      alert("Bitte nächste Prüfung oder ein gültiges Prüfintervall eingeben.");
       event.target.value = "";
       return;
     }
@@ -1273,10 +1297,8 @@ export default function Home() {
     setUploading(true);
 
     const safeFileName = file.name.replaceAll(" ", "-");
-
     const safeCategory =
       uploadCategory === "Abnahmeprotokolle" ? "Abnahmeprotokolle" : uploadCategory;
-
     const filePath = `${safeCategory}/${Date.now()}-${safeFileName}`;
 
     const uploadResult = await supabase.storage
@@ -1297,6 +1319,11 @@ export default function Home() {
         file_size: file.size,
         device_id: selectedDeviceId ? Number(selectedDeviceId) : null,
         customer_id: uploadCustomerId ? Number(uploadCustomerId) : null,
+        inspection_date: isAcceptanceProtocolUpload ? uploadInspectionDate || null : null,
+        next_inspection_date: isAcceptanceProtocolUpload ? finalNextInspectionDate || null : null,
+        inspection_interval_months: isAcceptanceProtocolUpload ? Number(uploadInspectionIntervalMonths || 12) : null,
+        inspection_badge_number: isAcceptanceProtocolUpload ? uploadInspectionBadgeNumber.trim() || null : null,
+        inspection_note: isAcceptanceProtocolUpload ? uploadInspectionNote.trim() || null : null,
       },
     ]);
 
@@ -1307,18 +1334,77 @@ export default function Home() {
       return;
     }
 
+    if (isAcceptanceProtocolUpload && selectedDeviceId) {
+      await supabase
+        .from("devices")
+        .update({
+          inspection_date: uploadInspectionDate || null,
+          inspection_expires: finalNextInspectionDate || null,
+          next_check: finalNextInspectionDate || null,
+          inspection_badge_number: uploadInspectionBadgeNumber.trim() || null,
+          inspection_result: "Bestanden",
+          inspection_comment: uploadInspectionNote.trim() || null,
+          status: "Aktiv",
+        })
+        .eq("id", Number(selectedDeviceId));
+
+      const existingPlan = maintenancePlans.find(
+        (plan) =>
+          plan.device_id === Number(selectedDeviceId) &&
+          String(plan.maintenance_type || "").toLowerCase().includes("prüfung"),
+      );
+
+      const maintenancePayload = {
+        device_id: Number(selectedDeviceId),
+        customer_id: uploadCustomerId ? Number(uploadCustomerId) : selectedUploadDevice?.customer_id || null,
+        title: `Nächste Prüfung aus Abnahmeprotokoll · ${selectedUploadDevice?.name || file.name}`,
+        maintenance_type: "Prüfung / Abnahmeprotokoll",
+        interval_days: Number(uploadInspectionIntervalMonths || 12) * 30,
+        next_due: finalNextInspectionDate,
+        assigned_to: null,
+        status: "Geplant",
+        note: [
+          `Automatisch aus hochgeladenem Abnahmeprotokoll erzeugt: ${file.name}`,
+          uploadInspectionBadgeNumber ? `Prüfsiegel: ${uploadInspectionBadgeNumber}` : "",
+          uploadInspectionNote ? `Bemerkung: ${uploadInspectionNote}` : "",
+        ].filter(Boolean).join(" · "),
+      };
+
+      if (existingPlan) {
+        await supabase.from("maintenance_plans").update(maintenancePayload).eq("id", existingPlan.id);
+      } else {
+        await supabase.from("maintenance_plans").insert([maintenancePayload]);
+      }
+    }
+
     await createDeviceHistory(
       selectedDeviceId ? Number(selectedDeviceId) : null,
-      "Dokument hochgeladen und zugeordnet",
-      `${uploadCategory}: ${file.name} · Kunde: ${uploadCustomerId ? getCustomerNameById(Number(uploadCustomerId)) : "Nicht zugeordnet"}`,
+      isAcceptanceProtocolUpload
+        ? "Abnahmeprotokoll hochgeladen und Prüffrist gesetzt"
+        : "Dokument hochgeladen und zugeordnet",
+      `${uploadCategory}: ${file.name} · Kunde: ${uploadCustomerId ? getCustomerNameById(Number(uploadCustomerId)) : "Nicht zugeordnet"}${
+        isAcceptanceProtocolUpload ? ` · nächste Prüfung: ${finalNextInspectionDate}` : ""
+      }`,
       "Dokument",
     );
 
     event.target.value = "";
     setSelectedDeviceId("");
     setUploadDeviceSearch("");
+    setUploadInspectionDate("");
+    setUploadNextInspectionDate("");
+    setUploadInspectionIntervalMonths("12");
+    setUploadInspectionBadgeNumber("");
+    setUploadInspectionNote("");
     await loadDocuments();
-    alert("Dokument erfolgreich hochgeladen und dem Kunden zugeordnet.");
+    await loadDevices();
+    await loadMaintenancePlans();
+
+    alert(
+      isAcceptanceProtocolUpload
+        ? "Abnahmeprotokoll wurde hochgeladen, dem Kunden zugeordnet und die nächste Prüfung wurde gesetzt."
+        : "Dokument erfolgreich hochgeladen und dem Kunden zugeordnet.",
+    );
   }
 
   async function handleDeviceFileUpload(
@@ -2644,6 +2730,18 @@ export default function Home() {
   function fileSizeText(size: number | null) {
     if (!size) return "Größe unbekannt";
     return `${Math.round(size / 1024)} KB`;
+  }
+
+  function calculateNextInspectionDateFromUpload() {
+    if (uploadNextInspectionDate) return uploadNextInspectionDate;
+    if (!uploadInspectionDate) return "";
+
+    const intervalMonths = Number(uploadInspectionIntervalMonths || 12);
+    if (!Number.isFinite(intervalMonths) || intervalMonths <= 0) return "";
+
+    const nextDate = new Date(uploadInspectionDate);
+    nextDate.setMonth(nextDate.getMonth() + intervalMonths);
+    return nextDate.toISOString().split("T")[0];
   }
 
   function formatDate(value: string) {
@@ -5241,6 +5339,44 @@ FE-SERVICE`,
     .filter((documentItem) => documentItem.category === "Serviceberichte")
     .slice(0, 5);
 
+  const acceptanceProtocolDocuments = documents.filter(
+    (documentItem) => documentItem.category === "Abnahmeprotokolle",
+  );
+
+  const acceptanceProtocolsThisMonth = acceptanceProtocolDocuments.filter((documentItem) => {
+    const createdDate = new Date(documentItem.created_at);
+    const now = new Date();
+    return createdDate.getFullYear() === now.getFullYear() && createdDate.getMonth() === now.getMonth();
+  });
+
+  const upcomingAcceptanceProtocols = acceptanceProtocolDocuments.filter((documentItem) => {
+    if (!documentItem.next_inspection_date) return false;
+    const today = new Date();
+    const nextDate = new Date(documentItem.next_inspection_date);
+    today.setHours(0, 0, 0, 0);
+    nextDate.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= 30;
+  });
+
+  const overdueAcceptanceProtocols = acceptanceProtocolDocuments.filter((documentItem) => {
+    if (!documentItem.next_inspection_date) return false;
+    const today = new Date();
+    const nextDate = new Date(documentItem.next_inspection_date);
+    today.setHours(0, 0, 0, 0);
+    nextDate.setHours(0, 0, 0, 0);
+    return nextDate.getTime() < today.getTime();
+  });
+
+  const devicesWithoutInspectionDate = devices.filter(
+    (deviceItem) => !deviceItem.next_check && !deviceItem.inspection_expires,
+  );
+
+  const nextAcceptanceProtocolDueItems = acceptanceProtocolDocuments
+    .filter((documentItem) => documentItem.next_inspection_date)
+    .sort((a, b) => String(a.next_inspection_date || "").localeCompare(String(b.next_inspection_date || "")))
+    .slice(0, 6);
+
   const calendarTickets = tickets.filter((ticket) => {
     if (ticket.service_date !== calendarDate) return false;
 
@@ -6222,11 +6358,12 @@ FE-SERVICE`,
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-5">
                 <StatCard label="Offene Tickets" value={openAdminTickets.length} />
                 <StatCard label="Heute Einsätze" value={todaysAdminTickets.length} />
                 <StatCard label="UVV/Wartung überfällig" value={overdueAdminMaintenancePlans.length} />
-                <StatCard label="Teile niedrig" value={lowStockParts.length} />
+                <StatCard label="Abnahmeprotokolle" value={acceptanceProtocolDocuments.length} />
+                <StatCard label="Protokolle bald fällig" value={upcomingAcceptanceProtocols.length} />
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -6404,6 +6541,81 @@ FE-SERVICE`,
                     )}
                   </div>
                 </div>
+              </div>
+              <div className="grid gap-6 xl:grid-cols-2">
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-black">Abnahmeprotokolle / Prüffristen</h3>
+                      <p className="mt-1 text-sm font-semibold text-slate-500">
+                        Übersicht aus hochgeladenen und automatisch erzeugten Abnahmeprotokollen.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => openPage("Dokumente")}
+                      className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                    >
+                      Dokumente
+                    </button>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 md:grid-cols-4">
+                    <div className="rounded-2xl bg-green-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">Gesamt</p>
+                      <p className="mt-2 text-2xl font-black text-slate-900">{acceptanceProtocolDocuments.length}</p>
+                    </div>
+                    <div className="rounded-2xl bg-blue-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Dieser Monat</p>
+                      <p className="mt-2 text-2xl font-black text-slate-900">{acceptanceProtocolsThisMonth.length}</p>
+                    </div>
+                    <div className="rounded-2xl bg-yellow-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-yellow-700">Bald fällig</p>
+                      <p className="mt-2 text-2xl font-black text-slate-900">{upcomingAcceptanceProtocols.length}</p>
+                    </div>
+                    <div className="rounded-2xl bg-red-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-red-700">Überfällig</p>
+                      <p className="mt-2 text-2xl font-black text-slate-900">{overdueAcceptanceProtocols.length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                  <h3 className="text-xl font-black">Nächste Prüfungen aus Protokollen</h3>
+                  <div className="mt-5 space-y-3">
+                    {nextAcceptanceProtocolDueItems.length === 0 ? (
+                      <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
+                        Keine Prüffristen aus Abnahmeprotokollen hinterlegt.
+                      </div>
+                    ) : (
+                      nextAcceptanceProtocolDueItems.map((documentItem) => (
+                        <div key={documentItem.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <p className="text-xs font-black text-green-700">{documentItem.next_inspection_date || "-"}</p>
+                              <p className="mt-1 font-black text-slate-900">{getDocumentCustomerName(documentItem)}</p>
+                              <p className="mt-1 text-sm font-semibold text-slate-500">
+                                {getDeviceNameById(documentItem.device_id)} · {documentItem.file_name}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => openDocument(documentItem)}
+                              className="rounded-2xl bg-blue-100 px-4 py-2 text-sm font-black text-blue-700"
+                            >
+                              Öffnen
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[24px] bg-white p-4 shadow-sm">
+                <h3 className="text-xl font-black">Geräte ohne Prüffrist</h3>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  Geräte ohne nächstes Prüfdatum oder Ablaufdatum: {devicesWithoutInspectionDate.length}
+                </p>
               </div>
             </div>
           )}
@@ -7176,6 +7388,76 @@ FE-SERVICE`,
                           )}
                       </div>
 
+                      {uploadCategory === "Abnahmeprotokolle" && (
+                        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4 xl:col-span-3">
+                          <p className="text-sm font-black text-yellow-800">
+                            Prüffrist für handschriftliches Abnahmeprotokoll
+                          </p>
+                          <p className="mt-1 text-xs font-bold text-yellow-700">
+                            Diese Angaben aktualisieren das Gerät und erzeugen automatisch einen Prüftermin.
+                          </p>
+
+                          <div className="mt-4 grid gap-3 md:grid-cols-5">
+                            <div>
+                              <label className="text-xs font-black uppercase tracking-[0.14em] text-yellow-700">Prüfdatum</label>
+                              <input
+                                type="date"
+                                value={uploadInspectionDate}
+                                onChange={(e) => setUploadInspectionDate(e.target.value)}
+                                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-black uppercase tracking-[0.14em] text-yellow-700">Intervall</label>
+                              <select
+                                value={uploadInspectionIntervalMonths}
+                                onChange={(e) => setUploadInspectionIntervalMonths(e.target.value)}
+                                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
+                              >
+                                <option value="6">6 Monate</option>
+                                <option value="12">12 Monate</option>
+                                <option value="24">24 Monate</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-black uppercase tracking-[0.14em] text-yellow-700">Nächste Prüfung</label>
+                              <input
+                                type="date"
+                                value={uploadNextInspectionDate}
+                                onChange={(e) => setUploadNextInspectionDate(e.target.value)}
+                                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-black uppercase tracking-[0.14em] text-yellow-700">Prüfsiegel</label>
+                              <input
+                                value={uploadInspectionBadgeNumber}
+                                onChange={(e) => setUploadInspectionBadgeNumber(e.target.value)}
+                                placeholder="optional"
+                                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-black uppercase tracking-[0.14em] text-yellow-700">Bemerkung</label>
+                              <input
+                                value={uploadInspectionNote}
+                                onChange={(e) => setUploadInspectionNote(e.target.value)}
+                                placeholder="optional"
+                                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          <p className="mt-3 text-xs font-bold text-yellow-700">
+                            Wenn „Nächste Prüfung“ leer bleibt, wird sie aus Prüfdatum + Intervall berechnet.
+                          </p>
+                        </div>
+                      )}
+
                       <div className="flex flex-col justify-end">
                         <label className={`cursor-pointer rounded-2xl px-6 py-4 text-center font-black text-white ${
                           uploading ? "bg-slate-400" : "bg-green-600 hover:bg-green-700"
@@ -7301,6 +7583,14 @@ FE-SERVICE`,
                                 <span className="text-green-700">Datum:</span>{" "}
                                 {formatDate(item.created_at)}
                               </p>
+
+                              {item.category === "Abnahmeprotokolle" && (
+                                <p className="font-bold text-slate-700 md:col-span-2">
+                                  <span className="text-green-700">Prüfung:</span>{" "}
+                                  {item.inspection_date || "-"} · nächste Prüfung: {item.next_inspection_date || "-"}
+                                  {item.inspection_badge_number ? ` · Siegel: ${item.inspection_badge_number}` : ""}
+                                </p>
+                              )}
                             </div>
                           </div>
 
