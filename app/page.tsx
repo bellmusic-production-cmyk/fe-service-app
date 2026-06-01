@@ -55,6 +55,7 @@ type Device = {
 type Customer = {
   id: number;
   company: string | null;
+  customer_type?: string | null;
   contact_person: string | null;
   first_name?: string | null;
   last_name?: string | null;
@@ -430,6 +431,7 @@ export default function Home() {
   const [customerPreferredDate, setCustomerPreferredDate] = useState("");
 
   const [customerCompany, setCustomerCompany] = useState("");
+  const [customerType, setCustomerType] = useState("B2B");
   const [customerContact, setCustomerContact] = useState("");
   const [customerFirstName, setCustomerFirstName] = useState("");
   const [customerLastName, setCustomerLastName] = useState("");
@@ -506,6 +508,7 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState("Alle");
   const [priorityFilter, setPriorityFilter] = useState("Alle");
   const [customerDirectorySearch, setCustomerDirectorySearch] = useState("");
+  const [customerTypeFilter, setCustomerTypeFilter] = useState("Alle");
   const [deviceDirectorySearch, setDeviceDirectorySearch] = useState("");
   const [manufacturerDirectorySearch, setManufacturerDirectorySearch] = useState("");
   const [abnahmeCustomerSearch, setAbnahmeCustomerSearch] = useState("");
@@ -1541,6 +1544,7 @@ export default function Home() {
   function resetCustomerForm() {
     setEditingCustomer(null);
     setCustomerCompany("");
+    setCustomerType("B2B");
     setCustomerContact("");
     setCustomerFirstName("");
     setCustomerLastName("");
@@ -1612,6 +1616,7 @@ export default function Home() {
   function startEditCustomer(item: Customer) {
     setEditingCustomer(item);
     setCustomerCompany(item.company || "");
+    setCustomerType(item.customer_type || "B2B");
     setCustomerContact(item.contact_person || "");
     setCustomerFirstName(item.first_name || "");
     setCustomerLastName(item.last_name || "");
@@ -2375,6 +2380,7 @@ export default function Home() {
         {
           customer_number: customerNumber.trim() || null,
           supplier_number: customerSupplierNumber.trim() || null,
+          customer_type: customerType,
           company: customerCompany,
           contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
           first_name: customerFirstName.trim() || null,
@@ -2436,6 +2442,7 @@ export default function Home() {
     const { error } = await supabase
       .from("customers")
       .update({
+        customer_type: customerType,
         company: customerCompany,
         contact_person: customerContact || `${customerFirstName} ${customerLastName}`.trim() || null,
         first_name: customerFirstName.trim() || null,
@@ -3084,6 +3091,7 @@ export default function Home() {
     return [
       customer.customer_number,
       customer.supplier_number,
+      customer.customer_type,
       customer.company,
       customer.contact_person,
       customer.first_name,
@@ -5723,7 +5731,13 @@ FE-SERVICE`,
     }
 
     return customers
-      .filter((customerItem) => getCustomerSearchText(customerItem).includes(search))
+      .filter((customerItem) => {
+        const matchesType =
+          customerTypeFilter === "Alle" ||
+          (customerItem.customer_type || "B2B") === customerTypeFilter;
+
+        return matchesType && getCustomerSearchText(customerItem).includes(search);
+      })
       .slice(0, 80);
   })();
 
@@ -7566,6 +7580,15 @@ FE-SERVICE`,
                     className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                   />
 
+                  <select
+                    value={customerType}
+                    onChange={(e) => setCustomerType(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-3 font-bold"
+                  >
+                    <option value="B2B">B2B / Geschäftskunde</option>
+                    <option value="Privatkunde">Privatkunde</option>
+                  </select>
+
                   <div className="grid gap-3 md:grid-cols-2">
                     <input
                       value={customerFirstName}
@@ -7856,12 +7879,24 @@ FE-SERVICE`,
                   </p>
                 )}
 
-                <input
-                  value={customerDirectorySearch}
-                  onChange={(e) => setCustomerDirectorySearch(e.target.value)}
-                  placeholder="Kunden suchen"
-                  className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
-                />
+                <div className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_240px]">
+                  <input
+                    value={customerDirectorySearch}
+                    onChange={(e) => setCustomerDirectorySearch(e.target.value)}
+                    placeholder="Kunden suchen"
+                    className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
+                  />
+
+                  <select
+                    value={customerTypeFilter}
+                    onChange={(e) => setCustomerTypeFilter(e.target.value)}
+                    className="rounded-2xl border border-slate-300 px-5 py-4 font-black"
+                  >
+                    <option value="Alle">Alle Kundentypen</option>
+                    <option value="B2B">Nur B2B</option>
+                    <option value="Privatkunde">Nur Privatkunden</option>
+                  </select>
+                </div>
 
                 <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 p-4 text-sm font-bold text-green-800">
                   {customerDirectorySearchIsActive
