@@ -376,6 +376,7 @@ export default function Home() {
   const [customer, setCustomer] = useState("");
   const [device, setDevice] = useState("");
   const [customDeviceName, setCustomDeviceName] = useState("");
+  const [ticketType, setTicketType] = useState("Reparatur");
   const [ticketCustomerSearch, setTicketCustomerSearch] = useState("");
   const [ticketDeviceSearch, setTicketDeviceSearch] = useState("");
   const [issue, setIssue] = useState("");
@@ -694,7 +695,11 @@ export default function Home() {
       }
 
       if (userProfile?.role === "technician") {
-        if (ticket.assigned_to !== userProfile.id) return false;
+        const isAssignedToMe = ticket.assigned_to === userProfile.id;
+        const isOpenPoolTicket =
+          !ticket.assigned_to || ticket.status === "Offen" || ticket.status === "Zugewiesen";
+
+        if (!isAssignedToMe && !isOpenPoolTicket) return false;
       }
 
       const search = searchTerm.toLowerCase();
@@ -1767,6 +1772,7 @@ export default function Home() {
     setCustomer("");
     setDevice("");
     setCustomDeviceName("");
+    setTicketType("Reparatur");
     setTicketCustomerSearch("");
     setTicketDeviceSearch("");
     setIssue("");
@@ -1839,7 +1845,16 @@ export default function Home() {
     setDevice(ticket.device || "");
     setTicketDeviceSearch(ticket.device || "");
     setCustomDeviceName("");
-    setIssue(ticket.issue || "");
+    const knownTicketTypes = ["Reparatur", "Wartung", "Prüfung / UVV", "Installation", "Beratung", "Sonstiges"];
+    const detectedTicketType = knownTicketTypes.find((item) =>
+      String(ticket.issue || "").startsWith(`${item}:`),
+    );
+    setTicketType(detectedTicketType || "Reparatur");
+    setIssue(
+      detectedTicketType
+        ? String(ticket.issue || "").replace(`${detectedTicketType}:`, "").trim()
+        : ticket.issue || "",
+    );
     setDescription(ticket.description || "");
     setPriority(ticket.priority || "Mittel");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1897,7 +1912,7 @@ export default function Home() {
   }
 
   async function createTicket() {
-    const currentDeviceName = customDeviceName.trim() || device;
+    const currentDeviceName = customDeviceName.trim() || device || "Noch nicht zugewiesen";
     const relatedDevice = devices.find(
       (item) => item.name === currentDeviceName,
     );
@@ -1922,8 +1937,8 @@ export default function Home() {
       ? userProfile?.customer_id || null
       : selectedCustomer?.id || null;
 
-    if (!currentDeviceName || !issue || !description) {
-      alert("Bitte Gerät, Betreff und Beschreibung ausfüllen.");
+    if (!issue || !description) {
+      alert("Bitte Art des Tickets, Betreff und Beschreibung ausfüllen. Ein Gerät kann später zugewiesen werden.");
       return;
     }
 
@@ -1932,7 +1947,7 @@ export default function Home() {
       customer: currentCustomerName,
       customer_id: currentCustomerId,
       device: currentDeviceName,
-      issue,
+      issue: `${ticketType}: ${issue.trim()}`,
       description,
       priority,
       status: "Offen",
@@ -1977,12 +1992,15 @@ export default function Home() {
   async function updateTicket() {
     if (!editingTicket) return;
 
+    const currentDeviceName = customDeviceName.trim() || device || "Noch nicht zugewiesen";
+    const nextIssue = `${ticketType}: ${issue.trim()}`;
+
     const { error } = await supabase
       .from("tickets")
       .update({
         customer,
-        device,
-        issue,
+        device: currentDeviceName,
+        issue: nextIssue,
         description,
         priority,
       })
@@ -1993,7 +2011,7 @@ export default function Home() {
       return;
     }
 
-    const relatedDevice = devices.find((item) => item.name === device);
+    const relatedDevice = devices.find((item) => item.name === currentDeviceName);
 
     await createDeviceHistory(
       relatedDevice?.id || null,
@@ -2422,6 +2440,11 @@ export default function Home() {
   }
 
   async function deleteTicket(ticketId: number) {
+    if (!isAdmin) {
+      alert("Nur Admins können Tickets löschen. Techniker dürfen Tickets bearbeiten, aber nicht löschen.");
+      return;
+    }
+
     if (!confirm("Ticket wirklich löschen?")) return;
 
     const { error } = await supabase
@@ -6831,7 +6854,7 @@ FE-SERVICE`,
                                 {ticket.issue}
                               </h4>
                               <p className="mt-1 text-sm text-slate-600">
-                                Gerät: {ticket.device} · Techniker: {getTechnicianNameById(ticket.assigned_to)}
+                                Gerät: {ticket.device || "Noch nicht zugewiesen"} · Techniker: {getTechnicianNameById(ticket.assigned_to)}
                               </p>
                             </div>
                             <span className={`rounded-full px-4 py-2 text-sm font-bold ${statusClass(ticket.status)}`}>
@@ -11436,7 +11459,25 @@ FE-SERVICE`,
 
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-sm font-bold text-slate-700">
-                        Gerät suchen und auswählen
+                        Art des Tickets
+                      </p>
+                      <select
+                        value={ticketType}
+                        onChange={(e) => setTicketType(e.target.value)}
+                        className="mt-3 w-full rounded-2xl border border-slate-300 px-5 py-4 text-base font-semibold"
+                      >
+                        <option>Reparatur</option>
+                        <option>Wartung</option>
+                        <option>Prüfung / UVV</option>
+                        <option>Installation</option>
+                        <option>Beratung</option>
+                        <option>Sonstiges</option>
+                      </select>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-sm font-bold text-slate-700">
+                        Gerät suchen und auswählen <span className="text-slate-400">(optional)</span>
                       </p>
 
                       <input
@@ -11471,7 +11512,7 @@ FE-SERVICE`,
 
                       {!device && ticketDeviceSearch.trim().length < 2 && (
                         <p className="mt-3 text-sm font-bold text-slate-500">
-                          Bitte mindestens 2 Zeichen eingeben. Es wird kein Gerät automatisch ausgewählt.
+                          Optional: Gerät auswählen, freien Gerätenamen eintragen oder leer lassen. Das Gerät kann später zugewiesen werden.
                         </p>
                       )}
 
@@ -11522,7 +11563,7 @@ FE-SERVICE`,
                       )}
 
                       <div className="my-3 text-center text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-                        oder neues Gerät / freien Gerätenamen eintragen
+                        oder neues Gerät / freien Gerätenamen eintragen (optional)
                       </div>
 
                       <input
@@ -11532,7 +11573,7 @@ FE-SERVICE`,
                           setDevice("");
                           setTicketDeviceSearch("");
                         }}
-                        placeholder="z. B. Life Fitness Laufband, Seriennummer, Standort"
+                        placeholder="Optional: z. B. unbekanntes Laufband, Seriennummer, Standort"
                         className="w-full rounded-2xl border border-slate-300 px-5 py-4 text-base"
                       />
                     </div>
@@ -11540,7 +11581,7 @@ FE-SERVICE`,
                     <input
                       value={issue}
                       onChange={(e) => setIssue(e.target.value)}
-                      placeholder="Problem / Betreff"
+                      placeholder="Betreff, z. B. Wartung fällig, Gerät defekt, Prüfung benötigt"
                       className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                     />
 
@@ -11557,7 +11598,7 @@ FE-SERVICE`,
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Fehlerbeschreibung"
+                      placeholder="Beschreibung, Standort, Ansprechpartner, bekannte Hinweise. Gerät kann später ergänzt werden."
                       rows={5}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                     />
@@ -11660,7 +11701,7 @@ FE-SERVICE`,
                               </p>
 
                               <p className="text-sm text-slate-600">
-                                Gerät: {ticket.device}
+                                Gerät: {ticket.device || "Noch nicht zugewiesen"}
                               </p>
 
                               <p className="mt-2 text-sm text-slate-500">
@@ -11809,12 +11850,14 @@ FE-SERVICE`,
                                 PDF
                               </button>
 
-                              <button
-                                onClick={() => deleteTicket(ticket.id)}
-                                className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
-                              >
-                                Löschen
-                              </button>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => deleteTicket(ticket.id)}
+                                  className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-bold text-red-700"
+                                >
+                                  Löschen
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
