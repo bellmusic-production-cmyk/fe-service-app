@@ -97,6 +97,17 @@ type Manufacturer = {
 };
 
 
+type DeviceModel = {
+  id: number;
+  manufacturer_id: number | null;
+  device_type: string | null;
+  model: string;
+  source: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+
 type DocumentItem = {
   id: number;
   file_name: string;
@@ -311,6 +322,7 @@ export default function Home() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
   const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
   const [manufacturerName, setManufacturerName] = useState("");
   const [manufacturerWebsite, setManufacturerWebsite] = useState("");
@@ -351,6 +363,7 @@ export default function Home() {
   const [deviceName, setDeviceName] = useState("");
   const [deviceManufacturer, setDeviceManufacturer] = useState("");
   const [deviceManufacturerId, setDeviceManufacturerId] = useState("");
+  const [deviceModelId, setDeviceModelId] = useState("");
   const [deviceSerial, setDeviceSerial] = useState("");
   const [deviceLocation, setDeviceLocation] = useState("");
   const [deviceStatus, setDeviceStatus] = useState("Aktiv");
@@ -566,6 +579,7 @@ export default function Home() {
           loadDevices();
           loadCustomers();
           loadManufacturers();
+          loadDeviceModels();
           loadDocuments();
           loadDeviceHistory();
           loadMaintenancePlans();
@@ -598,6 +612,7 @@ export default function Home() {
   useEffect(() => {
     if (userProfile?.role === "admin" || userProfile?.role === "technician") {
       loadManufacturers();
+      loadDeviceModels();
     }
   }, [userProfile?.role]);
 
@@ -768,6 +783,8 @@ export default function Home() {
       await loadTickets();
       await loadDevices();
       await loadCustomers();
+      await loadManufacturers();
+      await loadDeviceModels();
       await loadDocuments();
       await loadDeviceHistory();
       await loadMaintenancePlans();
@@ -1053,6 +1070,7 @@ export default function Home() {
   async function loadManufacturers() {
     if (!isAdmin && !isTechnician) {
       setManufacturers([]);
+      setDeviceModels([]);
       return;
     }
 
@@ -1070,6 +1088,22 @@ export default function Home() {
     setManufacturers((data || []) as Manufacturer[]);
   }
 
+
+
+  async function loadDeviceModels() {
+    const { data, error } = await supabase
+      .from("device_models")
+      .select("id, manufacturer_id, device_type, model, source, note, created_at")
+      .order("model", { ascending: true });
+
+    if (error) {
+      console.error("Gerätemodelle konnten nicht geladen werden:", error.message);
+      setDeviceModels([]);
+      return;
+    }
+
+    setDeviceModels((data || []) as DeviceModel[]);
+  }
 
 
   async function loadDocuments() {
@@ -1676,6 +1710,7 @@ export default function Home() {
     setDeviceName("");
     setDeviceManufacturer("");
     setDeviceManufacturerId("");
+    setDeviceModelId("");
     setDeviceSerial("");
     setDeviceLocation("");
     setDeviceStatus("Aktiv");
@@ -1747,6 +1782,12 @@ export default function Home() {
     setDeviceName(item.name || "");
     setDeviceManufacturer(item.manufacturer || "");
     setDeviceManufacturerId(item.manufacturer_id ? String(item.manufacturer_id) : "");
+    const matchingDeviceModel = deviceModels.find(
+      (modelItem) =>
+        modelItem.manufacturer_id === item.manufacturer_id &&
+        String(modelItem.model || "").trim().toLowerCase() === String(item.name || "").trim().toLowerCase(),
+    );
+    setDeviceModelId(matchingDeviceModel ? String(matchingDeviceModel.id) : "");
     setDeviceSerial(item.serial_number || "");
     setDeviceLocation(item.location || "");
     setDeviceStatus(item.status || "Aktiv");
@@ -2455,11 +2496,16 @@ export default function Home() {
       return;
     }
 
+    const selectedManufacturer = manufacturers.find(
+      (item) => item.id === Number(deviceManufacturerId),
+    );
+
     const { error } = await supabase
       .from("devices")
       .update({
         name: deviceName,
-        manufacturer: deviceManufacturer || null,
+        manufacturer: selectedManufacturer?.name || deviceManufacturer || null,
+        manufacturer_id: selectedManufacturer?.id || null,
         serial_number: deviceSerial,
         location: deviceLocation,
         status: deviceStatus,
@@ -6126,6 +6172,12 @@ FE-SERVICE`,
       .slice(0, 25);
   })();
 
+  const filteredDeviceModelsForForm = deviceManufacturerId
+    ? deviceModels.filter(
+        (modelItem) => modelItem.manufacturer_id === Number(deviceManufacturerId),
+      )
+    : [];
+
   if (authLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#07130d] text-white">
@@ -8950,6 +9002,7 @@ FE-SERVICE`,
                         value={deviceManufacturerId}
                         onChange={(e) => {
                           setDeviceManufacturerId(e.target.value);
+                          setDeviceModelId("");
                           const selectedManufacturer = manufacturers.find(
                             (item) => item.id === Number(e.target.value),
                           );
@@ -8970,6 +9023,7 @@ FE-SERVICE`,
                         onChange={(e) => {
                           setDeviceManufacturer(e.target.value);
                           setDeviceManufacturerId("");
+                          setDeviceModelId("");
                         }}
                         placeholder="oder Hersteller frei eintragen"
                         className="rounded-2xl border border-slate-300 px-5 py-3"
@@ -8982,6 +9036,37 @@ FE-SERVICE`,
                       placeholder="Hersteller / Marke"
                       className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                     />
+                  )}
+
+                  {isAdmin && (
+                    <select
+                      value={deviceModelId}
+                      onChange={(e) => {
+                        setDeviceModelId(e.target.value);
+                        const selectedModel = deviceModels.find(
+                          (item) => item.id === Number(e.target.value),
+                        );
+                        if (selectedModel?.model) {
+                          setDeviceName(selectedModel.model);
+                        }
+                      }}
+                      disabled={!deviceManufacturerId || filteredDeviceModelsForForm.length === 0}
+                      className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold disabled:bg-slate-100 disabled:text-slate-400"
+                    >
+                      <option value="">
+                        {!deviceManufacturerId
+                          ? "Erst Hersteller wählen, dann Modell auswählen"
+                          : filteredDeviceModelsForForm.length === 0
+                            ? "Keine Modelle für diesen Hersteller hinterlegt"
+                            : "Modell aus Katalog wählen"}
+                      </option>
+                      {filteredDeviceModelsForForm.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.model}
+                          {item.device_type ? ` · ${item.device_type}` : ""}
+                        </option>
+                      ))}
+                    </select>
                   )}
 
                   <input
