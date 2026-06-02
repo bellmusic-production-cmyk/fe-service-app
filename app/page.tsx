@@ -96,19 +96,6 @@ type Manufacturer = {
   created_at: string;
 };
 
-type DeviceModel = {
-  id: number;
-  manufacturer_id: number | null;
-  device_type: string | null;
-  model: string;
-  source?: string | null;
-  note?: string | null;
-  created_at?: string | null;
-  manufacturers?: {
-    name: string | null;
-  } | null;
-};
-
 
 type DocumentItem = {
   id: number;
@@ -324,8 +311,6 @@ export default function Home() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
-  const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
-  const [deviceModelId, setDeviceModelId] = useState("");
   const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
   const [manufacturerName, setManufacturerName] = useState("");
   const [manufacturerWebsite, setManufacturerWebsite] = useState("");
@@ -581,7 +566,6 @@ export default function Home() {
           loadDevices();
           loadCustomers();
           loadManufacturers();
-          loadDeviceModels();
           loadDocuments();
           loadDeviceHistory();
           loadMaintenancePlans();
@@ -614,7 +598,6 @@ export default function Home() {
   useEffect(() => {
     if (userProfile?.role === "admin" || userProfile?.role === "technician") {
       loadManufacturers();
-      loadDeviceModels();
     }
   }, [userProfile?.role]);
 
@@ -785,8 +768,6 @@ export default function Home() {
       await loadTickets();
       await loadDevices();
       await loadCustomers();
-      await loadManufacturers();
-      await loadDeviceModels();
       await loadDocuments();
       await loadDeviceHistory();
       await loadMaintenancePlans();
@@ -1087,26 +1068,6 @@ export default function Home() {
     }
 
     setManufacturers((data || []) as Manufacturer[]);
-  }
-
-  async function loadDeviceModels() {
-    if (!isAdmin && !isTechnician) {
-      setDeviceModels([]);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("device_models")
-      .select("id, manufacturer_id, device_type, model, source, note, created_at, manufacturers(name)")
-      .order("model", { ascending: true });
-
-    if (error) {
-      console.error("Gerätemodelle konnten nicht geladen werden:", error.message);
-      setDeviceModels([]);
-      return;
-    }
-
-    setDeviceModels((data || []) as DeviceModel[]);
   }
 
 
@@ -1713,7 +1674,6 @@ export default function Home() {
   function resetDeviceForm() {
     setEditingDevice(null);
     setDeviceName("");
-    setDeviceModelId("");
     setDeviceManufacturer("");
     setDeviceManufacturerId("");
     setDeviceSerial("");
@@ -1785,7 +1745,6 @@ export default function Home() {
     setActivePage("Geräte");
     setEditingDevice(item);
     setDeviceName(item.name || "");
-    setDeviceModelId("");
     setDeviceManufacturer(item.manufacturer || "");
     setDeviceManufacturerId(item.manufacturer_id ? String(item.manufacturer_id) : "");
     setDeviceSerial(item.serial_number || "");
@@ -2460,20 +2419,10 @@ export default function Home() {
     const selectedManufacturer = manufacturers.find(
       (item) => item.id === Number(deviceManufacturerId),
     );
-    const selectedDeviceModel = deviceModels.find(
-      (item) => item.id === Number(deviceModelId),
-    );
-    const finalDeviceName = deviceName.trim() ||
-      [selectedDeviceModel?.device_type, selectedDeviceModel?.model].filter(Boolean).join(" ");
-
-    if (!finalDeviceName) {
-      alert("Bitte Gerätename oder Modell auswählen.");
-      return;
-    }
 
     const { error } = await supabase.from("devices").insert([
       {
-        name: finalDeviceName,
+        name: deviceName,
         manufacturer: selectedManufacturer?.name || deviceManufacturer || null,
         manufacturer_id: selectedManufacturer?.id || null,
         serial_number: deviceSerial,
@@ -2506,26 +2455,11 @@ export default function Home() {
       return;
     }
 
-    const selectedManufacturer = manufacturers.find(
-      (item) => item.id === Number(deviceManufacturerId),
-    );
-    const selectedDeviceModel = deviceModels.find(
-      (item) => item.id === Number(deviceModelId),
-    );
-    const finalDeviceName = deviceName.trim() ||
-      [selectedDeviceModel?.device_type, selectedDeviceModel?.model].filter(Boolean).join(" ");
-
-    if (!finalDeviceName) {
-      alert("Bitte Gerätename oder Modell auswählen.");
-      return;
-    }
-
     const { error } = await supabase
       .from("devices")
       .update({
-        name: finalDeviceName,
-        manufacturer: selectedManufacturer?.name || deviceManufacturer || null,
-        manufacturer_id: selectedManufacturer?.id || null,
+        name: deviceName,
+        manufacturer: deviceManufacturer || null,
         serial_number: deviceSerial,
         location: deviceLocation,
         status: deviceStatus,
@@ -3238,10 +3172,6 @@ export default function Home() {
   function getManufacturerNameById(manufacturerId?: number | null) {
     if (!manufacturerId) return "";
     return manufacturers.find((item) => item.id === manufacturerId)?.name || "";
-  }
-
-  function getDeviceModelLabel(item: DeviceModel) {
-    return [item.device_type, item.model].filter(Boolean).join(" · ") || item.model;
   }
 
   function resetManufacturerForm() {
@@ -6059,14 +5989,6 @@ FE-SERVICE`,
         .toLowerCase()
         .includes(search),
     );
-  })();
-
-  const filteredDeviceModelOptions = (() => {
-    if (!deviceManufacturerId) return [];
-
-    return deviceModels
-      .filter((modelItem) => modelItem.manufacturer_id === Number(deviceManufacturerId))
-      .sort((a, b) => getDeviceModelLabel(a).localeCompare(getDeviceModelLabel(b)));
   })();
 
   const abnahmeCustomers = (() => {
@@ -9023,71 +8945,35 @@ FE-SERVICE`,
                   />
 
                   {isAdmin ? (
-                    <div className="space-y-3">
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <select
-                          value={deviceManufacturerId}
-                          onChange={(e) => {
-                            setDeviceManufacturerId(e.target.value);
-                            setDeviceModelId("");
-                            const selectedManufacturer = manufacturers.find(
-                              (item) => item.id === Number(e.target.value),
-                            );
-                            setDeviceManufacturer(selectedManufacturer?.name || "");
-                          }}
-                          className="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold"
-                        >
-                          <option value="">Hersteller aus Verwaltung wählen</option>
-                          {manufacturers.map((item) => (
-                            <option key={item.id} value={item.id}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
-
-                        <input
-                          value={deviceManufacturer}
-                          onChange={(e) => {
-                            setDeviceManufacturer(e.target.value);
-                            setDeviceManufacturerId("");
-                            setDeviceModelId("");
-                          }}
-                          placeholder="oder Hersteller frei eintragen"
-                          className="rounded-2xl border border-slate-300 px-5 py-3"
-                        />
-                      </div>
-
+                    <div className="grid gap-3 md:grid-cols-2">
                       <select
-                        value={deviceModelId}
+                        value={deviceManufacturerId}
                         onChange={(e) => {
-                          setDeviceModelId(e.target.value);
-
-                          const selectedModel = deviceModels.find(
+                          setDeviceManufacturerId(e.target.value);
+                          const selectedManufacturer = manufacturers.find(
                             (item) => item.id === Number(e.target.value),
                           );
-
-                          if (selectedModel) {
-                            setDeviceName(
-                              [selectedModel.device_type, selectedModel.model]
-                                .filter(Boolean)
-                                .join(" "),
-                            );
-                          }
+                          setDeviceManufacturer(selectedManufacturer?.name || "");
                         }}
-                        disabled={!deviceManufacturerId}
-                        className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold disabled:bg-slate-100 disabled:text-slate-400"
+                        className="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold"
                       >
-                        <option value="">{deviceManufacturerId ? "Modell aus Katalog wählen" : "Zuerst Hersteller wählen"}</option>
-                        {filteredDeviceModelOptions.map((item) => (
+                        <option value="">Hersteller aus Verwaltung wählen</option>
+                        {manufacturers.map((item) => (
                           <option key={item.id} value={item.id}>
-                            {getDeviceModelLabel(item)}
+                            {item.name}
                           </option>
                         ))}
                       </select>
 
-                      <p className="rounded-2xl bg-green-50 px-4 py-3 text-xs font-bold leading-5 text-green-700">
-                        Modell aus dem Katalog wählen oder Gerätename frei eintragen. Seriennummer bleibt kundenindividuell.
-                      </p>
+                      <input
+                        value={deviceManufacturer}
+                        onChange={(e) => {
+                          setDeviceManufacturer(e.target.value);
+                          setDeviceManufacturerId("");
+                        }}
+                        placeholder="oder Hersteller frei eintragen"
+                        className="rounded-2xl border border-slate-300 px-5 py-3"
+                      />
                     </div>
                   ) : (
                     <input
