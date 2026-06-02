@@ -576,6 +576,7 @@ export default function Home() {
   const [selectedDeviceView, setSelectedDeviceView] = useState<Device | null>(
     null,
   );
+  const [selectedTicketView, setSelectedTicketView] = useState<Ticket | null>(null);
   const [qrSearchTerm, setQrSearchTerm] = useState("");
   const [qrSelectedDeviceId, setQrSelectedDeviceId] = useState("");
   const [qrManualCode, setQrManualCode] = useState("");
@@ -981,6 +982,7 @@ export default function Home() {
       setUserProfile(null);
       setProfileLoading(false);
       setSelectedDeviceView(null);
+      setSelectedTicketView(null);
       setPreviewUrl("");
       setPreviewName("");
 
@@ -1636,6 +1638,65 @@ export default function Home() {
       if (relatedDevice && documentItem.device_id === relatedDevice.id) return true;
       return false;
     });
+  }
+
+  function getCustomerForTicket(ticket: Ticket) {
+    if (ticket.customer_id) {
+      const byId = customers.find((item) => item.id === ticket.customer_id);
+      if (byId) return byId;
+    }
+
+    return (
+      customers.find((item) => item.company === ticket.customer) ||
+      customers.find((item) => getCustomerLabel(item) === ticket.customer) ||
+      null
+    );
+  }
+
+  function getDeviceForTicket(ticket: Ticket) {
+    if (!ticket.device) return null;
+
+    return (
+      devices.find((item) => item.name === ticket.device) ||
+      devices.find((item) => String(item.serial_number || "") === ticket.device) ||
+      null
+    );
+  }
+
+  function uniqueDocuments(items: DocumentItem[]) {
+    const seen = new Set<number>();
+    return items.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }
+
+  function getDocumentsForTicketContext(ticket: Ticket) {
+    const relatedDevice = getDeviceForTicket(ticket);
+    const relatedCustomer = getCustomerForTicket(ticket);
+
+    return uniqueDocuments(
+      documents.filter((documentItem) => {
+        if (documentItem.ticket_id === ticket.id) return true;
+        if (relatedDevice && documentItem.device_id === relatedDevice.id) return true;
+        if (relatedCustomer && documentItem.customer_id === relatedCustomer.id) return true;
+        if (relatedCustomer) {
+          const linkedDevice = documentItem.device_id
+            ? devices.find((deviceItem) => deviceItem.id === documentItem.device_id)
+            : null;
+          if (linkedDevice?.customer_id === relatedCustomer.id) return true;
+        }
+        return false;
+      }),
+    ).sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  }
+
+  function getTicketsForCustomerContext(customerId?: number | null) {
+    if (!customerId) return [];
+    return tickets
+      .filter((ticket) => ticket.customer_id === customerId)
+      .sort((a, b) => String(b.created_at || "").localeCompare(String(a.created_at || "")));
   }
 
   async function handleTicketFileUpload(
@@ -7302,6 +7363,186 @@ FE-SERVICE`,
                 Verträge können automatisch UVV- und Wartungspläne für alle Geräte des Kunden erzeugen. Gleichnamige Geräte bleiben über Kunde + Gerät eindeutig getrennt.
               </div>
 
+              {selectedTicketView && (() => {
+                const currentTicket = tickets.find((item) => item.id === selectedTicketView.id) || selectedTicketView;
+                const ticketCustomer = getCustomerForTicket(currentTicket);
+                const ticketDevice = getDeviceForTicket(currentTicket);
+                const contextDocuments = getDocumentsForTicketContext(currentTicket);
+                const customerTickets = getTicketsForCustomerContext(ticketCustomer?.id).slice(0, 8);
+                const customerDevices = ticketCustomer?.id ? getDevicesForCustomer(ticketCustomer.id) : [];
+
+                return (
+                  <div className="mb-6 rounded-[28px] border-2 border-green-200 bg-white p-5 shadow-sm">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-[0.18em] text-green-600">
+                          Ticket-Akte · alles auf einen Blick
+                        </p>
+                        <h3 className="mt-2 text-2xl font-black text-slate-900">
+                          {currentTicket.ticket_number} · {currentTicket.issue}
+                        </h3>
+                        <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-600">
+                          {currentTicket.description || "Keine Beschreibung hinterlegt."}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => startEdit(currentTicket)}
+                          className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                        >
+                          Ticket bearbeiten
+                        </button>
+                        <button
+                          onClick={() => setSelectedTicketView(null)}
+                          className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-700"
+                        >
+                          Akte schließen
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 xl:grid-cols-4">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Kunde</p>
+                        <h4 className="mt-2 text-lg font-black text-slate-900">
+                          {ticketCustomer ? getCustomerLabel(ticketCustomer) : currentTicket.customer || "Nicht zugeordnet"}
+                        </h4>
+                        <p className="mt-2 text-sm font-semibold text-slate-600">
+                          {ticketCustomer?.phone || "Telefon nicht hinterlegt"}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-slate-600">
+                          {ticketCustomer?.email || "E-Mail nicht hinterlegt"}
+                        </p>
+                        <p className="mt-2 text-xs font-bold text-slate-500">
+                          {ticketCustomer ? buildCustomerAddress(ticketCustomer) || "Keine Adresse" : "Kunde später zuweisen"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Gerät</p>
+                        <h4 className="mt-2 text-lg font-black text-slate-900">
+                          {ticketDevice?.name || currentTicket.device || "Noch nicht zugewiesen"}
+                        </h4>
+                        <p className="mt-2 text-sm font-semibold text-slate-600">
+                          {ticketDevice?.manufacturer || getManufacturerNameById(ticketDevice?.manufacturer_id) || "Hersteller offen"}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-slate-600">
+                          {ticketDevice?.serial_number ? `SN: ${ticketDevice.serial_number}` : "Seriennummer offen"}
+                        </p>
+                        <p className="mt-2 text-xs font-bold text-slate-500">
+                          {ticketDevice?.location || "Standort offen"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Status</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span className={`rounded-full px-3 py-2 text-xs font-black ${statusClass(currentTicket.status)}`}>
+                            {currentTicket.status}
+                          </span>
+                          <span className={`rounded-full px-3 py-2 text-xs font-black ${priorityClass(currentTicket.priority)}`}>
+                            {currentTicket.priority}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm font-bold text-slate-600">
+                          Techniker: {getTechnicianNameById(currentTicket.assigned_to)}
+                        </p>
+                        <p className="mt-1 text-sm font-bold text-slate-600">
+                          Termin: {currentTicket.service_date || "Nicht geplant"}{currentTicket.service_time ? ` · ${currentTicket.service_time}` : ""}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Dokumente</p>
+                        <h4 className="mt-2 text-3xl font-black text-slate-900">
+                          {contextDocuments.length}
+                        </h4>
+                        <p className="mt-1 text-sm font-bold text-slate-600">
+                          Ticket-, Geräte- und Kundendokumente zusammengeführt.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <h4 className="text-lg font-black">Zugehörige Dokumente</h4>
+                          <span className="rounded-full bg-white px-3 py-2 text-xs font-black text-slate-600">
+                            {contextDocuments.length} Datei(en)
+                          </span>
+                        </div>
+
+                        <div className="mt-4 max-h-80 space-y-2 overflow-y-auto pr-1">
+                          {contextDocuments.length === 0 ? (
+                            <div className="rounded-2xl bg-white p-4 text-sm font-bold text-slate-500">
+                              Noch keine Dokumente zum Ticket, Kunden oder Gerät gefunden.
+                            </div>
+                          ) : (
+                            contextDocuments.map((doc) => (
+                              <div key={doc.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 md:flex-row md:items-center md:justify-between">
+                                <div className="min-w-0">
+                                  <p className="truncate font-black text-slate-900">{doc.file_name}</p>
+                                  <p className="mt-1 text-xs font-bold text-slate-500">
+                                    {doc.category} · {formatDate(doc.created_at)} · {fileSizeText(doc.file_size)}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => openDocument(doc)}
+                                  className="shrink-0 rounded-2xl bg-blue-100 px-4 py-2 text-sm font-black text-blue-700"
+                                >
+                                  Öffnen
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <h4 className="text-lg font-black">Kundengeräte</h4>
+                          <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1">
+                            {customerDevices.length === 0 ? (
+                              <p className="rounded-2xl bg-white p-3 text-sm font-bold text-slate-500">Keine Kundengeräte hinterlegt.</p>
+                            ) : (
+                              customerDevices.slice(0, 8).map((item) => (
+                                <button
+                                  key={item.id}
+                                  onClick={() => openDeviceFromQr(item)}
+                                  className="w-full rounded-2xl bg-white p-3 text-left text-sm font-bold text-slate-700 hover:bg-green-50"
+                                >
+                                  {item.name} · {item.serial_number || "ohne Seriennr."}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <h4 className="text-lg font-black">Weitere Kundentickets</h4>
+                          <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1">
+                            {customerTickets.length === 0 ? (
+                              <p className="rounded-2xl bg-white p-3 text-sm font-bold text-slate-500">Keine weiteren Tickets gefunden.</p>
+                            ) : (
+                              customerTickets.map((ticketItem) => (
+                                <button
+                                  key={ticketItem.id}
+                                  onClick={() => setSelectedTicketView(ticketItem)}
+                                  className={`w-full rounded-2xl p-3 text-left text-sm font-bold hover:bg-green-50 ${ticketItem.id === currentTicket.id ? "bg-green-50 text-green-800" : "bg-white text-slate-700"}`}
+                                >
+                                  {ticketItem.ticket_number} · {ticketItem.issue}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 <div className="rounded-[24px] bg-white p-4 shadow-sm">
                   <h3 className="text-xl font-black">Benachrichtigung erstellen</h3>
@@ -11836,6 +12077,13 @@ FE-SERVICE`,
                             </div>
 
                             <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => setSelectedTicketView(ticket)}
+                                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white"
+                              >
+                                Akte
+                              </button>
+
                               <button
                                 onClick={() => startEdit(ticket)}
                                 className="rounded-2xl bg-green-100 px-4 py-3 text-sm font-bold text-green-700"
