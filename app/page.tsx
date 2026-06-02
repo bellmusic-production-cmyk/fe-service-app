@@ -1076,11 +1076,6 @@ export default function Home() {
 
 
   async function loadManufacturers() {
-    if (!isAdmin && !isTechnician) {
-      setManufacturers([]);
-      return;
-    }
-
     const { data, error } = await supabase
       .from("manufacturers")
       .select("*")
@@ -1088,6 +1083,7 @@ export default function Home() {
 
     if (error) {
       console.error("Hersteller konnten nicht geladen werden:", error.message);
+      alert("Hersteller konnten nicht geladen werden: " + error.message);
       setManufacturers([]);
       return;
     }
@@ -1096,11 +1092,6 @@ export default function Home() {
   }
 
   async function loadDeviceModels() {
-    if (!isAdmin && !isTechnician) {
-      setDeviceModels([]);
-      return;
-    }
-
     const { data, error } = await supabase
       .from("device_models")
       .select("*")
@@ -1108,6 +1099,7 @@ export default function Home() {
 
     if (error) {
       console.error("Modelle konnten nicht geladen werden:", error.message);
+      alert("Modelle konnten nicht geladen werden: " + error.message);
       setDeviceModels([]);
       return;
     }
