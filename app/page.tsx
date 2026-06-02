@@ -5890,6 +5890,49 @@ FE-SERVICE`,
       ? ["Einsatz", "Kalender", "QR-Scan", "Service-Tickets", "Kunden", "Geräte", "Hersteller", "Abnahmeprotokoll", "Ersatzteile", "Dokumente"]
       : ["Kundenportal", "Service-Tickets", "Geräte", "Dokumente", "Rechnungen"];
 
+  const navGroups = [
+    {
+      title: "Start",
+      icon: "📊",
+      items: ["Dashboard", "Kundenportal"],
+    },
+    {
+      title: "Service",
+      icon: "🔧",
+      items: ["Einsatz", "Kalender", "Service-Tickets", "QR-Scan", "Abnahmeprotokoll"],
+    },
+    {
+      title: "Stammdaten",
+      icon: "🏢",
+      items: ["Kunden", "Geräte", "Hersteller"],
+    },
+    {
+      title: "Dokumente",
+      icon: "📁",
+      items: ["Dokumente", "Verträge", "Rechnungen"],
+    },
+    {
+      title: "Lager",
+      icon: "📦",
+      items: ["Ersatzteile"],
+    },
+    {
+      title: "Kommunikation",
+      icon: "💬",
+      items: ["Benachrichtigungen"],
+    },
+    {
+      title: "Management",
+      icon: "📈",
+      items: ["Auswertungen"],
+    },
+  ]
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => visibleNavItems.includes(item)),
+    }))
+    .filter((group) => group.items.length > 0);
+
   function navItemLabel(item: string) {
     const labels: Record<string, string> = {
       Dashboard: "Start",
@@ -6419,20 +6462,47 @@ FE-SERVICE`,
             </p>
           </div>
 
-          <nav className="mt-10 space-y-3">
-            {visibleNavItems.map((item) => (
-              <button
-                key={item}
-                onClick={() => openPage(item)}
-                className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
-                  activePage === item
-                    ? "bg-green-600 text-white"
-                    : "text-slate-300 hover:bg-white/5"
-                }`}
-              >
-                {navItemLabel(item)}
-              </button>
-            ))}
+          <nav className="mt-8 max-h-[calc(100vh-280px)] space-y-3 overflow-y-auto pr-1">
+            {navGroups.map((group) => {
+              const groupIsOpen = group.items.includes(activePage);
+
+              return (
+                <details
+                  key={group.title}
+                  open={groupIsOpen}
+                  className="group rounded-3xl border border-white/10 bg-white/[0.03]"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-3xl px-4 py-3 text-sm font-black text-slate-200 transition hover:bg-white/5">
+                    <span className="flex items-center gap-3">
+                      <span>{group.icon}</span>
+                      <span>{group.title}</span>
+                    </span>
+                    <span className="text-xs text-slate-500 transition group-open:rotate-180">▼</span>
+                  </summary>
+
+                  <div className="space-y-2 px-2 pb-3">
+                    {group.items.map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => openPage(item)}
+                        className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
+                          activePage === item
+                            ? "bg-green-600 text-white shadow-lg shadow-green-950/30"
+                            : "text-slate-300 hover:bg-white/5"
+                        }`}
+                      >
+                        {navItemLabel(item)}
+                        {item === "Hersteller" && (
+                          <span className="mt-1 block text-[11px] font-bold text-slate-400">
+                            Hersteller · Modelle · Gerätekatalog
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
           </nav>
 
           <button
@@ -6497,10 +6567,14 @@ FE-SERVICE`,
                 onChange={(e) => openPage(e.target.value)}
                 className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-base font-black text-slate-900"
               >
-                {visibleNavItems.map((item) => (
-                  <option key={item} value={item}>
-                    {navItemLabel(item)}
-                  </option>
+                {navGroups.map((group) => (
+                  <optgroup key={group.title} label={`${group.icon} ${group.title}`}>
+                    {group.items.map((item) => (
+                      <option key={item} value={item}>
+                        {navItemLabel(item)}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>
