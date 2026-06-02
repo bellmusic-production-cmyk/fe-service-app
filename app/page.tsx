@@ -96,7 +96,6 @@ type Manufacturer = {
   created_at: string;
 };
 
-
 type DeviceModel = {
   id: number;
   manufacturer_id: number | null;
@@ -322,6 +321,9 @@ export default function Home() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
+  const [deviceModelsLoading, setDeviceModelsLoading] = useState(false);
+  const [selectedDeviceModelId, setSelectedDeviceModelId] = useState("");
   const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
   const [manufacturerName, setManufacturerName] = useState("");
   const [manufacturerWebsite, setManufacturerWebsite] = useState("");
@@ -367,9 +369,6 @@ export default function Home() {
   const [deviceStatus, setDeviceStatus] = useState("Aktiv");
   const [deviceNextCheck, setDeviceNextCheck] = useState("");
   const [deviceNote, setDeviceNote] = useState("");
-  const [deviceModelOptions, setDeviceModelOptions] = useState<DeviceModel[]>([]);
-  const [deviceModelLoading, setDeviceModelLoading] = useState(false);
-  const [selectedDeviceModelId, setSelectedDeviceModelId] = useState("");
 
   const [inspectionDeviceId, setInspectionDeviceId] = useState("");
   const [inspectionBadgeNumber, setInspectionBadgeNumber] = useState("");
@@ -782,6 +781,7 @@ export default function Home() {
       await loadTickets();
       await loadDevices();
       await loadCustomers();
+      await loadManufacturers();
       await loadDocuments();
       await loadDeviceHistory();
       await loadMaintenancePlans();
@@ -910,6 +910,8 @@ export default function Home() {
       setTickets([]);
       setDevices([]);
       setCustomers([]);
+      setManufacturers([]);
+      setDeviceModels([]);
       setDocuments([]);
       setDeviceHistory([]);
       setMaintenancePlans([]);
@@ -1084,55 +1086,35 @@ export default function Home() {
     setManufacturers((data || []) as Manufacturer[]);
   }
 
+  async function loadDeviceModelsForManufacturer(manufacturerIdValue: string) {
+    setSelectedDeviceModelId("");
+    setDeviceModels([]);
 
+    const manufacturerId = Number(manufacturerIdValue);
 
-  async function loadDeviceModelsForManufacturer(manufacturerId?: string) {
-    const targetManufacturerId = manufacturerId || deviceManufacturerId;
-
-    if (!targetManufacturerId) {
-      setDeviceModelOptions([]);
-      setSelectedDeviceModelId("");
-      alert("Bitte zuerst einen Hersteller aus der Verwaltung auswählen.");
+    if (!manufacturerIdValue || !Number.isFinite(manufacturerId)) {
       return;
     }
 
-    setDeviceModelLoading(true);
+    setDeviceModelsLoading(true);
 
     const { data, error } = await supabase
       .from("device_models")
       .select("id, manufacturer_id, device_type, model, source, note, created_at")
-      .eq("manufacturer_id", Number(targetManufacturerId))
+      .eq("manufacturer_id", manufacturerId)
       .order("device_type", { ascending: true })
       .order("model", { ascending: true });
 
-    setDeviceModelLoading(false);
+    setDeviceModelsLoading(false);
 
     if (error) {
       console.error("Gerätemodelle konnten nicht geladen werden:", error.message);
-      setDeviceModelOptions([]);
-      setSelectedDeviceModelId("");
       alert(`Gerätemodelle konnten nicht geladen werden: ${error.message}`);
+      setDeviceModels([]);
       return;
     }
 
-    const mappedModels = (data || []).map((item: any) => ({
-      id: Number(item.id),
-      manufacturer_id: item.manufacturer_id === null || item.manufacturer_id === undefined
-        ? null
-        : Number(item.manufacturer_id),
-      device_type: item.device_type || null,
-      model: item.model || null,
-      source: item.source || null,
-      note: item.note || null,
-      created_at: item.created_at || "",
-    }));
-
-    setDeviceModelOptions(mappedModels);
-    setSelectedDeviceModelId("");
-
-    if (mappedModels.length === 0) {
-      alert("Für diesen Hersteller sind noch keine Gerätemodelle im Katalog hinterlegt.");
-    }
+    setDeviceModels((data || []) as DeviceModel[]);
   }
 
 
@@ -1741,8 +1723,9 @@ export default function Home() {
     setDeviceName("");
     setDeviceManufacturer("");
     setDeviceManufacturerId("");
-    setDeviceModelOptions([]);
     setSelectedDeviceModelId("");
+    setDeviceModels([]);
+    setDeviceModelsLoading(false);
     setDeviceSerial("");
     setDeviceLocation("");
     setDeviceStatus("Aktiv");
@@ -1814,8 +1797,12 @@ export default function Home() {
     setDeviceName(item.name || "");
     setDeviceManufacturer(item.manufacturer || "");
     setDeviceManufacturerId(item.manufacturer_id ? String(item.manufacturer_id) : "");
-    setDeviceModelOptions([]);
     setSelectedDeviceModelId("");
+    if (item.manufacturer_id) {
+      loadDeviceModelsForManufacturer(String(item.manufacturer_id));
+    } else {
+      setDeviceModels([]);
+    }
     setDeviceSerial(item.serial_number || "");
     setDeviceLocation(item.location || "");
     setDeviceStatus(item.status || "Aktiv");
@@ -2524,12 +2511,16 @@ export default function Home() {
       return;
     }
 
+    const selectedManufacturer = manufacturers.find(
+      (item) => item.id === Number(deviceManufacturerId),
+    );
+
     const { error } = await supabase
       .from("devices")
       .update({
         name: deviceName,
-        manufacturer: manufacturers.find((item) => item.id === Number(deviceManufacturerId))?.name || deviceManufacturer || null,
-        manufacturer_id: deviceManufacturerId ? Number(deviceManufacturerId) : null,
+        manufacturer: selectedManufacturer?.name || deviceManufacturer || null,
+        manufacturer_id: selectedManufacturer?.id || null,
         serial_number: deviceSerial,
         location: deviceLocation,
         status: deviceStatus,
@@ -9020,13 +9011,13 @@ FE-SERVICE`,
                         <select
                           value={deviceManufacturerId}
                           onChange={(e) => {
-                            setDeviceManufacturerId(e.target.value);
-                            setDeviceModelOptions([]);
-                            setSelectedDeviceModelId("");
+                            const nextManufacturerId = e.target.value;
+                            setDeviceManufacturerId(nextManufacturerId);
                             const selectedManufacturer = manufacturers.find(
-                              (item) => item.id === Number(e.target.value),
+                              (item) => item.id === Number(nextManufacturerId),
                             );
                             setDeviceManufacturer(selectedManufacturer?.name || "");
+                            loadDeviceModelsForManufacturer(nextManufacturerId);
                           }}
                           className="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold"
                         >
@@ -9043,68 +9034,63 @@ FE-SERVICE`,
                           onChange={(e) => {
                             setDeviceManufacturer(e.target.value);
                             setDeviceManufacturerId("");
-                            setDeviceModelOptions([]);
                             setSelectedDeviceModelId("");
+                            setDeviceModels([]);
                           }}
                           placeholder="oder Hersteller frei eintragen"
                           className="rounded-2xl border border-slate-300 px-5 py-3"
                         />
                       </div>
 
-                      <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <p className="text-sm font-black text-slate-800">Gerätemodell-Katalog</p>
-                            <p className="text-xs font-semibold text-slate-500">
-                              Erst Hersteller wählen, dann Modelle laden. Seriennummer bleibt individuell.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => loadDeviceModelsForManufacturer()}
-                            disabled={!deviceManufacturerId || deviceModelLoading}
-                            className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white disabled:opacity-40"
-                          >
-                            {deviceModelLoading ? "Modelle werden geladen..." : "Modelle laden"}
-                          </button>
-                        </div>
-
-                        {deviceModelOptions.length > 0 && (
-                          <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto]">
+                      {deviceManufacturerId && (
+                        <div className="rounded-[20px] border border-green-100 bg-green-50 p-3">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center">
                             <select
                               value={selectedDeviceModelId}
                               onChange={(e) => {
-                                setSelectedDeviceModelId(e.target.value);
-                                const selectedModel = deviceModelOptions.find(
-                                  (item) => item.id === Number(e.target.value),
+                                const nextModelId = e.target.value;
+                                setSelectedDeviceModelId(nextModelId);
+                                const selectedModel = deviceModels.find(
+                                  (item) => String(item.id) === nextModelId,
                                 );
                                 if (selectedModel?.model) {
                                   setDeviceName(selectedModel.model);
+                                  setDeviceNote((prev) =>
+                                    selectedModel.device_type && !String(prev || "").includes("Gerätetyp:")
+                                      ? `${prev ? `${prev}\n` : ""}Gerätetyp: ${selectedModel.device_type}`
+                                      : prev,
+                                  );
                                 }
                               }}
-                              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 font-bold"
+                              className="min-w-0 flex-1 rounded-2xl border border-green-200 bg-white px-5 py-3 font-bold"
                             >
                               <option value="">Modell aus Katalog wählen</option>
-                              {deviceModelOptions.map((item) => (
+                              {deviceModels.map((item) => (
                                 <option key={item.id} value={item.id}>
-                                  {item.device_type ? `${item.device_type} · ` : ""}{item.model}
+                                  {item.device_type ? `${item.device_type} · ` : ""}
+                                  {item.model}
                                 </option>
                               ))}
                             </select>
 
                             <button
                               type="button"
-                              onClick={() => {
-                                setSelectedDeviceModelId("");
-                                setDeviceModelOptions([]);
-                              }}
-                              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-700"
+                              onClick={() => loadDeviceModelsForManufacturer(deviceManufacturerId)}
+                              className="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white"
                             >
-                              Auswahl leeren
+                              {deviceModelsLoading ? "Lädt..." : "Modelle laden"}
                             </button>
                           </div>
-                        )}
-                      </div>
+
+                          <p className="mt-2 text-xs font-bold text-green-800">
+                            {deviceModelsLoading
+                              ? "Gerätemodelle werden geladen..."
+                              : deviceModels.length > 0
+                                ? `${deviceModels.length} Modell(e) für diesen Hersteller gefunden.`
+                                : "Noch keine Modelle geladen oder keine Modelle für diesen Hersteller vorhanden."}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <input
