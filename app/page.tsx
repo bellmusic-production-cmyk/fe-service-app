@@ -1,6 +1,8 @@
 
 "use client";
 
+// FE-Service App v2.1.8 · Gerätebereich mit Suchpflicht und begrenzter Ergebnisliste
+
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
 import { supabase } from "../lib/supabase";
@@ -273,6 +275,11 @@ const deviceStatusOptions = [
   "Prüfung erforderlich",
   "Außer Betrieb",
 ];
+
+// Gerätebereich: Bei großem Gerätebestand nicht automatisch alle Kunden-Geräte rendern.
+// Die Liste wird erst ab 2 Suchzeichen angezeigt und dann auf 80 Treffer begrenzt.
+const deviceDirectoryMinSearchLength = 2;
+const deviceDirectoryResultLimit = 80;
 
 const documentCategories = [
   "Alle",
@@ -6583,32 +6590,45 @@ FE-SERVICE`,
   const customerDirectorySearchIsActive =
     customerDirectorySearch.trim().length >= 1;
 
+  const deviceDirectorySearchNormalized = deviceDirectorySearch.toLowerCase().trim();
+  const isDeviceDirectorySearchReady =
+    deviceDirectorySearchNormalized.length >= deviceDirectoryMinSearchLength;
+
   const filteredDeviceDirectory = (() => {
-    const search = deviceDirectorySearch.toLowerCase().trim();
-    if (!search) return devices;
+    const search = deviceDirectorySearchNormalized;
 
-    return devices.filter((deviceItem) => {
-      const linkedCustomer = deviceItem.customer_id
-        ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
-        : null;
-      const linkedManufacturer = getManufacturerNameById(deviceItem.manufacturer_id);
+    // Wichtig bei großem Bestand:
+    // Ohne Suchbegriff wird keine endlose Geräteliste gerendert.
+    if (!isDeviceDirectorySearchReady) return [];
 
-      return [
-        deviceItem.name,
-        deviceItem.manufacturer,
-        linkedManufacturer,
-        deviceItem.serial_number,
-        deviceItem.location,
-        deviceItem.status,
-        deviceItem.note,
-        linkedCustomer ? getCustomerLabel(linkedCustomer) : "",
-        linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(search);
-    });
+    return devices
+      .filter((deviceItem) => {
+        const linkedCustomer = deviceItem.customer_id
+          ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
+          : null;
+        const linkedManufacturer = getManufacturerNameById(deviceItem.manufacturer_id);
+        const linkedModel = getDeviceModelNameById(deviceItem.model_id);
+
+        return [
+          deviceItem.name,
+          deviceItem.model,
+          linkedModel,
+          deviceItem.manufacturer,
+          linkedManufacturer,
+          deviceItem.serial_number,
+          deviceItem.location,
+          deviceItem.status,
+          deviceItem.note,
+          linkedCustomer ? getCustomerLabel(linkedCustomer) : "",
+          linkedCustomer ? linkedCustomer.customer_number : "",
+          linkedCustomer ? buildCustomerAddress(linkedCustomer) : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(search);
+      })
+      .slice(0, deviceDirectoryResultLimit);
   })();
 
   const filteredManufacturerDirectory = (() => {
@@ -10397,12 +10417,22 @@ FE-SERVICE`,
                 <input
                   value={deviceDirectorySearch}
                   onChange={(e) => setDeviceDirectorySearch(e.target.value)}
-                  placeholder="Geräte suchen: Name, Seriennummer, Kunde, Hersteller, Standort"
+                  placeholder="Geräte suchen: Kunde, Kundennr., Modell, Seriennummer, Hersteller, Standort"
                   className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
                 />
 
+                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-600">
+                  {isDeviceDirectorySearchReady
+                    ? `${filteredDeviceDirectory.length} Treffer angezeigt · maximal ${deviceDirectoryResultLimit}. Suche weiter eingrenzen, falls das gewünschte Gerät fehlt.`
+                    : `Mindestens ${deviceDirectoryMinSearchLength} Zeichen eingeben. Die komplette Geräteliste wird wegen großem Bestand nicht automatisch geladen.`}
+                </div>
+
                 <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
-                  {filteredDeviceDirectory.length === 0 ? (
+                  {!isDeviceDirectorySearchReady ? (
+                    <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
+                      Bitte Suchbegriff eingeben, um Kunden-Geräte zu laden.
+                    </div>
+                  ) : filteredDeviceDirectory.length === 0 ? (
                     <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
                       Keine Geräte gefunden.
                     </div>
@@ -10421,6 +10451,18 @@ FE-SERVICE`,
                             <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
                               {item.name}
                             </h4>
+
+                            <p className="mt-2 break-words text-sm font-bold text-slate-700">
+                              Kunde: {getCustomerNameById(item.customer_id)}
+                            </p>
+
+                            <p className="break-words text-sm text-slate-600">
+                              Hersteller / Modell:{" "}
+                              {item.manufacturer || getManufacturerNameById(item.manufacturer_id) || "Unbekannt"}
+                              {item.model || getDeviceModelNameById(item.model_id)
+                                ? ` · ${item.model || getDeviceModelNameById(item.model_id)}`
+                                : ""}
+                            </p>
 
                             <p className="mt-2 break-words text-sm text-slate-600">
                               Standort: {item.location || "Nicht angegeben"}
