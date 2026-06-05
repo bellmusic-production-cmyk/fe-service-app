@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.25 · Servicebericht-Signatur als Modal
+// FE-Service App v2.1.26 · Einheitliche Ticket-Kennzahlen im Dashboard
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -829,6 +829,31 @@ export default function Home() {
       return true;
     });
   }, [tickets, customers, userProfile]);
+
+  const ticketStats = useMemo(() => {
+    const sourceTickets = visibleRoleTickets;
+
+    return {
+      total: sourceTickets.length,
+      open: sourceTickets.filter((ticket) => ticket.status === "Offen").length,
+      assigned: sourceTickets.filter((ticket) => ticket.status === "Zugewiesen").length,
+      inProgress: sourceTickets.filter((ticket) => ticket.status === "In Bearbeitung").length,
+      waitingParts: sourceTickets.filter((ticket) => ticket.status === "Wartet auf Teile").length,
+      completed: sourceTickets.filter(
+        (ticket) =>
+          ticket.status === "Abgeschlossen" || ticket.status === "Erledigt",
+      ).length,
+      active: sourceTickets.filter(
+        (ticket) =>
+          ticket.status !== "Abgeschlossen" &&
+          ticket.status !== "Erledigt" &&
+          ticket.status !== "Storniert",
+      ).length,
+      today: sourceTickets.filter(
+        (ticket) => ticket.service_date === new Date().toISOString().split("T")[0],
+      ).length,
+    };
+  }, [visibleRoleTickets]);
 
   const filteredDocuments = useMemo(() => {
     const search = documentSearchTerm.toLowerCase().trim();
@@ -6063,13 +6088,14 @@ FE-SERVICE`,
 
   const todayDateString = new Date().toISOString().split("T")[0];
 
-  const openAdminTickets = tickets.filter(
+  const openAdminTickets = visibleRoleTickets.filter(
     (ticket) =>
       ticket.status !== "Abgeschlossen" &&
-      ticket.status !== "Erledigt",
+      ticket.status !== "Erledigt" &&
+      ticket.status !== "Storniert",
   );
 
-  const todaysAdminTickets = tickets.filter(
+  const todaysAdminTickets = visibleRoleTickets.filter(
     (ticket) => ticket.service_date === todayDateString,
   );
 
@@ -7584,11 +7610,11 @@ FE-SERVICE`,
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-5">
-                  <StatCard label="Offene Tickets" value={openAdminTickets.length} />
-                  <StatCard label="Heute Einsätze" value={todaysAdminTickets.length} />
-                  <StatCard label="UVV/Wartung überfällig" value={overdueAdminMaintenancePlans.length} />
-                  <StatCard label="Abnahmeprotokolle" value={acceptanceProtocolDocuments.length} />
-                  <StatCard label="Protokolle bald fällig" value={upcomingAcceptanceProtocols.length} />
+                  <StatCard label={isCustomer ? "Meine Tickets" : "Gesamt Tickets"} value={ticketStats.total} />
+                  <StatCard label="Offen" value={ticketStats.open} />
+                  <StatCard label="In Bearbeitung" value={ticketStats.inProgress} />
+                  <StatCard label="Erledigt" value={ticketStats.completed} />
+                  <StatCard label="Heute Einsätze" value={ticketStats.today} />
                 </div>
               )}
 
@@ -12764,26 +12790,10 @@ FE-SERVICE`,
           {activePage === "Service-Tickets" && (
             <>
               <div className="mb-6 grid gap-4 md:grid-cols-4">
-                <StatCard label={isCustomer ? "Meine Tickets" : "Gesamt Tickets"} value={visibleRoleTickets.length} />
-                <StatCard
-                  label="Offen"
-                  value={visibleRoleTickets.filter((t) => t.status === "Offen").length}
-                />
-                <StatCard
-                  label="In Bearbeitung"
-                  value={
-                    visibleRoleTickets.filter((t) => t.status === "In Bearbeitung").length
-                  }
-                />
-                <StatCard
-                  label="Erledigt"
-                  value={
-                    visibleRoleTickets.filter(
-                      (t) =>
-                        t.status === "Abgeschlossen" || t.status === "Erledigt",
-                    ).length
-                  }
-                />
+                <StatCard label={isCustomer ? "Meine Tickets" : "Gesamt Tickets"} value={ticketStats.total} />
+                <StatCard label="Offen" value={ticketStats.open} />
+                <StatCard label="In Bearbeitung" value={ticketStats.inProgress} />
+                <StatCard label="Erledigt" value={ticketStats.completed} />
               </div>
 
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
