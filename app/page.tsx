@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.27 · Serviceberichte als PDF archivieren und Seite beibehalten
+// FE-Service App v2.1.28 · Geräteauswahl bei Ticketerstellung verbessert
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -6787,16 +6787,26 @@ FE-SERVICE`,
     portalCustomers.find((customerItem) => getCustomerLabel(customerItem) === customer) ||
     null;
 
+  const ticketCustomerDevices = selectedTicketCustomer
+    ? availableTicketDevices.filter(
+        (deviceItem) => deviceItem.customer_id === selectedTicketCustomer.id,
+      )
+    : [];
+
+  const ticketDevicePreviewDevices = selectedTicketCustomer
+    ? ticketCustomerDevices.slice(0, 12)
+    : availableTicketDevices.slice(0, 12);
+
   const filteredTicketDevices = (() => {
     const search = ticketDeviceSearch.toLowerCase().trim();
 
-    if (!search || search.length < 2) {
-      return [];
-    }
-
     const baseDevices = selectedTicketCustomer
-      ? availableTicketDevices.filter((deviceItem) => deviceItem.customer_id === selectedTicketCustomer.id)
+      ? ticketCustomerDevices
       : availableTicketDevices;
+
+    if (!search) {
+      return ticketDevicePreviewDevices;
+    }
 
     return baseDevices
       .filter((deviceItem) => {
@@ -13117,22 +13127,28 @@ FE-SERVICE`,
                         </div>
                       )}
 
-                      {!device && ticketDeviceSearch.trim().length < 2 && (
-                        <p className="mt-3 text-sm font-bold text-slate-500">
-                          Optional: Gerät auswählen, freien Gerätenamen eintragen oder leer lassen. Das Gerät kann später zugewiesen werden.
+                      {!device && !ticketDeviceSearch.trim() && filteredTicketDevices.length === 0 && (
+                        <p className="mt-3 rounded-2xl bg-white p-3 text-sm font-bold text-slate-500">
+                          Für diesen Kunden ist noch kein Gerät zugeordnet. Du kannst unten einen freien Gerätenamen eintragen oder das Ticket ohne Gerät speichern.
                         </p>
                       )}
 
-                      {!device &&
-                        ticketDeviceSearch.trim().length >= 2 &&
-                        filteredTicketDevices.length === 0 && (
-                          <p className="mt-3 rounded-2xl bg-white p-3 text-sm font-bold text-slate-500">
-                            Kein Gerät gefunden.
-                          </p>
-                        )}
+                      {!device && ticketDeviceSearch.trim() && filteredTicketDevices.length === 0 && (
+                        <p className="mt-3 rounded-2xl bg-white p-3 text-sm font-bold text-slate-500">
+                          Kein Gerät gefunden. Du kannst unten einen freien Gerätenamen eintragen.
+                        </p>
+                      )}
 
                       {!device && filteredTicketDevices.length > 0 && (
-                        <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+                        <div className="mt-3">
+                          {!ticketDeviceSearch.trim() && (
+                            <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+                              {selectedTicketCustomer
+                                ? "Geräte dieses Kunden"
+                                : "Geräte-Vorschau"}
+                            </p>
+                          )}
+                          <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                           {filteredTicketDevices.map((deviceItem) => {
                             const linkedCustomer = deviceItem.customer_id
                               ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
@@ -13166,6 +13182,7 @@ FE-SERVICE`,
                               </button>
                             );
                           })}
+                          </div>
                         </div>
                       )}
 
