@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.12 · Hersteller/Modelle sauber vom Kunden-Gerätebestand getrennt
+// FE-Service App v2.1.13 · Gerätekatalog ohne Kunden-/Seriennummern-Daten
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -277,12 +277,12 @@ const deviceStatusOptions = [
 ];
 
 // Gerätebereich: Kundengeräte bleiben mit Seriennummer/Kunde verknüpft.
-// Hersteller/Modelle werden aber ausschließlich aus manufacturers + device_models angezeigt.
+// Der sichtbare Gerätekatalog zeigt jedes Modell nur 1x und niemals Kunden-/Seriennummern-Daten.
 const deviceDirectoryMinSearchLength = 1;
 const deviceDirectoryResultLimit = 100;
 const deviceDirectoryPreviewLimit = 20;
 const manufacturerOverviewLimit = 12;
-const modelOverviewLimit = 20;
+const modelOverviewLimit = 40;
 
 const documentCategories = [
   "Alle",
@@ -6607,44 +6607,65 @@ FE-SERVICE`,
     return deviceModels.find((item) => item.id === modelId)?.name || "";
   }
 
-  const cleanManufacturerOverview = manufacturers
-    .map((manufacturerItem) => {
-      const count = devices.filter(
-        (deviceItem) => deviceItem.manufacturer_id === manufacturerItem.id,
-      ).length;
+  function isCleanCatalogName(value?: string | null) {
+    const name = String(value || "").trim();
+    const lower = name.toLowerCase();
 
-      return {
-        id: manufacturerItem.id,
-        name: manufacturerItem.name,
-        count,
-      };
-    })
-    .filter((item) => item.name && item.name.trim() !== "")
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    if (!name) return false;
+    if (name.length < 2) return false;
+
+    // Kunden-/Import-/Sammelbezeichnungen gehören nicht in den Gerätekatalog.
+    if (name.includes("/")) return false;
+    if (lower.includes("gerätebestand")) return false;
+    if (lower.includes("geraetebestand")) return false;
+    if (lower.includes("reviere")) return false;
+    if (lower.includes("paket")) return false;
+    if (lower.includes("schmitterhof")) return false;
+    if (lower.includes("evonik")) return false;
+    if (lower.includes("kalk")) return false;
+    if (lower.includes("wp ")) return false;
+    if (lower.startsWith("wp")) return false;
+    if (lower.includes("geräte ")) return false;
+    if (lower.includes("geraete ")) return false;
+
+    return true;
+  }
+
+  const cleanManufacturerOverview = manufacturers
+    .filter((manufacturerItem) => isCleanCatalogName(manufacturerItem.name))
+    .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, manufacturerOverviewLimit);
 
-  const cleanModelOverview = deviceModels
-    .map((modelItem) => {
-      const manufacturerName = getCleanManufacturerName(modelItem.manufacturer_id);
-      const count = devices.filter((deviceItem) => deviceItem.model_id === modelItem.id).length;
+  const cleanModelOverview = (() => {
+    const seen = new Set<string>();
 
-      return {
+    return deviceModels
+      .filter((modelItem) => isCleanCatalogName(modelItem.name || modelItem.model))
+      .map((modelItem) => ({
         id: modelItem.id,
-        name: modelItem.name,
-        manufacturerName,
-        count,
-      };
-    })
-    .filter((item) => item.name && item.name.trim() !== "")
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-    .slice(0, modelOverviewLimit);
+        name: modelItem.name || modelItem.model,
+        manufacturerName: getCleanManufacturerName(modelItem.manufacturer_id),
+      }))
+      .filter((item) => {
+        const key = `${item.manufacturerName}:::${item.name}`.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => {
+        const byManufacturer = a.manufacturerName.localeCompare(b.manufacturerName);
+        if (byManufacturer !== 0) return byManufacturer;
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, modelOverviewLimit);
+  })();
 
   const latestDevicePreview = devices.slice(0, deviceDirectoryPreviewLimit);
 
   const filteredDeviceDirectory = (() => {
     const search = deviceDirectorySearchNormalized;
 
-    // Ohne Suchbegriff wird nur die kompakte Katalog-/Asset-Übersicht angezeigt.
+    // Ohne Suchbegriff wird nur die saubere Katalog-/Asset-Übersicht angezeigt.
     if (!isDeviceDirectorySearchReady) return [];
 
     return devices
@@ -10484,11 +10505,11 @@ FE-SERVICE`,
                         <div>
                           <h3 className="text-lg font-black text-slate-900">Hersteller-Katalog</h3>
                           <p className="text-sm font-semibold text-slate-500">
-                            Saubere Hersteller aus der Herstellerverwaltung. Keine Kunden, keine Seriennummern.
+                            Nur Hersteller aus der Herstellerverwaltung. Keine Kunden, keine Seriennummern.
                           </p>
                         </div>
                         <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-600">
-                          {manufacturers.length} Hersteller
+                          Katalog
                         </span>
                       </div>
 
@@ -10501,18 +10522,15 @@ FE-SERVICE`,
                             className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-green-400 hover:bg-green-50"
                           >
                             <p className="truncate text-lg font-black text-slate-900">{item.name}</p>
-                            <p className="mt-1 text-sm font-bold text-green-600">
-                              {item.count} Kundengeräte
-                            </p>
                           </button>
                         ))}
                       </div>
                     </section>
 
                     <section className="rounded-[28px] bg-slate-50 p-5">
-                      <h3 className="text-lg font-black text-slate-900">Modell-Katalog</h3>
+                      <h3 className="text-lg font-black text-slate-900">Gerätemodelle</h3>
                       <p className="text-sm font-semibold text-slate-500">
-                        Modelle aus device_models. Seriennummern erscheinen erst am konkreten Kunden-Gerät.
+                        Jedes Modell nur einmal. Keine Kundenanzahl, keine Seriennummern.
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {cleanModelOverview.map((item) => (
@@ -10523,10 +10541,9 @@ FE-SERVICE`,
                             className="max-w-full rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-green-100 hover:text-green-700"
                             title={`${item.manufacturerName} ${item.name}`}
                           >
-                            <span className="inline-block max-w-[220px] truncate align-bottom">
-                              {item.name}
-                            </span>{" "}
-                            · {item.count}
+                            <span className="inline-block max-w-[260px] truncate align-bottom">
+                              {item.manufacturerName ? `${item.manufacturerName} · ` : ""}{item.name}
+                            </span>
                           </button>
                         ))}
                       </div>
@@ -10535,7 +10552,7 @@ FE-SERVICE`,
                     <section className="rounded-[28px] bg-slate-50 p-5">
                       <h3 className="text-lg font-black text-slate-900">Letzte Kunden-Geräte</h3>
                       <p className="text-sm font-semibold text-slate-500">
-                        Hier sind Seriennummer und Kunde korrekt sichtbar, weil es konkrete Assets sind.
+                        Nur hier sind Kunde und Seriennummer sichtbar, weil es konkrete Kundenassets sind.
                       </p>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {latestDevicePreview.map((item) => (
