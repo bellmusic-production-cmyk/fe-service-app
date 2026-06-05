@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.26 · Einheitliche Ticket-Kennzahlen im Dashboard
+// FE-Service App v2.1.27 · Serviceberichte als PDF archivieren und Seite beibehalten
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -702,7 +702,6 @@ export default function Home() {
       };
 
       setUserProfile(fallbackProfile);
-      setActivePage("Dashboard");
       setProfileLoading(false);
       loadApplicationData();
     }, 2500);
@@ -1156,7 +1155,6 @@ export default function Home() {
     };
 
     setUserProfile(fallbackProfile);
-    setActivePage("Dashboard");
     setProfileLoading(false);
   }
 
@@ -2570,18 +2568,189 @@ export default function Home() {
     `;
   }
 
+  async function createServiceReportPdfBlob(ticket: Ticket) {
+    const relatedDevice = devices.find((item) => item.name === ticket.device);
+    const relatedCustomer =
+      customers.find((item) => item.id === ticket.customer_id) ||
+      customers.find((item) => item.company === ticket.customer);
+    const technicianName = getTechnicianNameById(ticket.assigned_to);
+    const ticketDocuments = getDocumentsForTicket(ticket);
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 14;
+
+    function clean(value: any) {
+      return String(value ?? "")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function ensureSpace(height: number) {
+      if (y + height <= pageHeight - 16) return;
+      pdf.addPage();
+      y = 14;
+    }
+
+    function sectionTitle(title: string) {
+      ensureSpace(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(13);
+      pdf.setTextColor(22, 163, 74);
+      pdf.text(title, margin, y);
+      y += 3;
+      pdf.setDrawColor(22, 163, 74);
+      pdf.line(margin, y, pageWidth - margin, y);
+      y += 7;
+      pdf.setTextColor(15, 23, 42);
+    }
+
+    function labelValue(label: string, value: any, x: number, width: number) {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(7);
+      pdf.setTextColor(100, 116, 139);
+      pdf.text(label.toUpperCase(), x, y);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9.5);
+      pdf.setTextColor(15, 23, 42);
+      const lines = pdf.splitTextToSize(clean(value) || "-", width);
+      pdf.text(lines.slice(0, 3), x, y + 5);
+      return 6 + Math.min(lines.length, 3) * 4.2;
+    }
+
+    function infoBox(rows: Array<[string, any, string, any]>) {
+      const rowHeight = 15;
+      const height = rows.length * rowHeight + 8;
+      ensureSpace(height);
+      pdf.setDrawColor(203, 213, 225);
+      pdf.roundedRect(margin, y, contentWidth, height, 3, 3);
+      y += 7;
+      rows.forEach((row) => {
+        const leftHeight = labelValue(row[0], row[1], margin + 4, contentWidth / 2 - 8);
+        labelValue(row[2], row[3], margin + contentWidth / 2 + 2, contentWidth / 2 - 8);
+        y += Math.max(rowHeight, leftHeight);
+      });
+      y += 3;
+    }
+
+    function textBox(text: any, minHeight = 20) {
+      const lines = pdf.splitTextToSize(clean(text) || "-", contentWidth - 8);
+      const height = Math.max(minHeight, 10 + lines.length * 4.5);
+      ensureSpace(height + 2);
+      pdf.setDrawColor(203, 213, 225);
+      pdf.roundedRect(margin, y, contentWidth, height, 3, 3);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text(lines, margin + 4, y + 7);
+      y += height + 4;
+    }
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
+    pdf.setTextColor(22, 163, 74);
+    pdf.text("FE-SERVICE", margin, y);
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text("Fitness Equipment Service · Servicebericht / Prüfbericht", margin, y + 6);
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(9);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text(`Ticket: ${ticket.ticket_number || "-"}`, pageWidth - margin, y, { align: "right" });
+    pdf.text(`Datum: ${new Date().toLocaleDateString("de-DE")}`, pageWidth - margin, y + 5, { align: "right" });
+    y += 17;
+
+    sectionTitle("Kunde & Gerät");
+    infoBox([
+      ["Kunde", relatedCustomer?.company || ticket.customer || "-", "Ansprechpartner", relatedCustomer?.contact_person || "-"],
+      ["Gerät", ticket.device || relatedDevice?.name || "-", "Seriennummer", relatedDevice?.serial_number || "-"],
+      ["Standort", relatedDevice?.location || "-", "Techniker", technicianName],
+    ]);
+
+    sectionTitle("Auftrag");
+    textBox(`${ticket.issue || "-"}\n\n${ticket.description || "-"}`, 32);
+
+    sectionTitle("Durchgeführte Arbeiten");
+    textBox(serviceReport || ticket.service_report || "Keine Arbeiten dokumentiert.", 38);
+
+    sectionTitle("Prüfsiegel / UVV-Prüfung");
+    textBox(
+      "UVV- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen, Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.",
+      20,
+    );
+    infoBox([
+      ["Prüfsiegelnummer", serviceBadgeNumber || ticket.inspection_badge_number || "-", "Gültig bis", serviceBadgeExpires || ticket.inspection_expires || "-"],
+      ["Status", "Abgeschlossen", "Abgeschlossen am", new Date().toLocaleString("de-DE")],
+    ]);
+
+    sectionTitle("Nachweise / Dokumente");
+    textBox(
+      ticketDocuments.length === 0
+        ? "Keine zusätzlichen Nachweise hinterlegt."
+        : ticketDocuments.map((doc) => `${doc.category}: ${doc.file_name}`).join("\n"),
+      18,
+    );
+
+    sectionTitle("Kundenbestätigung");
+    textBox("Der Kunde bestätigt die Durchführung der oben dokumentierten Arbeiten.", 16);
+
+    ensureSpace(38);
+    const signatureY = y + 12;
+    pdf.setDrawColor(15, 23, 42);
+    pdf.line(margin, signatureY, margin + 80, signatureY);
+    pdf.line(pageWidth - margin - 80, signatureY, pageWidth - margin, signatureY);
+
+    const techSig = technicianSignature || ticket.technician_signature || "";
+    const custSig = customerSignature || ticket.customer_signature || "";
+
+    if (techSig) {
+      try {
+        pdf.addImage(techSig, "PNG", margin + 3, signatureY - 18, 55, 14);
+      } catch {
+        // Signatur konnte nicht eingebettet werden.
+      }
+    }
+
+    if (custSig) {
+      try {
+        pdf.addImage(custSig, "PNG", pageWidth - margin - 77, signatureY - 18, 55, 14);
+      } catch {
+        // Signatur konnte nicht eingebettet werden.
+      }
+    }
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8.5);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text(techSig ? "Techniker: signiert" : "Techniker: Nicht signiert", margin, signatureY + 5);
+    pdf.text(`Kunde: ${customerApprovalName || ticket.customer_approval_name || "-"}`, pageWidth - margin - 80, signatureY + 5);
+    pdf.text(custSig ? "Signatur: signiert" : "Signatur: Nicht signiert", pageWidth - margin - 80, signatureY + 10);
+
+    const footerY = pageHeight - 9;
+    pdf.setFontSize(7);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text("FE-Service e.K. · Fitness Equipment Service", margin, footerY);
+    pdf.text(`Erstellt: ${new Date().toLocaleString("de-DE")}`, pageWidth - margin, footerY, { align: "right" });
+
+    return pdf.output("blob") as Blob;
+  }
+
   async function archiveServiceReport(ticket: Ticket) {
     const relatedDevice = devices.find((item) => item.name === ticket.device);
     const customerId = ticket.customer_id || relatedDevice?.customer_id || null;
-    const html = buildServiceReportHtml(ticket);
-    const fileName = `Servicebericht-${ticket.ticket_number || ticket.id}-${new Date().toISOString().slice(0, 10)}.html`;
+    const pdfBlob = await createServiceReportPdfBlob(ticket);
+    const fileName = `Servicebericht-${ticket.ticket_number || ticket.id}-${new Date().toISOString().slice(0, 10)}.pdf`;
     const filePath = `Serviceberichte/${Date.now()}-${fileName}`;
-    const fileBlob = new Blob([html], { type: "text/html;charset=utf-8" });
 
     const uploadResult = await supabase.storage
       .from("documents")
-      .upload(filePath, fileBlob, {
-        contentType: "text/html;charset=utf-8",
+      .upload(filePath, pdfBlob, {
+        contentType: "application/pdf",
         upsert: false,
       });
 
@@ -2597,7 +2766,7 @@ export default function Home() {
           file_name: fileName,
           file_path: filePath,
           category: "Serviceberichte",
-          file_size: fileBlob.size,
+          file_size: pdfBlob.size,
           device_id: relatedDevice?.id || null,
           ticket_id: ticket.id,
           customer_id: customerId,
@@ -2607,15 +2776,15 @@ export default function Home() {
       .single();
 
     if (insertResult.error) {
-      console.error("Servicebericht-Datei wurde hochgeladen, aber nicht gelistet:", insertResult.error.message);
+      console.error("Servicebericht-PDF wurde hochgeladen, aber nicht gelistet:", insertResult.error.message);
       return null;
     }
 
     await createDeviceHistory(
       relatedDevice?.id || null,
-      "Servicebericht automatisch archiviert",
+      "Servicebericht automatisch als PDF archiviert",
       `${ticket.ticket_number || "Ticket"} · ${fileName}`,
-      "Dokument",
+      "PDF",
     );
 
     await loadDocuments();
@@ -2675,20 +2844,24 @@ export default function Home() {
       ...payload,
     } as Ticket);
 
+    const updatedTicket = { ...ticket, ...payload } as Ticket;
+
     setTickets((prev) =>
       prev.map((item) =>
         item.id === ticket.id ? { ...item, ...payload } : item,
       ),
     );
+    setSelectedTicketView(updatedTicket);
+    setServiceSigningTicket(null);
+    setActivePage("Service-Tickets");
 
     await loadTickets();
     await loadDocuments();
-    setServiceSigningTicket(null);
 
     if (archivedDocument) {
-      alert("Servicebericht gespeichert, unterschrieben und automatisch archiviert.");
+      alert("Servicebericht gespeichert, unterschrieben und als PDF archiviert.");
     } else {
-      alert("Servicebericht gespeichert. Automatische Archivierung bitte prüfen.");
+      alert("Servicebericht gespeichert. Automatische PDF-Archivierung bitte prüfen.");
     }
   }
 
@@ -7140,7 +7313,6 @@ FE-SERVICE`,
                 created_at: new Date().toISOString(),
               };
               setUserProfile(fallbackProfile);
-              setActivePage("Dashboard");
               setProfileLoading(false);
               loadApplicationData();
             }}
