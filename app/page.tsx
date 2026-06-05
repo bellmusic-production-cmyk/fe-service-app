@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.11 · Geräteübersicht ohne zusätzliche Hooks
+// FE-Service App v2.1.12 · Hersteller/Modelle sauber vom Kunden-Gerätebestand getrennt
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -276,13 +276,13 @@ const deviceStatusOptions = [
   "Außer Betrieb",
 ];
 
-// Gerätebereich: Bei großem Gerätebestand nicht automatisch alle Kunden-Geräte rendern.
-// Ohne Suchbegriff wird eine kompakte visuelle Übersicht angezeigt.
+// Gerätebereich: Kundengeräte bleiben mit Seriennummer/Kunde verknüpft.
+// Hersteller/Modelle werden aber ausschließlich aus manufacturers + device_models angezeigt.
 const deviceDirectoryMinSearchLength = 1;
 const deviceDirectoryResultLimit = 100;
 const deviceDirectoryPreviewLimit = 20;
-const deviceOverviewManufacturerLimit = 12;
-const deviceOverviewModelLimit = 20;
+const manufacturerOverviewLimit = 12;
+const modelOverviewLimit = 20;
 
 const documentCategories = [
   "Alle",
@@ -6597,64 +6597,54 @@ FE-SERVICE`,
   const isDeviceDirectorySearchReady =
     deviceDirectorySearchNormalized.length >= deviceDirectoryMinSearchLength;
 
-  function getDeviceManufacturerLabel(deviceItem: Device) {
-    return (
-      deviceItem.manufacturer ||
-      getManufacturerNameById(deviceItem.manufacturer_id) ||
-      "Unbekannt"
-    );
+  function getCleanManufacturerName(manufacturerId?: number | null) {
+    if (!manufacturerId) return "";
+    return manufacturers.find((item) => item.id === manufacturerId)?.name || "";
   }
 
-  function getDeviceModelLabel(deviceItem: Device) {
-    return (
-      deviceItem.model ||
-      getDeviceModelNameById(deviceItem.model_id) ||
-      deviceItem.name ||
-      "Unbekanntes Modell"
-    );
+  function getCleanModelName(modelId?: number | null) {
+    if (!modelId) return "";
+    return deviceModels.find((item) => item.id === modelId)?.name || "";
   }
 
-  const deviceManufacturerOverview = (() => {
-    const counts = new Map<string, number>();
+  const cleanManufacturerOverview = manufacturers
+    .map((manufacturerItem) => {
+      const count = devices.filter(
+        (deviceItem) => deviceItem.manufacturer_id === manufacturerItem.id,
+      ).length;
 
-    devices.forEach((deviceItem) => {
-      const manufacturerLabel = getDeviceManufacturerLabel(deviceItem);
-      counts.set(manufacturerLabel, (counts.get(manufacturerLabel) || 0) + 1);
-    });
+      return {
+        id: manufacturerItem.id,
+        name: manufacturerItem.name,
+        count,
+      };
+    })
+    .filter((item) => item.name && item.name.trim() !== "")
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, manufacturerOverviewLimit);
 
-    return Array.from(counts.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-      .slice(0, deviceOverviewManufacturerLimit);
-  })();
+  const cleanModelOverview = deviceModels
+    .map((modelItem) => {
+      const manufacturerName = getCleanManufacturerName(modelItem.manufacturer_id);
+      const count = devices.filter((deviceItem) => deviceItem.model_id === modelItem.id).length;
 
-  const deviceModelOverview = (() => {
-    const counts = new Map<string, { manufacturer: string; model: string; count: number }>();
-
-    devices.forEach((deviceItem) => {
-      const manufacturerLabel = getDeviceManufacturerLabel(deviceItem);
-      const modelLabel = getDeviceModelLabel(deviceItem);
-      const key = `${manufacturerLabel}:::${modelLabel}`;
-      const existing = counts.get(key);
-
-      counts.set(key, {
-        manufacturer: manufacturerLabel,
-        model: modelLabel,
-        count: (existing?.count || 0) + 1,
-      });
-    });
-
-    return Array.from(counts.values())
-      .sort((a, b) => b.count - a.count || a.model.localeCompare(b.model))
-      .slice(0, deviceOverviewModelLimit);
-  })();
+      return {
+        id: modelItem.id,
+        name: modelItem.name,
+        manufacturerName,
+        count,
+      };
+    })
+    .filter((item) => item.name && item.name.trim() !== "")
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    .slice(0, modelOverviewLimit);
 
   const latestDevicePreview = devices.slice(0, deviceDirectoryPreviewLimit);
 
   const filteredDeviceDirectory = (() => {
     const search = deviceDirectorySearchNormalized;
 
-    // Ohne Suchbegriff wird nur die kompakte visuelle Übersicht angezeigt.
+    // Ohne Suchbegriff wird nur die kompakte Katalog-/Asset-Übersicht angezeigt.
     if (!isDeviceDirectorySearchReady) return [];
 
     return devices
@@ -6662,15 +6652,15 @@ FE-SERVICE`,
         const linkedCustomer = deviceItem.customer_id
           ? customers.find((customerItem) => customerItem.id === deviceItem.customer_id)
           : null;
-        const linkedManufacturer = getDeviceManufacturerLabel(deviceItem);
-        const linkedModel = getDeviceModelLabel(deviceItem);
+        const cleanManufacturer = getCleanManufacturerName(deviceItem.manufacturer_id);
+        const cleanModel = getCleanModelName(deviceItem.model_id);
 
         return [
           deviceItem.name,
           deviceItem.model,
-          linkedModel,
+          cleanModel,
           deviceItem.manufacturer,
-          linkedManufacturer,
+          cleanManufacturer,
           deviceItem.serial_number,
           deviceItem.location,
           deviceItem.status,
@@ -10473,7 +10463,7 @@ FE-SERVICE`,
                 <input
                   value={deviceDirectorySearch}
                   onChange={(e) => setDeviceDirectorySearch(e.target.value)}
-                  placeholder="Suchen: Kunde, Kundennr., Modell, Seriennummer, Hersteller, Standort"
+                  placeholder="Kundengerät suchen: Kunde, Kundennr., Modell, Seriennummer, Hersteller, Standort"
                   className="mt-5 w-full rounded-2xl border border-slate-300 px-5 py-4 font-semibold"
                 />
 
@@ -10492,63 +10482,77 @@ FE-SERVICE`,
                     <section className="rounded-[28px] bg-slate-50 p-5">
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <h3 className="text-lg font-black text-slate-900">Geräteübersicht</h3>
+                          <h3 className="text-lg font-black text-slate-900">Hersteller-Katalog</h3>
                           <p className="text-sm font-semibold text-slate-500">
-                            Orientierung ohne Suchbegriff: Hersteller, häufige Modelle und letzte Geräte.
+                            Saubere Hersteller aus der Herstellerverwaltung. Keine Kunden, keine Seriennummern.
                           </p>
                         </div>
                         <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-600">
-                          {devices.length} Kundengeräte
+                          {manufacturers.length} Hersteller
                         </span>
                       </div>
 
                       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {deviceManufacturerOverview.map((item) => (
+                        {cleanManufacturerOverview.map((item) => (
                           <button
-                            key={item.name}
+                            key={item.id}
                             type="button"
                             onClick={() => setDeviceDirectorySearch(item.name)}
-                            className="rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-green-400 hover:bg-green-50"
+                            className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-green-400 hover:bg-green-50"
                           >
-                            <p className="text-lg font-black text-slate-900">{item.name}</p>
-                            <p className="mt-1 text-sm font-bold text-green-600">{item.count} Kundengeräte</p>
+                            <p className="truncate text-lg font-black text-slate-900">{item.name}</p>
+                            <p className="mt-1 text-sm font-bold text-green-600">
+                              {item.count} Kundengeräte
+                            </p>
                           </button>
                         ))}
                       </div>
                     </section>
 
                     <section className="rounded-[28px] bg-slate-50 p-5">
-                      <h3 className="text-lg font-black text-slate-900">Häufige Modelle</h3>
+                      <h3 className="text-lg font-black text-slate-900">Modell-Katalog</h3>
+                      <p className="text-sm font-semibold text-slate-500">
+                        Modelle aus device_models. Seriennummern erscheinen erst am konkreten Kunden-Gerät.
+                      </p>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {deviceModelOverview.map((item) => (
+                        {cleanModelOverview.map((item) => (
                           <button
-                            key={`${item.manufacturer}-${item.model}`}
+                            key={item.id}
                             type="button"
-                            onClick={() => setDeviceDirectorySearch(item.model)}
-                            className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-green-100 hover:text-green-700"
+                            onClick={() => setDeviceDirectorySearch(item.name)}
+                            className="max-w-full rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-green-100 hover:text-green-700"
+                            title={`${item.manufacturerName} ${item.name}`}
                           >
-                            {item.model} · {item.count}
+                            <span className="inline-block max-w-[220px] truncate align-bottom">
+                              {item.name}
+                            </span>{" "}
+                            · {item.count}
                           </button>
                         ))}
                       </div>
                     </section>
 
                     <section className="rounded-[28px] bg-slate-50 p-5">
-                      <h3 className="text-lg font-black text-slate-900">Zuletzt importierte / bearbeitete Geräte</h3>
+                      <h3 className="text-lg font-black text-slate-900">Letzte Kunden-Geräte</h3>
+                      <p className="text-sm font-semibold text-slate-500">
+                        Hier sind Seriennummer und Kunde korrekt sichtbar, weil es konkrete Assets sind.
+                      </p>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {latestDevicePreview.map((item) => (
                           <button
                             key={item.id}
                             type="button"
                             onClick={() => setSelectedDeviceView(item)}
-                            className="rounded-3xl bg-white p-4 text-left shadow-sm transition hover:bg-green-50"
+                            className="min-w-0 rounded-3xl bg-white p-4 text-left shadow-sm transition hover:bg-green-50"
                           >
-                            <p className="font-black text-slate-900">{item.name}</p>
-                            <p className="text-sm font-semibold text-slate-600">
+                            <p className="truncate font-black text-slate-900">
+                              {getCleanModelName(item.model_id) || item.name}
+                            </p>
+                            <p className="truncate text-sm font-semibold text-slate-600">
                               {getCustomerNameById(item.customer_id)}
                             </p>
-                            <p className="text-xs font-bold text-green-600">
-                              {item.serial_number || "Keine Seriennummer"}
+                            <p className="truncate text-xs font-bold text-green-600">
+                              SN: {item.serial_number || "Keine Seriennummer"}
                             </p>
                           </button>
                         ))}
@@ -10559,14 +10563,14 @@ FE-SERVICE`,
 
                 {isDeviceDirectorySearchReady && (
                   <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-600">
-                    {filteredDeviceDirectory.length} Treffer angezeigt · maximal {deviceDirectoryResultLimit}. Suche weiter eingrenzen, falls das gewünschte Gerät fehlt.
+                    {filteredDeviceDirectory.length} Kunden-Geräte angezeigt · maximal {deviceDirectoryResultLimit}. Suche weiter eingrenzen, falls das gewünschte Gerät fehlt.
                   </div>
                 )}
 
                 <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
                   {!isDeviceDirectorySearchReady ? null : filteredDeviceDirectory.length === 0 ? (
                     <div className="rounded-3xl bg-slate-50 p-6 text-slate-500">
-                      Keine Geräte gefunden.
+                      Keine Kunden-Geräte gefunden.
                     </div>
                   ) : (
                     filteredDeviceDirectory.map((item) => (
@@ -10590,9 +10594,9 @@ FE-SERVICE`,
 
                             <p className="break-words text-sm text-slate-600">
                               Hersteller / Modell:{" "}
-                              {item.manufacturer || getManufacturerNameById(item.manufacturer_id) || "Unbekannt"}
-                              {item.model || getDeviceModelNameById(item.model_id)
-                                ? ` · ${item.model || getDeviceModelNameById(item.model_id)}`
+                              {getCleanManufacturerName(item.manufacturer_id) || item.manufacturer || "Unbekannt"}
+                              {getCleanModelName(item.model_id) || item.model
+                                ? ` · ${getCleanModelName(item.model_id) || item.model}`
                                 : ""}
                             </p>
 
