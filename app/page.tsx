@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.29 · Desktop-Sidebar fixiert und scrollbar
+// FE-Service App v2.1.30 · Desktop-Sidebar ohne sichtbaren Scrollbalken
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -7363,7 +7363,7 @@ FE-SERVICE`,
   return (
     <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--fe-black)] pb-[max(env(safe-area-inset-bottom),2rem)] text-slate-900 lg:bg-slate-100 lg:pb-0">
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
-        <aside className="hidden h-screen w-72 shrink-0 overflow-hidden border-r border-white/10 bg-[#07130d] p-6 text-white lg:sticky lg:top-0 lg:flex lg:flex-col">
+        <aside className="hidden min-h-screen w-72 shrink-0 border-r border-white/10 bg-[#07130d] p-6 text-white lg:sticky lg:top-0 lg:flex lg:flex-col">
           <div className="flex flex-col items-center">
             <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-500">
               FE-SERVICE
@@ -7380,7 +7380,7 @@ FE-SERVICE`,
             </p>
           </div>
 
-          <nav className="mt-8 min-h-0 flex-1 space-y-3 overflow-y-auto pr-2 pb-4 [scrollbar-width:thin]">
+          <nav className="mt-8 space-y-3">
             {navGroups.map((group) => {
               const groupIsOpen = group.items.includes(activePage);
 
@@ -7443,7 +7443,7 @@ FE-SERVICE`,
 
           <button
             onClick={logout}
-            className="mt-4 shrink-0 rounded-2xl bg-white/10 py-3 font-bold text-white transition-all hover:bg-white/20"
+            className="mt-8 rounded-2xl bg-white/10 py-3 font-bold text-white transition-all hover:bg-white/20"
           >
             Logout
           </button>
