@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.21 · Rollenladen repariert ohne Daten-Fallback
+// FE-Service App v2.1.16 · Legal-Akzeptanz blockiert App-Start nicht
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -958,35 +958,21 @@ export default function Home() {
     }
 
     try {
-      const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("Legal Acceptance Check Timeout")), 2500);
-      });
-
-      const legalRequest = supabase
+      const { data, error } = await supabase
         .from("user_legal_acceptance")
         .select("id")
         .eq("user_id", userId)
         .maybeSingle();
 
-      const result: any = await Promise.race([legalRequest, timeout]);
-
-      if (result?.error) {
-        console.error("Legal Acceptance konnte nicht geladen werden:", result.error.message);
+      if (error) {
+        console.error("Legal Acceptance konnte nicht geladen werden:", error.message);
         setLegalAccepted(false);
         return;
       }
 
-      if (result?.data) {
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(localKey, "yes");
-        }
-        setLegalAccepted(true);
-        return;
-      }
-
-      setLegalAccepted(false);
+      setLegalAccepted(Boolean(data));
     } catch (error) {
-      console.error("Legal Acceptance Check übersprungen:", error);
+      console.error("Legal Acceptance Fehler:", error);
       setLegalAccepted(false);
     }
   }
@@ -1092,6 +1078,7 @@ export default function Home() {
       resetCustomerForm();
 
       if (typeof window !== "undefined") {
+        localStorage.clear();
         sessionStorage.clear();
         window.location.href = "/";
       }
@@ -1103,6 +1090,21 @@ export default function Home() {
 
   async function loadUserProfile(userId: string) {
     setProfileLoading(true);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error || !data) {
+      setUserProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    setUserProfile(data as UserProfile);
+    setProfileLoading(false);
 
     const adminPages = [
       "Dashboard",
@@ -1143,68 +1145,26 @@ export default function Home() {
       "Rechnungen",
     ];
 
-    function openAppWithProfile(profileData: UserProfile) {
-      setUserProfile(profileData);
+    const allowedPages =
+      data.role === "admin"
+        ? adminPages
+        : data.role === "technician"
+          ? technicianPages
+          : customerPages;
 
-      const allowedPages =
-        profileData.role === "admin"
-          ? adminPages
-          : profileData.role === "technician"
-            ? technicianPages
-            : customerPages;
+    const defaultPage =
+      data.role === "admin"
+        ? "Dashboard"
+        : data.role === "technician"
+          ? "Einsatz"
+          : "Kundenportal";
 
-      const defaultPage =
-        profileData.role === "admin"
-          ? "Dashboard"
-          : profileData.role === "technician"
-            ? "Einsatz"
-            : "Kundenportal";
+    const savedPage =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(`fe-service-active-page-${userId}`)
+        : null;
 
-      const savedPage =
-        typeof window !== "undefined"
-          ? window.localStorage.getItem(`fe-service-active-page-${userId}`)
-          : null;
-
-      setActivePage(savedPage && allowedPages.includes(savedPage) ? savedPage : defaultPage);
-      setProfileLoading(false);
-    }
-
-    try {
-      const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("Profil-Ladevorgang Timeout")), 3500);
-      });
-
-      const profileRequest = supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-
-      const result: any = await Promise.race([profileRequest, timeout]);
-
-      if (result?.error) {
-        console.error("Profil konnte nicht geladen werden:", result.error.message);
-      }
-
-      if (result?.data) {
-        openAppWithProfile(result.data as UserProfile);
-        return;
-      }
-    } catch (error) {
-      console.error("Profil-Ladevorgang blockiert:", error);
-    }
-
-    // Wichtig:
-    // Nicht hängen bleiben. Kein Datenverlust: Es werden weiterhin echte Supabase-Daten geladen.
-    // Der Fallback dient nur dazu, die Navigation freizugeben.
-    openAppWithProfile({
-      id: userId,
-      full_name: session?.user?.email || "Benutzer",
-      role: "admin",
-      company: null,
-      customer_id: null,
-      created_at: new Date().toISOString(),
-    });
+    setActivePage(savedPage && allowedPages.includes(savedPage) ? savedPage : defaultPage);
   }
 
   async function loadTickets() {
@@ -7021,32 +6981,8 @@ FE-SERVICE`,
 
   if (profileLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07130d] p-6 text-white">
-        <div className="text-center">
-          <h1 className="text-4xl font-black">Rolle wird geladen...</h1>
-          <p className="mt-4 text-sm font-bold text-slate-300">
-            Falls diese Ansicht stehen bleibt, starte die App ohne Rollenprofil.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              const userId = session?.user?.id || "fallback";
-              setUserProfile({
-                id: userId,
-                full_name: session?.user?.email || "Benutzer",
-                role: "admin",
-                company: null,
-                customer_id: null,
-                created_at: new Date().toISOString(),
-              });
-              setActivePage("Dashboard");
-              setProfileLoading(false);
-            }}
-            className="mt-6 rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
-          >
-            App jetzt öffnen
-          </button>
-        </div>
+      <main className="flex min-h-screen items-center justify-center bg-[#07130d] text-white">
+        <h1 className="text-4xl font-black">Rolle wird geladen...</h1>
       </main>
     );
   }
