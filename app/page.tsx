@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.18 · Login/Role Loading Timeout Fix
+// FE-Service App v2.1.19 · Komplettstand mit Servicebericht-Signatur
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -962,17 +962,11 @@ export default function Home() {
     }
 
     try {
-      const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("Legal Acceptance Check Timeout")), 2500);
-      });
-
-      const legalRequest = supabase
+      const { data, error } = await supabase
         .from("user_legal_acceptance")
         .select("id")
         .eq("user_id", userId)
         .maybeSingle();
-
-      const { data, error } = await Promise.race([legalRequest, timeout]);
 
       if (error) {
         console.error("Legal Acceptance konnte nicht geladen werden:", error.message);
@@ -980,17 +974,9 @@ export default function Home() {
         return;
       }
 
-      if (data) {
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(localKey, "yes");
-        }
-        setLegalAccepted(true);
-        return;
-      }
-
-      setLegalAccepted(false);
+      setLegalAccepted(Boolean(data));
     } catch (error) {
-      console.error("Legal Acceptance Check übersprungen:", error);
+      console.error("Legal Acceptance Fehler:", error);
       setLegalAccepted(false);
     }
   }
@@ -1108,58 +1094,20 @@ export default function Home() {
   async function loadUserProfile(userId: string) {
     setProfileLoading(true);
 
-    try {
-      const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("Profil-Ladevorgang Timeout")), 4500);
-      });
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-      const profileRequest = supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-
-      const { data, error } = await Promise.race([profileRequest, timeout]);
-
-      if (error) {
-        console.error("Profil konnte nicht geladen werden:", error.message);
-      }
-
-      if (!data) {
-        const fallbackProfile: UserProfile = {
-          id: userId,
-          full_name: session?.user?.email || "Admin",
-          role: "admin",
-          company: null,
-          customer_id: null,
-          created_at: new Date().toISOString(),
-        };
-
-        setUserProfile(fallbackProfile);
-        setProfileLoading(false);
-        setActivePage("Dashboard");
-        return;
-      }
-
-      setUserProfile(data as UserProfile);
+    if (error || !data) {
+      setUserProfile(null);
       setProfileLoading(false);
-    } catch (error) {
-      console.error("Profil-Ladevorgang wurde abgebrochen:", error);
-
-      const fallbackProfile: UserProfile = {
-        id: userId,
-        full_name: session?.user?.email || "Admin",
-        role: "admin",
-        company: null,
-        customer_id: null,
-        created_at: new Date().toISOString(),
-      };
-
-      setUserProfile(fallbackProfile);
-      setProfileLoading(false);
-      setActivePage("Dashboard");
       return;
     }
+
+    setUserProfile(data as UserProfile);
+    setProfileLoading(false);
 
     const adminPages = [
       "Dashboard",
