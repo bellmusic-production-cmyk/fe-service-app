@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.30 · Desktop-Sidebar ohne sichtbaren Scrollbalken
+// FE-Service App v2.1.31 · Technikerliste sicher aus Profilen laden
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -1382,9 +1382,10 @@ export default function Home() {
   }
 
   async function loadTechnicians() {
-    // NOTFALL-RESTORE:
-    // Keine profiles-Abfrage, damit RLS/Policy-Fehler die App nicht blockieren.
-    setTechnicians([
+    // Sicherer Restore:
+    // Techniker werden wieder aus public.profiles geladen.
+    // Falls Supabase/RLS hängt oder einen Fehler liefert, blockiert die App nicht.
+    const fallbackTechnicians: UserProfile[] = [
       {
         id: "ffb8678a-a6c5-48f0-9ad0-f9d5c0df099c",
         full_name: "Andreas Wick",
@@ -1393,7 +1394,41 @@ export default function Home() {
         customer_id: null,
         created_at: new Date().toISOString(),
       },
-    ]);
+    ];
+
+    try {
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("Techniker-Ladevorgang Timeout")), 3500);
+      });
+
+      const profilesRequest = supabase
+        .from("profiles")
+        .select("id, full_name, role, company, customer_id, created_at")
+        .in("role", ["technician", "admin"])
+        .order("full_name", { ascending: true });
+
+      const result: any = await Promise.race([profilesRequest, timeout]);
+
+      if (result?.error) {
+        console.error("Techniker konnten nicht aus profiles geladen werden:", result.error.message);
+        setTechnicians(fallbackTechnicians);
+        return;
+      }
+
+      const loadedProfiles = ((result?.data || []) as UserProfile[]).filter(
+        (profile) => profile.role === "technician" || profile.role === "admin",
+      );
+
+      if (loadedProfiles.length === 0) {
+        setTechnicians(fallbackTechnicians);
+        return;
+      }
+
+      setTechnicians(loadedProfiles);
+    } catch (error) {
+      console.error("Techniker-Ladevorgang übersprungen:", error);
+      setTechnicians(fallbackTechnicians);
+    }
   }
 
   function getTechnicianNameById(technicianId?: string | null) {
