@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.40 · Einsatzort nur bei Abweichung anzeigensansicht
+// FE-Service App v2.1.41 · Auftraggeber-ID exakt und Einsatzort nur manuell/abweichend
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -435,6 +435,7 @@ export default function Home() {
   const [ticketTypes, setTicketTypes] = useState<string[]>(["Reparatur"]);
   const [ticketTypeDropdownOpen, setTicketTypeDropdownOpen] = useState(false);
   const [ticketCustomerSearch, setTicketCustomerSearch] = useState("");
+  const [selectedTicketCustomerId, setSelectedTicketCustomerId] = useState("");
   const [ticketDeviceSearch, setTicketDeviceSearch] = useState("");
   const [serviceLocationName, setServiceLocationName] = useState("");
   const [serviceAddress, setServiceAddress] = useState("");
@@ -2230,6 +2231,7 @@ export default function Home() {
     setTicketTypes(["Reparatur"]);
     setTicketTypeDropdownOpen(false);
     setTicketCustomerSearch("");
+    setSelectedTicketCustomerId("");
     setTicketDeviceSearch("");
     setServiceLocationName("");
     setServiceAddress("");
@@ -2305,6 +2307,13 @@ export default function Home() {
     setEditingTicket(ticket);
     setCustomer(ticket.customer || "");
     setTicketCustomerSearch(ticket.customer || "");
+    setSelectedTicketCustomerId(
+      ticket.billing_customer_id
+        ? String(ticket.billing_customer_id)
+        : ticket.customer_id
+          ? String(ticket.customer_id)
+          : "",
+    );
     setDevice(ticket.device || "");
     setTicketDeviceSearch(ticket.device || "");
     setCustomDeviceName("");
@@ -2410,25 +2419,8 @@ export default function Home() {
     const cleanedServiceContactPhone = serviceContactPhone.trim();
     const cleanedServiceContactEmail = serviceContactEmail.trim();
 
-    if (!cleanedServiceLocationName && !cleanedServiceAddress && selectedCustomer) {
-      const useBillingAddress = confirm(
-        "Kein Einsatzort eingetragen. Soll die Adresse des Auftraggebers als Einsatzort übernommen werden?",
-      );
-
-      if (useBillingAddress) {
-        setServiceLocationName(getCustomerLabel(selectedCustomer));
-        setServiceAddress(buildCustomerAddress(selectedCustomer));
-      }
-    }
-
-    const finalServiceLocationName =
-      cleanedServiceLocationName || selectedCustomer
-        ? cleanedServiceLocationName || getCustomerLabel(selectedCustomer as Customer)
-        : "";
-    const finalServiceAddress =
-      cleanedServiceAddress || selectedCustomer
-        ? cleanedServiceAddress || buildCustomerAddress(selectedCustomer as Customer)
-        : "";
+    const finalServiceLocationName = cleanedServiceLocationName;
+    const finalServiceAddress = cleanedServiceAddress;
 
     const baseTicketPayload = {
       ticket_number: `T-${Math.floor(Math.random() * 9000) + 1000}`,
@@ -2513,12 +2505,24 @@ export default function Home() {
 
     const currentDeviceName = customDeviceName.trim() || device || "Noch nicht zugewiesen";
     const nextIssue = `${getTicketTypeLabel()}: ${issue.trim()}`;
+    const selectedBillingCustomer =
+      selectedTicketCustomer ||
+      (selectedTicketCustomerId
+        ? customers.find((item) => String(item.id) === selectedTicketCustomerId)
+        : null);
+
+    const nextCustomerName = selectedBillingCustomer
+      ? getCustomerLabel(selectedBillingCustomer)
+      : customer;
+
+    const nextCustomerId = selectedBillingCustomer?.id || editingTicket.customer_id || null;
 
     const { error } = await supabase
       .from("tickets")
       .update({
-        customer,
-        billing_customer_id: editingTicket.billing_customer_id || editingTicket.customer_id || null,
+        customer: nextCustomerName,
+        customer_id: nextCustomerId,
+        billing_customer_id: nextCustomerId,
         service_location_name: serviceLocationName.trim() || null,
         service_address: serviceAddress.trim() || null,
         service_contact_name: serviceContactName.trim() || null,
@@ -3796,15 +3800,16 @@ export default function Home() {
     setActivePage("Service-Tickets");
     const nextCustomerName = linkedCustomer ? getCustomerLabel(linkedCustomer) : "";
     setCustomer(nextCustomerName);
+    setSelectedTicketCustomerId(linkedCustomer ? String(linkedCustomer.id) : "");
     setTicketCustomerSearch(nextCustomerName);
     setDevice(item.name);
     setTicketDeviceSearch(item.name);
     setCustomDeviceName("");
-    setServiceLocationName(linkedCustomer ? getCustomerLabel(linkedCustomer) : "");
-    setServiceAddress(linkedCustomer ? buildCustomerAddress(linkedCustomer) : item.location || "");
-    setServiceContactName(linkedCustomer?.contact_person || "");
-    setServiceContactPhone(linkedCustomer?.phone || "");
-    setServiceContactEmail(linkedCustomer?.email || "");
+    setServiceLocationName("");
+    setServiceAddress(item.location || "");
+    setServiceContactName("");
+    setServiceContactPhone("");
+    setServiceContactEmail("");
     setIssue(`Service für ${item.name}`);
     setDescription(item.note || "");
     setPriority(item.status === "Prüfung erforderlich" ? "Hoch" : "Mittel");
@@ -3815,14 +3820,15 @@ export default function Home() {
     setActivePage("Service-Tickets");
     const nextCustomerName = getCustomerLabel(item);
     setCustomer(nextCustomerName);
+    setSelectedTicketCustomerId(String(item.id));
     setTicketCustomerSearch(nextCustomerName);
     setDevice("");
     setTicketDeviceSearch("");
-    setServiceLocationName(getCustomerLabel(item));
-    setServiceAddress(buildCustomerAddress(item));
-    setServiceContactName(item.contact_person || "");
-    setServiceContactPhone(item.phone || "");
-    setServiceContactEmail(item.email || "");
+    setServiceLocationName("");
+    setServiceAddress("");
+    setServiceContactName("");
+    setServiceContactPhone("");
+    setServiceContactEmail("");
     setIssue(`Service-Anfrage ${item.company || getCustomerDisplayName(item) || ""}`);
     setDescription(
       `Ansprechpartner: ${item.contact_person || "nicht angegeben"}\nTelefon: ${
@@ -4458,16 +4464,20 @@ export default function Home() {
 
     const locationDiffers =
       serviceLocation &&
+      billingName &&
       serviceLocation !== billingName &&
       !billingName.includes(serviceLocation) &&
       !serviceLocation.includes(billingName);
 
     const addressDiffers =
       serviceAddress &&
+      billingAddress &&
       serviceAddress !== billingAddress &&
       !billingAddress.includes(serviceAddress) &&
       !serviceAddress.includes(billingAddress);
 
+    // Wenn Standortname identisch mit Auftraggeber ist und keine echte abweichende Adresse erkannt wird,
+    // wird der Einsatzort nicht angezeigt.
     return Boolean(locationDiffers || addressDiffers);
   }
 
@@ -7220,8 +7230,11 @@ FE-SERVICE`,
   })();
 
   const selectedTicketCustomer =
-    portalCustomers.find((customerItem) => customerItem.company === customer) ||
+    (selectedTicketCustomerId
+      ? portalCustomers.find((customerItem) => String(customerItem.id) === selectedTicketCustomerId)
+      : null) ||
     portalCustomers.find((customerItem) => getCustomerLabel(customerItem) === customer) ||
+    portalCustomers.find((customerItem) => customerItem.company === customer) ||
     null;
 
   const ticketCustomerDevices = selectedTicketCustomer
@@ -8303,19 +8316,21 @@ FE-SERVICE`,
                                     </p>
                                   </div>
 
-                                  <div className="rounded-2xl bg-green-50 p-3">
-                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
-                                      📍 Einsatzort
-                                    </p>
-                                    <p className="mt-1 break-words text-sm font-black text-slate-900">
-                                      {meta.serviceLocation}
-                                    </p>
-                                    {meta.serviceAddress && (
-                                      <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs font-bold text-slate-600">
-                                        {meta.serviceAddress}
+                                  {hasDifferentServiceLocation(ticket, meta.billingCustomer) && (
+                                    <div className="rounded-2xl bg-green-50 p-3">
+                                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
+                                        📍 Einsatzort
                                       </p>
-                                    )}
-                                  </div>
+                                      <p className="mt-1 break-words text-sm font-black text-slate-900">
+                                        {meta.serviceLocation}
+                                      </p>
+                                      {meta.serviceAddress && (
+                                        <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs font-bold text-slate-600">
+                                          {meta.serviceAddress}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
 
                                   <div className="rounded-2xl bg-slate-50 p-3">
                                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
@@ -13573,6 +13588,7 @@ FE-SERVICE`,
                           value={ticketCustomerSearch}
                           onChange={(e) => {
                             setTicketCustomerSearch(e.target.value);
+                            setSelectedTicketCustomerId("");
                             setCustomer("");
                             setDevice("");
                             setTicketDeviceSearch("");
@@ -13615,12 +13631,10 @@ FE-SERVICE`,
                                 onClick={() => {
                                   const nextCustomerName = getCustomerLabel(customerItem);
                                   setCustomer(nextCustomerName);
+                                  setSelectedTicketCustomerId(String(customerItem.id));
                                   setTicketCustomerSearch(nextCustomerName);
-                                  if (!serviceLocationName.trim()) setServiceLocationName(nextCustomerName);
-                                  if (!serviceAddress.trim()) setServiceAddress(buildCustomerAddress(customerItem));
-                                  if (!serviceContactName.trim()) setServiceContactName(customerItem.contact_person || "");
-                                  if (!serviceContactPhone.trim()) setServiceContactPhone(customerItem.phone || "");
-                                  if (!serviceContactEmail.trim()) setServiceContactEmail(customerItem.email || "");
+                                  // Einsatzort wird bewusst NICHT automatisch vom Auftraggeber übernommen.
+                                  // Nur abweichende Leistungsadressen sollen manuell eingetragen und angezeigt werden.
                                   setDevice("");
                                   setTicketDeviceSearch("");
                                 }}
@@ -13642,7 +13656,7 @@ FE-SERVICE`,
 
                     <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-sm font-bold text-slate-700">
-                        Einsatzort / Leistungsadresse <span className="text-slate-400">(manuell)</span>
+                        Abweichender Einsatzort / Leistungsadresse <span className="text-slate-400">(nur ausfüllen, wenn abweichend)</span>
                       </p>
 
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -13684,7 +13698,7 @@ FE-SERVICE`,
                       />
 
                       <p className="mt-3 text-xs font-bold text-slate-500">
-                        Auftraggeber bleibt Rechnungsempfänger. Einsatzort ist die tatsächliche Anfahrtsadresse.
+                        Leer lassen, wenn Auftraggeber und Einsatzort identisch sind. Nur abweichende Anfahrtsadressen werden im Ticket angezeigt.
                       </p>
                     </div>
 
