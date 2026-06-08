@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.38 · Ticketliste mit Servicekarten und Statusfarben
+// FE-Service App v2.1.40 · Einsatzort nur bei Abweichung anzeigensansicht
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -3890,6 +3890,45 @@ export default function Home() {
     return parsed.subject || ticket.issue || "-";
   }
 
+  function priorityBorderClass(priorityValue: string) {
+    if (priorityValue === "Hoch") return "border-l-8 border-l-red-500";
+    if (priorityValue === "Mittel") return "border-l-8 border-l-yellow-400";
+    return "border-l-8 border-l-green-500";
+  }
+
+  function getTicketDashboardMeta(ticket: Ticket) {
+    const billingCustomer =
+      customers.find((item) => item.id === (ticket.billing_customer_id || ticket.customer_id)) ||
+      customers.find((item) => getCustomerLabel(item) === ticket.customer) ||
+      customers.find((item) => item.company === ticket.customer) ||
+      null;
+
+    const ticketDevice =
+      devices.find((item) => item.name === ticket.device) ||
+      devices.find((item) => String(item.serial_number || "") === String(ticket.device || "")) ||
+      null;
+
+    return {
+      billingCustomer,
+      ticketDevice,
+      serviceLocation:
+        ticket.service_location_name ||
+        ticketDevice?.location ||
+        (billingCustomer ? getCustomerLabel(billingCustomer) : "") ||
+        "Einsatzort offen",
+      serviceAddress:
+        ticket.service_address ||
+        ticketDevice?.location ||
+        (billingCustomer ? buildCustomerAddress(billingCustomer) : ""),
+      technicianName: getTechnicianNameById(ticket.assigned_to),
+      serviceType: ticketServiceTypeText(ticket),
+      subject: ticketSubjectText(ticket),
+      appointment: ticket.service_date
+        ? `${ticket.service_date}${ticket.service_time ? ` · ${ticket.service_time}` : ""}`
+        : "Kein Termin geplant",
+    };
+  }
+
   function deviceStatusClass(statusValue: string | null) {
     if (statusValue === "Aktiv") return "bg-green-100 text-green-700";
     if (statusValue === "Wartung bald fällig") {
@@ -4394,6 +4433,42 @@ export default function Home() {
       .join(", ");
 
     return structuredAddress || customer.address || "";
+  }
+
+  function normalizeCompareText(value?: string | null) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[\s,.;:|/\\-]+/g, " ")
+      .trim();
+  }
+
+  function hasDifferentServiceLocation(ticket: Ticket, billingCustomer?: Customer | null) {
+    const serviceLocation = normalizeCompareText(ticket.service_location_name);
+    const serviceAddress = normalizeCompareText(ticket.service_address);
+    const billingName = normalizeCompareText(
+      billingCustomer ? getCustomerLabel(billingCustomer) : ticket.customer,
+    );
+    const billingAddress = normalizeCompareText(
+      billingCustomer ? buildCustomerAddress(billingCustomer) : "",
+    );
+
+    const hasServiceLocation = Boolean(serviceLocation || serviceAddress);
+
+    if (!hasServiceLocation) return false;
+
+    const locationDiffers =
+      serviceLocation &&
+      serviceLocation !== billingName &&
+      !billingName.includes(serviceLocation) &&
+      !serviceLocation.includes(billingName);
+
+    const addressDiffers =
+      serviceAddress &&
+      serviceAddress !== billingAddress &&
+      !billingAddress.includes(serviceAddress) &&
+      !serviceAddress.includes(billingAddress);
+
+    return Boolean(locationDiffers || addressDiffers);
   }
 
   function buildCustomerAddressFromForm() {
@@ -6546,9 +6621,37 @@ FE-SERVICE`,
       ticket.status !== "Storniert",
   );
 
-  const todaysAdminTickets = visibleRoleTickets.filter(
-    (ticket) => ticket.service_date === todayDateString,
-  );
+  const sortedOpenAdminTickets = [...openAdminTickets].sort((a, b) => {
+    const priorityRank: Record<string, number> = { Hoch: 0, Mittel: 1, Niedrig: 2 };
+    const statusRank: Record<string, number> = {
+      Offen: 0,
+      Zugewiesen: 1,
+      "Termin vereinbart": 2,
+      "In Bearbeitung": 3,
+      "Wartet auf Ersatzteil": 4,
+      "Wartet auf Teile": 4,
+      "Wartet auf Kundenfreigabe": 5,
+    };
+
+    const priorityDiff =
+      (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9);
+    if (priorityDiff !== 0) return priorityDiff;
+
+    const statusDiff = (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9);
+    if (statusDiff !== 0) return statusDiff;
+
+    const dateA = `${a.service_date || "9999-12-31"} ${a.service_time || "99:99"}`;
+    const dateB = `${b.service_date || "9999-12-31"} ${b.service_time || "99:99"}`;
+    return dateA.localeCompare(dateB);
+  });
+
+  const todaysAdminTickets = visibleRoleTickets
+    .filter((ticket) => ticket.service_date === todayDateString)
+    .sort((a, b) => {
+      const timeA = a.service_time || "99:99";
+      const timeB = b.service_time || "99:99";
+      return timeA.localeCompare(timeB);
+    });
 
   const overdueAdminMaintenancePlans = maintenancePlans.filter((plan) => {
     if (!plan.next_due) return false;
@@ -8152,9 +8255,9 @@ FE-SERVICE`,
                   </div>
 
                   <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-600">
-                    {filteredTickets.length === 0
-                      ? "Keine passenden Tickets gefunden."
-                      : `${filteredTickets.length} passende Ticket(s). Die ersten ${ticketListPreviewTickets.length} Servicekarten werden als Vorschau angezeigt.`}
+                    {sortedOpenAdminTickets.length === 0
+                      ? "Keine offenen Tickets gefunden."
+                      : `${sortedOpenAdminTickets.length} offene Ticket(s). Die ersten ${Math.min(sortedOpenAdminTickets.length, 5)} werden nach Priorität und Termin angezeigt.`}
                   </div>
 
                   <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
@@ -8163,34 +8266,110 @@ FE-SERVICE`,
                         Keine offenen Tickets.
                       </div>
                     ) : (
-                      openAdminTickets.slice(0, 5).map((ticket) => (
-                        <div
-                          key={ticket.id}
-                          className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                        >
-                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                            <div>
-                              <p className="text-xs font-black text-green-600">
-                                {ticket.ticket_number} · {ticket.customer}
-                              </p>
-                              <h4 className="mt-1 text-lg font-black">
-                                {ticket.issue}
-                              </h4>
-                              <p className="mt-1 text-sm text-slate-600">
-                                Gerät: {ticket.device || "Noch nicht zugewiesen"} · Techniker: {getTechnicianNameById(ticket.assigned_to)}
-                              </p>
+                      sortedOpenAdminTickets.slice(0, 5).map((ticket) => {
+                        const meta = getTicketDashboardMeta(ticket);
+
+                        return (
+                          <div
+                            key={ticket.id}
+                            className={`min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ${priorityBorderClass(ticket.priority)}`}
+                          >
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                    {ticket.ticket_number}
+                                  </span>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
+                                    {statusIcon(ticket.status)} {ticket.status}
+                                  </span>
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ${priorityClass(ticket.priority)}`}>
+                                    {ticket.priority}
+                                  </span>
+                                </div>
+
+                                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                  <div className="rounded-2xl bg-slate-50 p-3">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                      🏢 Auftraggeber
+                                    </p>
+                                    <p className="mt-1 break-words text-sm font-black text-slate-900">
+                                      {ticket.customer || "Nicht zugeordnet"}
+                                    </p>
+                                    <p className="mt-1 text-xs font-bold text-slate-600">
+                                      {meta.billingCustomer?.customer_number
+                                        ? `Kundennr.: ${meta.billingCustomer.customer_number}`
+                                        : "Kundennr.: offen"}
+                                    </p>
+                                  </div>
+
+                                  <div className="rounded-2xl bg-green-50 p-3">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
+                                      📍 Einsatzort
+                                    </p>
+                                    <p className="mt-1 break-words text-sm font-black text-slate-900">
+                                      {meta.serviceLocation}
+                                    </p>
+                                    {meta.serviceAddress && (
+                                      <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-xs font-bold text-slate-600">
+                                        {meta.serviceAddress}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  <div className="rounded-2xl bg-slate-50 p-3">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                      🔧 Gerät
+                                    </p>
+                                    <p className="mt-1 break-words text-sm font-black text-slate-900">
+                                      {ticket.device || "Noch nicht zugewiesen"}
+                                    </p>
+                                    <p className="mt-1 text-xs font-bold text-slate-600">
+                                      {meta.ticketDevice?.serial_number ? `SN: ${meta.ticketDevice.serial_number}` : "Seriennummer offen"}
+                                    </p>
+                                  </div>
+
+                                  <div className="rounded-2xl bg-slate-50 p-3">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                      👨 Techniker / Termin
+                                    </p>
+                                    <p className="mt-1 break-words text-sm font-black text-slate-900">
+                                      {meta.technicianName}
+                                    </p>
+                                    <p className="mt-1 text-xs font-bold text-slate-600">
+                                      {meta.appointment}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="mt-3 rounded-2xl bg-slate-50 p-3">
+                                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
+                                    📋 Leistung
+                                  </p>
+                                  <p className="mt-1 break-words text-sm font-black text-slate-900">
+                                    {meta.serviceType}
+                                  </p>
+                                  <p className="mt-1 line-clamp-2 break-words text-sm font-semibold text-slate-700">
+                                    {meta.subject}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={() => setSelectedTicketView(ticket)}
+                                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white"
+                              >
+                                Akte
+                              </button>
                             </div>
-                            <span className={`rounded-full px-4 py-2 text-sm font-bold ${statusClass(ticket.status)}`}>
-                              {ticket.status}
-                            </span>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
 
-                    {filteredTickets.length > ticketListPreviewTickets.length && (
+                    {sortedOpenAdminTickets.length > 5 && (
                       <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600">
-                        Weitere {filteredTickets.length - ticketListPreviewTickets.length} Ticket(s) ausgeblendet. Bitte Suche oder Filter nutzen, z. B. Kundennummer.
+                        Weitere {sortedOpenAdminTickets.length - 5} offene Ticket(s) ausgeblendet. Für die vollständige Disposition bitte Ticketliste öffnen.
                       </div>
                     )}
                   </div>
@@ -8218,22 +8397,52 @@ FE-SERVICE`,
                         Heute keine Einsätze geplant.
                       </div>
                     ) : (
-                      todaysAdminTickets.map((ticket) => (
-                        <div
-                          key={ticket.id}
-                          className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                        >
-                          <p className="text-xs font-black text-green-600">
-                            {ticket.service_time || "ohne Uhrzeit"} · {ticket.ticket_number}
-                          </p>
-                          <h4 className="mt-1 text-lg font-black">
-                            {ticket.customer}
-                          </h4>
-                          <p className="mt-1 text-sm text-slate-600">
-                            {ticket.device} · {ticket.issue}
-                          </p>
-                        </div>
-                      ))
+                      todaysAdminTickets.map((ticket) => {
+                        const meta = getTicketDashboardMeta(ticket);
+
+                        return (
+                          <div
+                            key={ticket.id}
+                            className={`min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ${priorityBorderClass(ticket.priority)}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="rounded-2xl bg-slate-900 px-3 py-2 text-center text-sm font-black text-white">
+                                {ticket.service_time || "offen"}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
+                                    {statusIcon(ticket.status)} {ticket.status}
+                                  </span>
+                                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                    {ticket.ticket_number}
+                                  </span>
+                                </div>
+
+                                <h4 className="mt-2 break-words text-lg font-black text-slate-900">
+                                  {meta.serviceLocation}
+                                </h4>
+
+                                <p className="mt-1 break-words text-sm font-bold text-slate-700">
+                                  {meta.technicianName}
+                                </p>
+
+                                <p className="mt-1 break-words text-sm text-slate-600">
+                                  {ticket.device || "Kein Gerät"} · {meta.serviceType}
+                                </p>
+
+                                {ticket.service_contact_name && (
+                                  <p className="mt-1 break-words text-xs font-bold text-slate-500">
+                                    Kontakt: {ticket.service_contact_name}
+                                    {ticket.service_contact_phone ? ` · ${ticket.service_contact_phone}` : ""}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 </div>
@@ -13865,24 +14074,26 @@ FE-SERVICE`,
                                   </p>
                                 </div>
 
-                                <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
-                                    📍 Einsatzort
-                                  </p>
-                                  <h4 className="mt-1 break-words text-lg font-black leading-tight text-slate-900">
-                                    {serviceLocation}
-                                  </h4>
-                                  {serviceAddress && (
-                                    <p className="mt-1 whitespace-pre-wrap break-words text-xs font-bold text-slate-600">
-                                      {serviceAddress}
+                                {hasDifferentServiceLocation(ticket, billingCustomer) && (
+                                  <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
+                                      📍 Einsatzort
                                     </p>
-                                  )}
-                                  {(ticket.service_contact_name || ticket.service_contact_phone) && (
-                                    <p className="mt-1 break-words text-xs font-black text-slate-700">
-                                      {ticket.service_contact_name || "Ansprechpartner"}{ticket.service_contact_phone ? ` · ${ticket.service_contact_phone}` : ""}
-                                    </p>
-                                  )}
-                                </div>
+                                    <h4 className="mt-1 break-words text-lg font-black leading-tight text-slate-900">
+                                      {serviceLocation}
+                                    </h4>
+                                    {serviceAddress && (
+                                      <p className="mt-1 whitespace-pre-wrap break-words text-xs font-bold text-slate-600">
+                                        {serviceAddress}
+                                      </p>
+                                    )}
+                                    {(ticket.service_contact_name || ticket.service_contact_phone) && (
+                                      <p className="mt-1 break-words text-xs font-black text-slate-700">
+                                        {ticket.service_contact_name || "Ansprechpartner"}{ticket.service_contact_phone ? ` · ${ticket.service_contact_phone}` : ""}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
 
                                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
