@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.48 · Einsatzmodus Heute vor Ort
+// FE-Service App v2.1.49 · Abnahme Kundensuche mit Kundennummer
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -5570,7 +5570,8 @@ FE-SERVICE`,
       setAbnahmeCustomerId(String(selectedDevice.customer_id));
       const linkedCustomer = customers.find((item) => item.id === selectedDevice.customer_id);
       if (linkedCustomer) {
-        setAbnahmeCustomerNumber(String(linkedCustomer.id));
+        setAbnahmeCustomerNumber(linkedCustomer.customer_number || String(linkedCustomer.id));
+        setAbnahmeCustomerSearch(getCustomerLabel(linkedCustomer));
         setAbnahmeAddressObject(buildCustomerAddress(linkedCustomer) || selectedDevice.location || "");
       }
     }
@@ -7597,6 +7598,7 @@ FE-SERVICE`,
 
   const abnahmeCustomers = (() => {
     const search = abnahmeCustomerSearch.trim().toLowerCase();
+    const searchParts = search.split(/\s+/).filter(Boolean);
 
     const baseCustomers =
       isCustomer && userProfile?.customer_id
@@ -7606,6 +7608,7 @@ FE-SERVICE`,
     const sortedCustomers = [...baseCustomers].sort((a, b) =>
       String(getCustomerDisplayName(a) || getCustomerLabel(a)).localeCompare(
         String(getCustomerDisplayName(b) || getCustomerLabel(b)),
+        "de",
       ),
     );
 
@@ -7613,18 +7616,33 @@ FE-SERVICE`,
 
     return sortedCustomers.filter((customerItem) => {
       const searchableText = [
+        customerItem.id,
+        customerItem.customer_number,
+        customerItem.supplier_number,
+        customerItem.customer_type,
         customerItem.company,
         customerItem.contact_person,
         customerItem.first_name,
         customerItem.last_name,
         customerItem.email,
+        customerItem.email_2,
         customerItem.phone,
+        customerItem.phone_2,
         customerItem.address,
+        customerItem.address_extra,
         customerItem.street,
         customerItem.house_number,
         customerItem.postal_code,
         customerItem.city,
         customerItem.country,
+        customerItem.vat_id,
+        customerItem.tax_number,
+        customerItem.contact_1_name,
+        customerItem.contact_1_email,
+        customerItem.contact_1_phone,
+        customerItem.contact_2_name,
+        customerItem.contact_2_email,
+        customerItem.contact_2_phone,
         getCustomerDisplayName(customerItem),
         getCustomerLabel(customerItem),
         buildCustomerAddress(customerItem),
@@ -7633,7 +7651,7 @@ FE-SERVICE`,
         .join(" ")
         .toLowerCase();
 
-      return searchableText.includes(search);
+      return searchParts.every((part) => searchableText.includes(part));
     });
   })();
 
@@ -12200,11 +12218,11 @@ FE-SERVICE`,
                         <input
                           value={abnahmeCustomerSearch}
                           onChange={(e) => setAbnahmeCustomerSearch(e.target.value)}
-                          placeholder="Name, Firma, Ort, PLZ, E-Mail"
+                          placeholder="Kundennummer, Name, Firma, Ort, PLZ, E-Mail, Telefon"
                           className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-green-500"
                         />
                         <p className="mt-2 text-xs font-bold text-slate-500">
-                          {customers.length} Kunden geladen · {abnahmeCustomers.length} Treffer
+                          {customers.length} Kunden geladen · {abnahmeCustomers.length} Treffer · Suche auch nach Kundennummer
                         </p>
 
                         <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
@@ -12219,9 +12237,9 @@ FE-SERVICE`,
                                 type="button"
                                 onClick={() => {
                                   setAbnahmeCustomerId(String(customerItem.id));
-                                  setAbnahmeCustomerSearch(getCustomerDisplayName(customerItem) || getCustomerLabel(customerItem));
+                                  setAbnahmeCustomerSearch(getCustomerLabel(customerItem));
                                   setAbnahmeAddressObject(buildCustomerAddress(customerItem));
-                                  setAbnahmeCustomerNumber(String(customerItem.id));
+                                  setAbnahmeCustomerNumber(customerItem.customer_number || String(customerItem.id));
                                 }}
                                 className={`w-full rounded-2xl border p-4 text-left transition ${
                                   String(customerItem.id) === abnahmeCustomerId
@@ -12230,7 +12248,10 @@ FE-SERVICE`,
                                 }`}
                               >
                                 <p className="font-black text-slate-900">
-                                  {getCustomerDisplayName(customerItem) || getCustomerLabel(customerItem)}
+                                  {getCustomerLabel(customerItem)}
+                                </p>
+                                <p className="mt-1 text-sm font-black text-green-700">
+                                  Kundennr.: {customerItem.customer_number || "nicht hinterlegt"}
                                 </p>
                                 <p className="mt-1 text-sm font-semibold text-slate-500">
                                   {buildCustomerAddress(customerItem) || "Keine Adresse hinterlegt"}
@@ -12305,15 +12326,15 @@ FE-SERVICE`,
                         const selectedCustomer = customers.find((item) => item.id === Number(nextCustomerId));
                         setAbnahmeCustomerId(nextCustomerId);
                         setAbnahmeAddressObject(selectedCustomer ? buildCustomerAddress(selectedCustomer) : "");
-                        setAbnahmeCustomerSearch(selectedCustomer ? getCustomerDisplayName(selectedCustomer) || getCustomerLabel(selectedCustomer) : "");
-                        setAbnahmeCustomerNumber(selectedCustomer ? String(selectedCustomer.id) : "");
+                        setAbnahmeCustomerSearch(selectedCustomer ? getCustomerLabel(selectedCustomer) : "");
+                        setAbnahmeCustomerNumber(selectedCustomer ? selectedCustomer.customer_number || String(selectedCustomer.id) : "");
                       }}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
                       <option value="">Kunde manuell auswählen</option>
                       {abnahmeCustomers.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {getCustomerLabel(item)}
+                          {item.customer_number ? `${item.customer_number} · ` : ""}{getCustomerLabel(item)}
                         </option>
                       ))}
                     </select>
