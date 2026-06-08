@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.34 · Ticketliste gekürzt und Kundennummer-Suche
+// FE-Service App v2.1.35 · Ticketarten Mehrfachauswahl und Dienstleistung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -269,6 +269,16 @@ const filterStatusOptions = [
 ];
 const filterPriorityOptions = ["Alle", "Niedrig", "Mittel", "Hoch"];
 
+const ticketTypeOptions = [
+  "Reparatur",
+  "Wartung",
+  "Prüfung / UVV",
+  "Installation",
+  "Beratung",
+  "Dienstleistung",
+  "Sonstiges",
+];
+
 const deviceStatusOptions = [
   "Aktiv",
   "Wartung bald fällig",
@@ -411,7 +421,7 @@ export default function Home() {
   const [customer, setCustomer] = useState("");
   const [device, setDevice] = useState("");
   const [customDeviceName, setCustomDeviceName] = useState("");
-  const [ticketType, setTicketType] = useState("Reparatur");
+  const [ticketTypes, setTicketTypes] = useState<string[]>(["Reparatur"]);
   const [ticketCustomerSearch, setTicketCustomerSearch] = useState("");
   const [ticketDeviceSearch, setTicketDeviceSearch] = useState("");
   const [issue, setIssue] = useState("");
@@ -2128,12 +2138,60 @@ export default function Home() {
     await loadDocuments();
   }
 
+  function getTicketTypeLabel(types = ticketTypes) {
+    return types.length > 0 ? types.join(" + ") : "Reparatur";
+  }
+
+  function toggleTicketType(typeName: string) {
+    setTicketTypes((prev) => {
+      if (prev.includes(typeName)) {
+        const nextTypes = prev.filter((item) => item !== typeName);
+        return nextTypes.length > 0 ? nextTypes : ["Reparatur"];
+      }
+
+      return [...prev, typeName];
+    });
+  }
+
+  function splitTicketIssue(rawIssue: string) {
+    const value = String(rawIssue || "").trim();
+
+    if (!value) {
+      return {
+        types: ["Reparatur"],
+        subject: "",
+      };
+    }
+
+    const separatorIndex = value.indexOf(":");
+
+    if (separatorIndex === -1) {
+      return {
+        types: ["Reparatur"],
+        subject: value,
+      };
+    }
+
+    const prefix = value.slice(0, separatorIndex).trim();
+    const subject = value.slice(separatorIndex + 1).trim();
+
+    const detectedTypes = prefix
+      .split("+")
+      .map((item) => item.trim())
+      .filter((item) => ticketTypeOptions.includes(item));
+
+    return {
+      types: detectedTypes.length > 0 ? detectedTypes : ["Reparatur"],
+      subject: subject || value,
+    };
+  }
+
   function resetTicketForm() {
     setEditingTicket(null);
     setCustomer("");
     setDevice("");
     setCustomDeviceName("");
-    setTicketType("Reparatur");
+    setTicketTypes(["Reparatur"]);
     setTicketCustomerSearch("");
     setTicketDeviceSearch("");
     setIssue("");
@@ -2208,16 +2266,9 @@ export default function Home() {
     setDevice(ticket.device || "");
     setTicketDeviceSearch(ticket.device || "");
     setCustomDeviceName("");
-    const knownTicketTypes = ["Reparatur", "Wartung", "Prüfung / UVV", "Installation", "Beratung", "Sonstiges"];
-    const detectedTicketType = knownTicketTypes.find((item) =>
-      String(ticket.issue || "").startsWith(`${item}:`),
-    );
-    setTicketType(detectedTicketType || "Reparatur");
-    setIssue(
-      detectedTicketType
-        ? String(ticket.issue || "").replace(`${detectedTicketType}:`, "").trim()
-        : ticket.issue || "",
-    );
+    const parsedTicketIssue = splitTicketIssue(ticket.issue || "");
+    setTicketTypes(parsedTicketIssue.types);
+    setIssue(parsedTicketIssue.subject);
     setDescription(ticket.description || "");
     setPriority(ticket.priority || "Mittel");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2310,7 +2361,7 @@ export default function Home() {
       customer: currentCustomerName,
       customer_id: currentCustomerId,
       device: currentDeviceName,
-      issue: `${ticketType}: ${issue.trim()}`,
+      issue: `${getTicketTypeLabel()}: ${issue.trim()}`,
       description,
       priority,
       status: "Offen",
@@ -2381,7 +2432,7 @@ export default function Home() {
     if (!editingTicket) return;
 
     const currentDeviceName = customDeviceName.trim() || device || "Noch nicht zugewiesen";
-    const nextIssue = `${ticketType}: ${issue.trim()}`;
+    const nextIssue = `${getTicketTypeLabel()}: ${issue.trim()}`;
 
     const { error } = await supabase
       .from("tickets")
@@ -13248,20 +13299,34 @@ FE-SERVICE`,
 
                     <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-sm font-bold text-slate-700">
-                        Art des Tickets
+                        Art des Tickets <span className="text-slate-400">(Mehrfachauswahl möglich)</span>
                       </p>
-                      <select
-                        value={ticketType}
-                        onChange={(e) => setTicketType(e.target.value)}
-                        className="mt-3 w-full rounded-2xl border border-slate-300 px-5 py-4 text-base font-semibold"
-                      >
-                        <option>Reparatur</option>
-                        <option>Wartung</option>
-                        <option>Prüfung / UVV</option>
-                        <option>Installation</option>
-                        <option>Beratung</option>
-                        <option>Sonstiges</option>
-                      </select>
+
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {ticketTypeOptions.map((typeName) => {
+                          const checked = ticketTypes.includes(typeName);
+
+                          return (
+                            <button
+                              key={typeName}
+                              type="button"
+                              onClick={() => toggleTicketType(typeName)}
+                              className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition-all ${
+                                checked
+                                  ? "border-green-500 bg-green-50 text-green-700"
+                                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <span className="mr-2">{checked ? "✓" : "＋"}</span>
+                              {typeName}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold text-slate-600">
+                        Ausgewählt: {getTicketTypeLabel()}
+                      </p>
                     </div>
 
                     <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
