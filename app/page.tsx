@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.33 · QR-Scan Geräteübersicht gekürzt
+// FE-Service App v2.1.34 · Ticketliste gekürzt und Kundennummer-Suche
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -773,14 +773,38 @@ export default function Home() {
         if (!isAssignedToMe && !isOpenPoolTicket) return false;
       }
 
-      const search = searchTerm.toLowerCase();
+      const search = searchTerm.toLowerCase().trim();
+
+      const linkedTicketCustomer =
+        customers.find((item) => item.id === ticket.customer_id) ||
+        customers.find((item) => getCustomerLabel(item) === ticket.customer) ||
+        customers.find((item) => item.company === ticket.customer) ||
+        null;
+
+      const customerSearchText = linkedTicketCustomer
+        ? getCustomerSearchText(linkedTicketCustomer)
+        : "";
 
       const matchesSearch =
-        ticket.ticket_number?.toLowerCase().includes(search) ||
-        ticket.customer?.toLowerCase().includes(search) ||
-        ticket.issue?.toLowerCase().includes(search) ||
-        ticket.device?.toLowerCase().includes(search) ||
-        ticket.description?.toLowerCase().includes(search);
+        !search ||
+        [
+          ticket.ticket_number,
+          ticket.customer,
+          ticket.issue,
+          ticket.device,
+          ticket.description,
+          linkedTicketCustomer?.customer_number,
+          linkedTicketCustomer?.supplier_number,
+          linkedTicketCustomer?.contact_person,
+          linkedTicketCustomer?.email,
+          linkedTicketCustomer?.phone,
+          linkedTicketCustomer?.city,
+          customerSearchText,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(search);
 
       const matchesStatus =
         statusFilter === "Alle" || ticket.status === statusFilter;
@@ -800,6 +824,8 @@ export default function Home() {
   ]);
 
 
+
+  const ticketListPreviewTickets = filteredTickets.slice(0, 5);
 
   const visibleRoleTickets = useMemo(() => {
     return tickets.filter((ticket) => {
@@ -7945,6 +7971,12 @@ FE-SERVICE`,
                     </button>
                   </div>
 
+                  <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-600">
+                    {filteredTickets.length === 0
+                      ? "Keine passenden Tickets gefunden."
+                      : `${filteredTickets.length} passende Ticket(s). Die ersten ${ticketListPreviewTickets.length} werden als Vorschau angezeigt.`}
+                  </div>
+
                   <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
                     {openAdminTickets.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -7974,6 +8006,12 @@ FE-SERVICE`,
                           </div>
                         </div>
                       ))
+                    )}
+
+                    {filteredTickets.length > ticketListPreviewTickets.length && (
+                      <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm font-bold text-slate-600">
+                        Weitere {filteredTickets.length - ticketListPreviewTickets.length} Ticket(s) ausgeblendet. Bitte Suche oder Filter nutzen, z. B. Kundennummer.
+                      </div>
                     )}
                   </div>
                 </div>
@@ -13442,7 +13480,7 @@ FE-SERVICE`,
                     <input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Tickets durchsuchen..."
+                      placeholder="Ticket, Kunde, Kundennummer, Gerät oder Beschreibung suchen..."
                       className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                     />
 
@@ -13486,7 +13524,7 @@ FE-SERVICE`,
                         Keine Tickets gefunden.
                       </div>
                     ) : (
-                      filteredTickets.map((ticket) => (
+                      ticketListPreviewTickets.map((ticket) => (
                         <div
                           key={ticket.id}
                           className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -13497,19 +13535,33 @@ FE-SERVICE`,
                                 {ticket.ticket_number}
                               </p>
 
-                              <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
-                                {ticket.issue}
+                              <h4 className="mt-1 break-words text-lg font-black leading-tight text-slate-900 md:text-xl">
+                                {ticket.customer || "Kunde nicht zugeordnet"}
                               </h4>
 
-                              <p className="mt-2 break-words text-sm text-slate-600">
-                                Kunde: {ticket.customer}
+                              <p className="mt-1 break-words text-sm font-semibold text-slate-700">
+                                {(() => {
+                                  const linkedCustomer =
+                                    customers.find((item) => item.id === ticket.customer_id) ||
+                                    customers.find((item) => getCustomerLabel(item) === ticket.customer) ||
+                                    customers.find((item) => item.company === ticket.customer) ||
+                                    null;
+
+                                  return linkedCustomer?.customer_number
+                                    ? `Kundennr.: ${linkedCustomer.customer_number}`
+                                    : "Kundennr.: nicht hinterlegt";
+                                })()}
+                              </p>
+
+                              <p className="mt-2 break-words text-base font-bold text-slate-800">
+                                {ticket.issue}
                               </p>
 
                               <p className="break-words text-sm text-slate-600">
                                 Gerät: {ticket.device || "Noch nicht zugewiesen"}
                               </p>
 
-                              <p className="mt-2 break-words text-sm text-slate-500">
+                              <p className="mt-2 break-words text-sm font-medium text-slate-600">
                                 {ticket.description}
                               </p>
 
