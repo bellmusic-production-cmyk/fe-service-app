@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.55 · Abnahme Kundensuche strikt aktuell
+// FE-Service App v2.1.56 · Abnahme neutrale Geräteauswahl ohne Hinweistext
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -12481,9 +12481,6 @@ FE-SERVICE`,
                         />
                         <p className="mt-2 text-xs font-bold text-slate-500">
                           {abnahmeDevices.length} neutrale Modell-/Gerätetreffer · ohne Seriennummer und Kundenzuordnung
-                        </p>
-                        <p className="mt-1 text-xs font-bold text-green-700">
-                          Der ausgewählte Kunde bleibt bestehen. Kundengeräte und Seriennummern werden nicht verändert.
                         </p>
 
                         <div
