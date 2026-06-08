@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.47 · Einsatz und Kalender aus Tickets aktualisieren
+// FE-Service App v2.1.48 · Einsatzmodus Heute vor Ort
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -12895,342 +12895,240 @@ FE-SERVICE`,
           )}
 
           {activePage === "Einsatz" && (
-            <div className="space-y-4 pb-24">
-              <div className="rounded-[32px] bg-white p-5 shadow-sm lg:p-6">
-                <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                  FE-SERVICE · Betriebsbereit
-                </div>
+            <div className="space-y-5 pb-24">
+              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+                  Heute vor Ort
+                </p>
+                <h3 className="mt-2 text-3xl font-black md:text-4xl">
+                  Techniker-Einsatzmodus
+                </h3>
+                <p className="mt-3 max-w-3xl text-sm font-semibold text-slate-300">
+                  Hier sieht der Techniker nur das, was vor Ort gebraucht wird:
+                  heutige Einsätze, Anfahrt, Ansprechpartner, Gerät, Starten und Servicebericht.
+                </p>
 
-                <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <h3 className="text-xl font-black">Mobiler Einsatzmodus</h3>
-                    <p className="mt-2 text-slate-600">
-                      Optimiert für Arbeiten vor Ort: große Touch-Flächen, schnelle Aktionen,
-                      Fotos, Servicebericht, Prüfsiegel und Kundenabnahme.
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white/10 px-5 py-4">
+                    <p className="text-2xl font-black text-green-400">
+                      {technicianTodayTickets.length}
                     </p>
+                    <p className="text-xs font-bold text-slate-300">Heute</p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 rounded-3xl bg-slate-100 p-3 text-center">
-                    <div>
-                      <p className="text-xl font-black">{activeEinsatzTickets.length}</p>
-                      <p className="text-xs font-bold text-slate-500">Aktiv</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-black">{technicianTodayTickets.length}</p>
-                      <p className="text-xs font-bold text-slate-500">Heute</p>
-                    </div>
-                    <div>
-                      <p className="text-xl font-black">{technicianWaitingParts.length}</p>
-                      <p className="text-xs font-bold text-slate-500">Teile</p>
-                    </div>
+                  <div className="rounded-2xl bg-white/10 px-5 py-4">
+                    <p className="text-2xl font-black text-green-400">
+                      {activeEinsatzTickets.length}
+                    </p>
+                    <p className="text-xs font-bold text-slate-300">Aktiv</p>
                   </div>
-                </div>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <button
-                    onClick={() => setActivePage("Service-Tickets")}
-                    className="min-h-[56px] rounded-3xl bg-green-600 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
-                  >
-                    + Ticket
-                    <span className="mt-1 block text-sm font-bold opacity-80">
-                      Servicefall anlegen
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setActivePage("Geräte")}
-                    className="min-h-[56px] rounded-3xl bg-slate-900 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
-                  >
-                    Geräte
-                    <span className="mt-1 block text-sm font-bold opacity-80">
-                      Verwaltung
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setActivePage("Dokumente")}
-                    className="min-h-[56px] rounded-3xl bg-blue-600 px-5 py-5 text-left text-lg font-black text-white active:scale-[0.99]"
-                  >
-                    Fotos
-                    <span className="mt-1 block text-sm font-bold opacity-80">
-                      Nachweise
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setActivePage("Ersatzteile")}
-                    className="min-h-[56px] rounded-3xl bg-yellow-100 px-5 py-5 text-left text-lg font-black text-yellow-800 active:scale-[0.99]"
-                  >
-                    Teile
-                    <span className="mt-1 block text-sm font-bold opacity-80">
-                      Verbrauch buchen
-                    </span>
-                  </button>
+                  <div className="rounded-2xl bg-white/10 px-5 py-4">
+                    <p className="text-2xl font-black text-green-400">
+                      {technicianWaitingParts.length}
+                    </p>
+                    <p className="text-xs font-bold text-slate-300">Wartet auf Teile</p>
+                  </div>
                 </div>
               </div>
 
-              {assignedTickets.length === 0 ? (
-                <div className="rounded-[28px] bg-white p-6 text-slate-600 shadow-sm">
-                  Keine Einsätze vorhanden. Admin sieht hier alle Tickets, Techniker nur zugewiesene Einsätze.
-                </div>
-              ) : (
-                assignedTickets.map((ticket) => {
-                  const relatedDevice = devices.find(
-                    (item) => item.name === ticket.device,
-                  );
-                  const inspection = relatedDevice
-                    ? getInspectionStatus(relatedDevice.next_check)
-                    : null;
+              {technicianTodayTickets.length === 0 ? (
+                <div className="rounded-[28px] bg-white p-6 shadow-sm">
+                  <h3 className="text-xl font-black text-slate-900">
+                    Heute keine geplanten Einsätze
+                  </h3>
+                  <p className="mt-2 text-sm font-semibold text-slate-600">
+                    Sobald im Ticket ein Datum, eine Uhrzeit und ein Techniker gesetzt sind,
+                    erscheint der Einsatz hier automatisch.
+                  </p>
 
-                  return (
-                    <div
-                      key={ticket.id}
-                      className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm"
-                    >
-                      <p className="text-xs font-bold text-green-600">
-                        {ticket.ticket_number} · {ticket.customer}
+                  {activeEinsatzTickets.length > 0 && (
+                    <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-sm font-black text-slate-700">
+                        Nächste offene Einsätze
                       </p>
-                      <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
-                        {ticket.issue}
-                      </h4>
-                      <p className="mt-2 break-words text-sm text-slate-600">
-                        Gerät: {ticket.device}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {ticket.description}
-                      </p>
+                      <div className="mt-3 space-y-2">
+                        {activeEinsatzTickets.slice(0, 5).map((ticket) => {
+                          const meta = getTicketDashboardMeta(ticket);
 
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <span
-                          className={`rounded-full px-4 py-2 text-sm font-bold ${statusClass(ticket.status)}`}
-                        >
-                          {ticket.status}
-                        </span>
-                        <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
-                          Termin: {ticket.service_date || "nicht geplant"}
-                          {ticket.service_time
-                            ? ` · ${ticket.service_time}`
-                            : ""}
-                        </span>
-                        <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700">
-                          Einsatz: {ticket.service_status || "Geplant"}
-                        </span>
-                        {inspection && (
-                          <span
-                            className={`rounded-full px-4 py-2 text-sm font-bold ${inspection.className}`}
-                          >
-                            Prüfung: {inspection.label}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                        <button
-                          onClick={() =>
-                            updateServiceStatus(ticket.id, "Gestartet")
-                          }
-                          className="min-h-[56px] rounded-3xl bg-yellow-100 px-4 py-3 text-sm font-black text-yellow-800 active:scale-[0.99]"
-                        >
-                          Starten
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            if (relatedDevice) {
-                              setActivePage("Geräte");
-                              setSelectedDeviceView(relatedDevice);
-                            } else {
-                              setActivePage("Service-Tickets");
-                            }
-                          }}
-                          className="min-h-[56px] rounded-3xl bg-slate-900 px-4 py-3 text-sm font-black text-white active:scale-[0.99]"
-                        >
-                          Gerät / Details
-                        </button>
-
-                        <button
-                          onClick={() => openServiceReportSigning(ticket)}
-                          className="min-h-[56px] rounded-3xl bg-blue-100 px-4 py-3 text-sm font-black text-blue-700 active:scale-[0.99]"
-                        >
-                          Servicebericht / Signatur
-                        </button>
-
-                        <div className="sm:col-span-3 mt-6 rounded-3xl border border-green-200 bg-green-50 p-5">
-                          <h4 className="text-xl font-black text-green-800">
-                            Servicebericht abschließen & digital unterschreiben
-                          </h4>
-                          <p className="mt-2 text-sm font-bold text-slate-600">
-                            Techniker und Kunde können direkt am Handy, Tablet oder Notebook unterschreiben. Erst danach wird der Einsatz abgeschlossen.
-                          </p>
-
-                          <div className="mt-4 grid gap-3 md:grid-cols-2">
-                            <textarea
-                              value={serviceReport}
-                              onChange={(event) => setServiceReport(event.target.value)}
-                              placeholder="Durchgeführte Arbeiten / Servicebericht"
-                              className="min-h-[140px] rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold md:col-span-2"
-                            />
-
-                            <input
-                              value={serviceBadgeNumber}
-                              onChange={(event) => setServiceBadgeNumber(event.target.value)}
-                              placeholder="Prüfsiegelnummer / Prüfnummer"
-                              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold"
-                            />
-
-                            <input
-                              type="date"
-                              value={serviceBadgeExpires}
-                              onChange={(event) => setServiceBadgeExpires(event.target.value)}
-                              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold"
-                            />
-
-                            <input
-                              value={customerApprovalName}
-                              onChange={(event) => setCustomerApprovalName(event.target.value)}
-                              placeholder="Name des unterschreibenden Kunden"
-                              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold md:col-span-2"
-                            />
-
-                            <textarea
-                              value={serviceInternalNote}
-                              onChange={(event) => setServiceInternalNote(event.target.value)}
-                              placeholder="Interne Notiz, nicht für Kundenbericht"
-                              className="min-h-[90px] rounded-2xl border border-slate-300 bg-white px-4 py-3 font-semibold md:col-span-2"
-                            />
-                          </div>
-
-                          <div className="mt-5 grid gap-4 md:grid-cols-2">
-                            <div className="rounded-3xl bg-white p-4">
-                              <p className="text-sm font-black text-slate-700">Techniker-Signatur</p>
-                              <canvas
-                                ref={serviceTechnicianCanvasRef}
-                                onPointerDown={(event) => startServiceSignature("technician", event)}
-                                onPointerMove={(event) => drawServiceSignature("technician", event)}
-                                onPointerUp={() => finishServiceSignature("technician")}
-                                onPointerCancel={() => finishServiceSignature("technician")}
-                                className="mt-3 h-36 w-full touch-none rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => clearServiceSignature("technician")}
-                                className="mt-3 rounded-full bg-slate-200 px-4 py-2 text-sm font-black text-slate-700"
-                              >
-                                Techniker-Signatur löschen
-                              </button>
-                            </div>
-
-                            <div className="rounded-3xl bg-white p-4">
-                              <p className="text-sm font-black text-slate-700">Kunden-Signatur</p>
-                              <canvas
-                                ref={serviceCustomerCanvasRef}
-                                onPointerDown={(event) => startServiceSignature("customer", event)}
-                                onPointerMove={(event) => drawServiceSignature("customer", event)}
-                                onPointerUp={() => finishServiceSignature("customer")}
-                                onPointerCancel={() => finishServiceSignature("customer")}
-                                className="mt-3 h-36 w-full touch-none rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => clearServiceSignature("customer")}
-                                className="mt-3 rounded-full bg-slate-200 px-4 py-2 text-sm font-black text-slate-700"
-                              >
-                                Kunden-Signatur löschen
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className="mt-5 grid gap-3 md:grid-cols-2">
+                          return (
                             <button
+                              key={ticket.id}
                               type="button"
-                              onClick={() => printServiceReport(ticket)}
-                              className="rounded-3xl bg-slate-900 px-5 py-4 font-black text-white"
+                              onClick={() => setSelectedTicketView(ticket)}
+                              className="w-full rounded-2xl bg-white p-3 text-left shadow-sm"
                             >
-                              Servicebericht ansehen / drucken
+                              <p className="text-xs font-black text-green-700">
+                                {ticket.service_date || "ohne Datum"} {ticket.service_time || ""}
+                              </p>
+                              <p className="mt-1 font-black text-slate-900">
+                                {meta.serviceLocation || ticket.customer || ticket.ticket_number}
+                              </p>
+                              <p className="mt-1 text-sm font-semibold text-slate-600">
+                                {ticket.device || "Gerät offen"} · {ticket.status}
+                              </p>
                             </button>
-
-                            <button
-                              type="button"
-                              onClick={() => saveServiceReport(ticket)}
-                              className="rounded-3xl bg-green-600 px-5 py-4 font-black text-white"
-                            >
-                              Unterschrieben abschließen & archivieren
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* TECHNIKER DATEI-UPLOAD */}
-                        <div className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-5">
-                            <h4 className="text-xl font-black text-blue-800">
-                              Fotos & Dokumente zum Einsatz
-                            </h4>
-
-                            <p className="mt-2 text-sm font-bold text-slate-600">
-                              Techniker kann hier Bilder, PDFs und Prüfberichte hochladen.
-                            </p>
-
-                            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
-                              <select
-                                value={uploadCategory}
-                                onChange={(e) => setUploadCategory(e.target.value)}
-                                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
-                              >
-                                {uploadDocumentCategoriesForRole
-                                  .map((item) => (
-                                    <option key={item}>{item}</option>
-                                  ))}
-                              </select>
-
-                              <label className="cursor-pointer rounded-2xl bg-blue-600 px-5 py-3 text-center font-black text-white">
-                                {uploading ? "Upload läuft..." : "Datei hochladen"}
-
-                                <input
-                                  type="file"
-                                  accept="image/*,.pdf,.doc,.docx"
-                                  capture="environment"
-                                  className="hidden"
-                                  disabled={uploading}
-                                  onChange={(event) => handleTicketFileUpload(event, ticket)}
-                                />
-                              </label>
-                            </div>
-
-                            <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
-                              {getDocumentsForTicket(ticket).length === 0 ? (
-                                <div className="rounded-2xl bg-white p-4 text-sm font-bold text-slate-500">
-                                  Noch keine Dokumente vorhanden.
-                                </div>
-                              ) : (
-                                getDocumentsForTicket(ticket).map((doc) => (
-                                  <div
-                                    key={doc.id}
-                                    className="flex items-center justify-between rounded-2xl bg-white p-4"
-                                  >
-                                    <div>
-                                      <p className="font-black">{doc.file_name}</p>
-                                      <p className="text-sm text-slate-500">
-                                        {doc.category}
-                                      </p>
-                                    </div>
-
-                                    <button
-                                      onClick={() => openDocument(doc)}
-                                      className="rounded-2xl bg-blue-100 px-4 py-2 font-black text-blue-700"
-                                    >
-                                      Öffnen
-                                    </button>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                        </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                })
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {technicianTodayTickets.map((ticket) => {
+                    const meta = getTicketDashboardMeta(ticket);
+                    const relatedDevice = getDeviceForTicket(ticket);
+                    const relatedCustomer = meta.billingCustomer;
+                    const contactName =
+                      ticket.service_contact_name ||
+                      relatedCustomer?.contact_person ||
+                      "Ansprechpartner nicht hinterlegt";
+                    const contactPhone =
+                      ticket.service_contact_phone ||
+                      relatedCustomer?.phone ||
+                      "";
+                    const navigationTarget =
+                      meta.serviceAddress ||
+                      meta.serviceLocation ||
+                      ticket.customer ||
+                      "";
+                    const mapsUrl = navigationTarget
+                      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(navigationTarget)}`
+                      : "";
+
+                    return (
+                      <div
+                        key={ticket.id}
+                        className={`overflow-hidden rounded-[32px] border bg-white p-5 shadow-sm ${priorityBorderClass(ticket.priority)}`}
+                      >
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                {ticket.service_time || "Heute"}
+                              </span>
+                              <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
+                                {statusIcon(ticket.status)} {ticket.status}
+                              </span>
+                              <span className={`rounded-full px-3 py-1 text-xs font-black ${priorityClass(ticket.priority)}`}>
+                                {ticket.priority}
+                              </span>
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
+                                {ticket.ticket_number}
+                              </span>
+                            </div>
+
+                            <h3 className="mt-4 break-words text-2xl font-black leading-tight text-slate-900">
+                              {meta.serviceLocation || ticket.customer || "Einsatzort offen"}
+                            </h3>
+
+                            {meta.serviceAddress && (
+                              <p className="mt-2 whitespace-pre-wrap break-words text-base font-bold text-slate-600">
+                                {meta.serviceAddress}
+                              </p>
+                            )}
+
+                            <div className="mt-4 grid gap-3 md:grid-cols-2">
+                              <div className="rounded-3xl bg-slate-50 p-4">
+                                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                                  Ansprechpartner
+                                </p>
+                                <p className="mt-1 break-words text-lg font-black text-slate-900">
+                                  {contactName}
+                                </p>
+                                {contactPhone && (
+                                  <a
+                                    href={`tel:${contactPhone.replace(/\s+/g, "")}`}
+                                    className="mt-3 inline-flex rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                                  >
+                                    ☎ Anrufen
+                                  </a>
+                                )}
+                              </div>
+
+                              <div className="rounded-3xl bg-slate-50 p-4">
+                                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                                  Gerät
+                                </p>
+                                <p className="mt-1 break-words text-lg font-black text-slate-900">
+                                  {ticket.device || "Gerät offen"}
+                                </p>
+                                <p className="mt-1 break-words text-sm font-bold text-slate-600">
+                                  {relatedDevice?.serial_number
+                                    ? `SN: ${relatedDevice.serial_number}`
+                                    : "Seriennummer offen"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 rounded-3xl bg-slate-50 p-4">
+                              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                                Auftrag / Fehlerbeschreibung
+                              </p>
+                              <p className="mt-1 break-words text-base font-black text-slate-900">
+                                {ticket.issue}
+                              </p>
+                              <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold text-slate-700">
+                                {ticket.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:w-56 lg:grid-cols-1">
+                            {mapsUrl && (
+                              <a
+                                href={mapsUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded-3xl bg-slate-900 px-4 py-4 text-center text-sm font-black text-white"
+                              >
+                                📍 Navigation
+                              </a>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => updateServiceStatus(ticket.id, "Gestartet")}
+                              className="rounded-3xl bg-yellow-100 px-4 py-4 text-center text-sm font-black text-yellow-800"
+                            >
+                              ▶ Einsatz starten
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setSelectedTicketView(ticket)}
+                              className="rounded-3xl bg-slate-100 px-4 py-4 text-center text-sm font-black text-slate-800"
+                            >
+                              Akte öffnen
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => openServiceReportSigning(ticket)}
+                              className="rounded-3xl bg-blue-100 px-4 py-4 text-center text-sm font-black text-blue-700"
+                            >
+                              ✍ Bericht / Signatur
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => updateServiceStatus(ticket.id, "Abgeschlossen")}
+                              className="rounded-3xl bg-green-600 px-4 py-4 text-center text-sm font-black text-white"
+                            >
+                              ✓ Abschließen
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
+
+          
 
           {activePage === "Prüfungen" && (
             <div className="space-y-6">
