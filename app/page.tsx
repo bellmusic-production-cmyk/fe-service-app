@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.42 · Ticketliste Alle zeigt alle Tickets
+// FE-Service App v2.1.43 · Ticketliste Alle nach Einstelldatum sortiert
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -872,8 +872,12 @@ export default function Home() {
 
 
 
+  const sortedTicketListTickets = sortTicketsByCreatedAtDesc(filteredTickets);
+
   const ticketListDisplayTickets =
-    statusFilter === "Alle" ? filteredTickets : filteredTickets.slice(0, 5);
+    statusFilter === "Alle"
+      ? sortedTicketListTickets
+      : sortedTicketListTickets.slice(0, 5);
 
   const visibleRoleTickets = useMemo(() => {
     return tickets.filter((ticket) => {
@@ -4016,6 +4020,17 @@ export default function Home() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+
+  function ticketCreatedAtTime(ticket: Ticket) {
+    const time = new Date(ticket.created_at || 0).getTime();
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function sortTicketsByCreatedAtDesc(items: Ticket[]) {
+    return [...items].sort(
+      (a, b) => ticketCreatedAtTime(b) - ticketCreatedAtTime(a),
+    );
   }
 
   function getDeviceNameById(deviceId: number | null) {
