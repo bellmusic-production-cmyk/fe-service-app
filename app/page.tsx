@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.50 · Abnahme Kundensuche Relevanzsortierung
+// FE-Service App v2.1.51 · Abnahme Kundensuche mit exakter Phrase
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -7606,7 +7606,9 @@ FE-SERVICE`,
         .replace(/\s+/g, " ")
         .trim();
 
+    const compactValue = (value: any) => normalizeSearchValue(value).replace(/\s+/g, "");
     const search = normalizeSearchValue(abnahmeCustomerSearch);
+    const compactSearch = compactValue(abnahmeCustomerSearch);
     const searchParts = search.split(/\s+/).filter(Boolean);
 
     const baseCustomers =
@@ -7614,18 +7616,9 @@ FE-SERVICE`,
         ? customers.filter((customerItem) => customerItem.id === userProfile.customer_id)
         : customers;
 
-    const sortedCustomers = [...baseCustomers].sort((a, b) =>
-      String(getCustomerDisplayName(a) || getCustomerLabel(a)).localeCompare(
-        String(getCustomerDisplayName(b) || getCustomerLabel(b)),
-        "de",
-      ),
-    );
-
-    // Ohne Suche keine endlose 2.000er-Liste mehr anzeigen.
-    // Dadurch ist die Abnahme-Auswahl mobil schnell und übersichtlich.
     if (!search || search.length < 2) return [];
 
-    const scoredCustomers = sortedCustomers
+    const scoredCustomers = baseCustomers
       .map((customerItem) => {
         const customerNumber = normalizeSearchValue(customerItem.customer_number);
         const supplierNumber = normalizeSearchValue(customerItem.supplier_number);
@@ -7641,6 +7634,15 @@ FE-SERVICE`,
         const city = normalizeSearchValue(customerItem.city);
         const postalCode = normalizeSearchValue(customerItem.postal_code);
         const address = normalizeSearchValue(buildCustomerAddress(customerItem));
+
+        const compactCustomerNumber = compactValue(customerItem.customer_number);
+        const compactSupplierNumber = compactValue(customerItem.supplier_number);
+        const compactCompany = compactValue(customerItem.company);
+        const compactDisplayName = compactValue(getCustomerDisplayName(customerItem));
+        const compactLabel = compactValue(getCustomerLabel(customerItem));
+        const compactContact = compactValue(customerItem.contact_person);
+        const compactFullName = compactValue(`${customerItem.first_name || ""} ${customerItem.last_name || ""}`);
+        const compactPhone = compactValue(customerItem.phone);
 
         const searchableText = [
           customerItem.id,
@@ -7678,35 +7680,52 @@ FE-SERVICE`,
           .filter(Boolean)
           .join(" ");
 
-        const compactSearch = search.replace(/\s+/g, "");
-        const compactCustomerNumber = customerNumber.replace(/\s+/g, "");
-        const compactSupplierNumber = supplierNumber.replace(/\s+/g, "");
-        const compactPhone = phone.replace(/\s+/g, "");
+        const namePhraseMatch =
+          Boolean(compactSearch) &&
+          [
+            compactCompany,
+            compactLabel,
+            compactDisplayName,
+            compactContact,
+            compactFullName,
+          ].some((value) => value.includes(compactSearch));
 
-        const matches =
-          searchParts.every((part) => searchableText.includes(part)) ||
-          (compactSearch.length >= 2 &&
-            Boolean(compactCustomerNumber && compactCustomerNumber.includes(compactSearch))) ||
-          (compactSearch.length >= 2 &&
-            Boolean(compactSupplierNumber && compactSupplierNumber.includes(compactSearch))) ||
-          (compactSearch.length >= 2 &&
-            Boolean(compactPhone && compactPhone.includes(compactSearch)));
+        const numberMatch =
+          Boolean(compactSearch) &&
+          [
+            compactCustomerNumber,
+            compactSupplierNumber,
+            compactPhone,
+          ].some((value) => value.includes(compactSearch));
+
+        const wordMatch = searchParts.every((part) => searchableText.includes(part));
+
+        const matches = namePhraseMatch || numberMatch || wordMatch;
 
         if (!matches) return null;
 
         let score = 0;
 
-        if (customerNumber === search) score += 1000;
-        else if (customerNumber.startsWith(search)) score += 850;
-        else if (customerNumber.includes(search)) score += 700;
+        // Höchste Priorität: exakte Kundennummern und zusammenhängende Namens-/Firmensuche.
+        if (customerNumber === search || compactCustomerNumber === compactSearch) score += 1500;
+        else if (customerNumber.startsWith(search) || compactCustomerNumber.startsWith(compactSearch)) score += 1250;
+        else if (customerNumber.includes(search) || compactCustomerNumber.includes(compactSearch)) score += 950;
 
-        if (supplierNumber === search) score += 650;
-        else if (supplierNumber.startsWith(search)) score += 520;
-        else if (supplierNumber.includes(search)) score += 420;
+        if (supplierNumber === search || compactSupplierNumber === compactSearch) score += 850;
+        else if (supplierNumber.startsWith(search) || compactSupplierNumber.startsWith(compactSearch)) score += 700;
+        else if (supplierNumber.includes(search) || compactSupplierNumber.includes(compactSearch)) score += 520;
+
+        if (compactCompany === compactSearch || compactLabel === compactSearch || compactDisplayName === compactSearch) score += 1200;
+        else if (compactCompany.startsWith(compactSearch) || compactLabel.startsWith(compactSearch) || compactDisplayName.startsWith(compactSearch)) score += 1000;
+        else if (compactCompany.includes(compactSearch) || compactLabel.includes(compactSearch) || compactDisplayName.includes(compactSearch)) score += 780;
 
         if (company === search || label === search || displayName === search) score += 600;
         else if (company.startsWith(search) || label.startsWith(search) || displayName.startsWith(search)) score += 480;
         else if (company.includes(search) || label.includes(search) || displayName.includes(search)) score += 340;
+
+        if (compactFullName === compactSearch || compactContact === compactSearch) score += 520;
+        else if (compactFullName.startsWith(compactSearch) || compactContact.startsWith(compactSearch)) score += 440;
+        else if (compactFullName.includes(compactSearch) || compactContact.includes(compactSearch)) score += 300;
 
         if (fullName === search || contact === search) score += 420;
         else if (fullName.startsWith(search) || contact.startsWith(search)) score += 320;
@@ -7718,13 +7737,14 @@ FE-SERVICE`,
         if (city.startsWith(search)) score += 110;
         if (address.includes(search)) score += 80;
 
-        // Mehrwortsuche wie "frank bell": alle Wörter erhöhen die Relevanz.
+        // Mehrwortsuche wie "1 FC" oder "frank bell":
+        // Treffer in Firma/Label zählen deutlich stärker als zufällige Treffer in E-Mail/Adresse.
         score += searchParts.reduce((sum, part) => {
           if (customerNumber.includes(part)) return sum + 120;
-          if (company.includes(part) || label.includes(part) || displayName.includes(part)) return sum + 90;
+          if (company.includes(part) || label.includes(part) || displayName.includes(part)) return sum + 100;
           if (fullName.includes(part) || contact.includes(part)) return sum + 70;
-          if (city.includes(part) || address.includes(part)) return sum + 35;
-          return sum + 10;
+          if (city.includes(part) || address.includes(part)) return sum + 25;
+          return sum;
         }, 0);
 
         return { customerItem, score };
