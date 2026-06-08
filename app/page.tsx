@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.53 · Abnahme Suche Scroll Reset und stabile Treffer
+// FE-Service App v2.1.55 · Abnahme Kundensuche strikt aktuell
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -754,17 +754,25 @@ export default function Home() {
   ]);
 
   useEffect(() => {
-    if (abnahmeCustomerResultsRef.current) {
-      abnahmeCustomerResultsRef.current.scrollTop = 0;
-      abnahmeCustomerResultsRef.current.scrollLeft = 0;
-    }
+    const frame = window.requestAnimationFrame(() => {
+      if (abnahmeCustomerResultsRef.current) {
+        abnahmeCustomerResultsRef.current.scrollTop = 0;
+        abnahmeCustomerResultsRef.current.scrollLeft = 0;
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, [abnahmeCustomerSearch]);
 
   useEffect(() => {
-    if (abnahmeDeviceResultsRef.current) {
-      abnahmeDeviceResultsRef.current.scrollTop = 0;
-      abnahmeDeviceResultsRef.current.scrollLeft = 0;
-    }
+    const frame = window.requestAnimationFrame(() => {
+      if (abnahmeDeviceResultsRef.current) {
+        abnahmeDeviceResultsRef.current.scrollTop = 0;
+        abnahmeDeviceResultsRef.current.scrollLeft = 0;
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, [abnahmeDeviceSearch]);
 
   useEffect(() => {
@@ -7699,6 +7707,18 @@ FE-SERVICE`,
           .filter(Boolean)
           .join(" ");
 
+        const primaryText = [
+          company,
+          label,
+          displayName,
+          contact,
+          firstName,
+          lastName,
+          fullName,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
         const namePhraseMatch =
           Boolean(compactSearch) &&
           [
@@ -7717,13 +7737,27 @@ FE-SERVICE`,
             compactPhone,
           ].some((value) => value.includes(compactSearch));
 
-        const wordMatch = searchParts.every((part) => searchableText.includes(part));
+        const allWordsInNameOrCompany =
+          searchParts.length > 1 &&
+          searchParts.every((part) => primaryText.includes(part));
 
-        const matches = namePhraseMatch || numberMatch || wordMatch;
+        const singleWordMatch =
+          searchParts.length === 1 && searchableText.includes(searchParts[0]);
+
+        // Mehrwortsuchen wie "1 FC Kais" oder "Frank Bell" dürfen nicht zufällig
+        // über Adresse/E-Mail/Telefon zusammengesucht werden. Sie müssen im Namen,
+        // in der Firma, im Ansprechpartner oder in einer Nummer zusammenpassen.
+        const matches =
+          namePhraseMatch ||
+          numberMatch ||
+          allWordsInNameOrCompany ||
+          singleWordMatch;
 
         if (!matches) return null;
 
         let score = 0;
+
+        if (allWordsInNameOrCompany) score += 900;
 
         // Höchste Priorität: exakte Kundennummern und zusammenhängende Namens-/Firmensuche.
         if (customerNumber === search || compactCustomerNumber === compactSearch) score += 1500;
@@ -12372,7 +12406,13 @@ FE-SERVICE`,
                         </label>
                         <input
                           value={abnahmeCustomerSearch}
-                          onChange={(e) => setAbnahmeCustomerSearch(e.target.value)}
+                          onChange={(e) => {
+                            setAbnahmeCustomerSearch(e.target.value);
+                            if (abnahmeCustomerResultsRef.current) {
+                              abnahmeCustomerResultsRef.current.scrollTop = 0;
+                              abnahmeCustomerResultsRef.current.scrollLeft = 0;
+                            }
+                          }}
                           placeholder="Kundennummer, Name, Firma, Ort, PLZ, E-Mail, Telefon"
                           className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-green-500"
                         />
@@ -12380,7 +12420,11 @@ FE-SERVICE`,
                           {abnahmeCustomerSearch.trim().length < 2 ? "Bitte mindestens 2 Zeichen oder Kundennummer eingeben." : `${abnahmeCustomers.length} Treffer · nach Relevanz sortiert`}
                         </p>
 
-                        <div ref={abnahmeCustomerResultsRef} className="mt-3 max-h-80 space-y-2 overflow-y-auto overflow-x-hidden">
+                        <div
+                          key={`abnahme-customer-results-${abnahmeCustomerSearch.trim().toLowerCase()}`}
+                          ref={abnahmeCustomerResultsRef}
+                          className="mt-3 max-h-80 space-y-2 overflow-y-auto overflow-x-hidden"
+                        >
                           {abnahmeCustomerSearch.trim().length < 2 ? (
                             <div className="rounded-2xl bg-white p-4 text-sm font-bold text-slate-500">
                               Bitte mindestens 2 Zeichen eingeben. Suche nach Name, Firma, Ort, Telefon oder Kundennummer.
@@ -12390,9 +12434,9 @@ FE-SERVICE`,
                               Kein Kunde gefunden.
                             </div>
                           ) : (
-                            abnahmeCustomers.map((customerItem) => (
+                            abnahmeCustomers.map((customerItem, customerResultIndex) => (
                               <button
-                                key={customerItem.id}
+                                key={`${abnahmeCustomerSearch.trim().toLowerCase()}-${customerResultIndex}-${customerItem.id}`}
                                 type="button"
                                 onClick={() => {
                                   setAbnahmeCustomerId(String(customerItem.id));
@@ -12442,15 +12486,19 @@ FE-SERVICE`,
                           Der ausgewählte Kunde bleibt bestehen. Kundengeräte und Seriennummern werden nicht verändert.
                         </p>
 
-                        <div ref={abnahmeDeviceResultsRef} className="mt-3 max-h-80 space-y-2 overflow-y-auto overflow-x-hidden">
+                        <div
+                          key={`abnahme-device-results-${abnahmeDeviceSearch.trim().toLowerCase()}`}
+                          ref={abnahmeDeviceResultsRef}
+                          className="mt-3 max-h-80 space-y-2 overflow-y-auto overflow-x-hidden"
+                        >
                           {abnahmeDevices.length === 0 ? (
                             <div className="rounded-2xl bg-white p-4 text-sm font-bold text-red-600">
                               Kein Gerät gefunden.
                             </div>
                           ) : (
-                            abnahmeDevices.slice(0, 40).map((deviceItem) => (
+                            abnahmeDevices.slice(0, 40).map((deviceItem, deviceResultIndex) => (
                               <button
-                                key={deviceItem.id}
+                                key={`${abnahmeDeviceSearch.trim().toLowerCase()}-${deviceResultIndex}-${deviceItem.id}`}
                                 type="button"
                                 onClick={() => {
                                   fillAbnahmeFromDevice(String(deviceItem.id));
