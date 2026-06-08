@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.49 · Abnahme Kundensuche mit Kundennummer
+// FE-Service App v2.1.50 · Abnahme Kundensuche Relevanzsortierung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -7597,7 +7597,16 @@ FE-SERVICE`,
   })();
 
   const abnahmeCustomers = (() => {
-    const search = abnahmeCustomerSearch.trim().toLowerCase();
+    const normalizeSearchValue = (value: any) =>
+      String(value ?? "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9äöüß]+/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const search = normalizeSearchValue(abnahmeCustomerSearch);
     const searchParts = search.split(/\s+/).filter(Boolean);
 
     const baseCustomers =
@@ -7612,47 +7621,125 @@ FE-SERVICE`,
       ),
     );
 
-    if (!search) return sortedCustomers;
+    // Ohne Suche keine endlose 2.000er-Liste mehr anzeigen.
+    // Dadurch ist die Abnahme-Auswahl mobil schnell und übersichtlich.
+    if (!search || search.length < 2) return [];
 
-    return sortedCustomers.filter((customerItem) => {
-      const searchableText = [
-        customerItem.id,
-        customerItem.customer_number,
-        customerItem.supplier_number,
-        customerItem.customer_type,
-        customerItem.company,
-        customerItem.contact_person,
-        customerItem.first_name,
-        customerItem.last_name,
-        customerItem.email,
-        customerItem.email_2,
-        customerItem.phone,
-        customerItem.phone_2,
-        customerItem.address,
-        customerItem.address_extra,
-        customerItem.street,
-        customerItem.house_number,
-        customerItem.postal_code,
-        customerItem.city,
-        customerItem.country,
-        customerItem.vat_id,
-        customerItem.tax_number,
-        customerItem.contact_1_name,
-        customerItem.contact_1_email,
-        customerItem.contact_1_phone,
-        customerItem.contact_2_name,
-        customerItem.contact_2_email,
-        customerItem.contact_2_phone,
-        getCustomerDisplayName(customerItem),
-        getCustomerLabel(customerItem),
-        buildCustomerAddress(customerItem),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+    const scoredCustomers = sortedCustomers
+      .map((customerItem) => {
+        const customerNumber = normalizeSearchValue(customerItem.customer_number);
+        const supplierNumber = normalizeSearchValue(customerItem.supplier_number);
+        const company = normalizeSearchValue(customerItem.company);
+        const displayName = normalizeSearchValue(getCustomerDisplayName(customerItem));
+        const label = normalizeSearchValue(getCustomerLabel(customerItem));
+        const contact = normalizeSearchValue(customerItem.contact_person);
+        const firstName = normalizeSearchValue(customerItem.first_name);
+        const lastName = normalizeSearchValue(customerItem.last_name);
+        const fullName = normalizeSearchValue(`${customerItem.first_name || ""} ${customerItem.last_name || ""}`);
+        const email = normalizeSearchValue(customerItem.email);
+        const phone = normalizeSearchValue(customerItem.phone);
+        const city = normalizeSearchValue(customerItem.city);
+        const postalCode = normalizeSearchValue(customerItem.postal_code);
+        const address = normalizeSearchValue(buildCustomerAddress(customerItem));
 
-      return searchParts.every((part) => searchableText.includes(part));
-    });
+        const searchableText = [
+          customerItem.id,
+          customerNumber,
+          supplierNumber,
+          customerItem.customer_type,
+          company,
+          contact,
+          firstName,
+          lastName,
+          fullName,
+          displayName,
+          label,
+          email,
+          normalizeSearchValue(customerItem.email_2),
+          phone,
+          normalizeSearchValue(customerItem.phone_2),
+          normalizeSearchValue(customerItem.address),
+          normalizeSearchValue(customerItem.address_extra),
+          normalizeSearchValue(customerItem.street),
+          normalizeSearchValue(customerItem.house_number),
+          postalCode,
+          city,
+          normalizeSearchValue(customerItem.country),
+          normalizeSearchValue(customerItem.vat_id),
+          normalizeSearchValue(customerItem.tax_number),
+          normalizeSearchValue(customerItem.contact_1_name),
+          normalizeSearchValue(customerItem.contact_1_email),
+          normalizeSearchValue(customerItem.contact_1_phone),
+          normalizeSearchValue(customerItem.contact_2_name),
+          normalizeSearchValue(customerItem.contact_2_email),
+          normalizeSearchValue(customerItem.contact_2_phone),
+          address,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        const compactSearch = search.replace(/\s+/g, "");
+        const compactCustomerNumber = customerNumber.replace(/\s+/g, "");
+        const compactSupplierNumber = supplierNumber.replace(/\s+/g, "");
+        const compactPhone = phone.replace(/\s+/g, "");
+
+        const matches =
+          searchParts.every((part) => searchableText.includes(part)) ||
+          (compactSearch.length >= 2 &&
+            Boolean(compactCustomerNumber && compactCustomerNumber.includes(compactSearch))) ||
+          (compactSearch.length >= 2 &&
+            Boolean(compactSupplierNumber && compactSupplierNumber.includes(compactSearch))) ||
+          (compactSearch.length >= 2 &&
+            Boolean(compactPhone && compactPhone.includes(compactSearch)));
+
+        if (!matches) return null;
+
+        let score = 0;
+
+        if (customerNumber === search) score += 1000;
+        else if (customerNumber.startsWith(search)) score += 850;
+        else if (customerNumber.includes(search)) score += 700;
+
+        if (supplierNumber === search) score += 650;
+        else if (supplierNumber.startsWith(search)) score += 520;
+        else if (supplierNumber.includes(search)) score += 420;
+
+        if (company === search || label === search || displayName === search) score += 600;
+        else if (company.startsWith(search) || label.startsWith(search) || displayName.startsWith(search)) score += 480;
+        else if (company.includes(search) || label.includes(search) || displayName.includes(search)) score += 340;
+
+        if (fullName === search || contact === search) score += 420;
+        else if (fullName.startsWith(search) || contact.startsWith(search)) score += 320;
+        else if (fullName.includes(search) || contact.includes(search)) score += 220;
+
+        if (email.includes(search)) score += 160;
+        if (compactPhone.includes(compactSearch)) score += 140;
+        if (postalCode.startsWith(search)) score += 130;
+        if (city.startsWith(search)) score += 110;
+        if (address.includes(search)) score += 80;
+
+        // Mehrwortsuche wie "frank bell": alle Wörter erhöhen die Relevanz.
+        score += searchParts.reduce((sum, part) => {
+          if (customerNumber.includes(part)) return sum + 120;
+          if (company.includes(part) || label.includes(part) || displayName.includes(part)) return sum + 90;
+          if (fullName.includes(part) || contact.includes(part)) return sum + 70;
+          if (city.includes(part) || address.includes(part)) return sum + 35;
+          return sum + 10;
+        }, 0);
+
+        return { customerItem, score };
+      })
+      .filter((item): item is { customerItem: Customer; score: number } => Boolean(item))
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+
+        return String(getCustomerLabel(a.customerItem)).localeCompare(
+          String(getCustomerLabel(b.customerItem)),
+          "de",
+        );
+      });
+
+    return scoredCustomers.map((item) => item.customerItem).slice(0, 20);
   })();
 
   const abnahmeDevices = (() => {
@@ -12222,16 +12309,20 @@ FE-SERVICE`,
                           className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-green-500"
                         />
                         <p className="mt-2 text-xs font-bold text-slate-500">
-                          {customers.length} Kunden geladen · {abnahmeCustomers.length} Treffer · Suche auch nach Kundennummer
+                          {abnahmeCustomerSearch.trim().length < 2 ? "Bitte mindestens 2 Zeichen oder Kundennummer eingeben." : `${abnahmeCustomers.length} Treffer · nach Relevanz sortiert`}
                         </p>
 
                         <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
-                          {abnahmeCustomers.length === 0 ? (
+                          {abnahmeCustomerSearch.trim().length < 2 ? (
+                            <div className="rounded-2xl bg-white p-4 text-sm font-bold text-slate-500">
+                              Bitte mindestens 2 Zeichen eingeben. Suche nach Name, Firma, Ort, Telefon oder Kundennummer.
+                            </div>
+                          ) : abnahmeCustomers.length === 0 ? (
                             <div className="rounded-2xl bg-white p-4 text-sm font-bold text-red-600">
                               Kein Kunde gefunden.
                             </div>
                           ) : (
-                            abnahmeCustomers.slice(0, 30).map((customerItem) => (
+                            abnahmeCustomers.map((customerItem) => (
                               <button
                                 key={customerItem.id}
                                 type="button"
