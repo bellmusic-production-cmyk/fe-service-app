@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.59 · Abnahme Kundengeräte Dropdown vollständig
+// FE-Service App v2.1.60 · Abnahme Gerätedaten je Gerät bearbeitbar
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -375,6 +375,16 @@ type AbnahmeProtocolCheck = {
   comment: string;
 };
 
+type AbnahmeDeviceRow = {
+  rowId: string;
+  deviceId: string;
+  manufacturer: string;
+  model: string;
+  serial: string;
+  result: string;
+  defects: string;
+};
+
 
 export default function Home() {
   const [session, setSession] = useState<any>(null);
@@ -475,6 +485,7 @@ export default function Home() {
   const [abnahmeCustomerId, setAbnahmeCustomerId] = useState("");
   const [abnahmeDeviceId, setAbnahmeDeviceId] = useState("");
   const [abnahmeSelectedDeviceIds, setAbnahmeSelectedDeviceIds] = useState<string[]>([]);
+  const [abnahmeDeviceRows, setAbnahmeDeviceRows] = useState<AbnahmeDeviceRow[]>([]);
   const [abnahmeTicketId, setAbnahmeTicketId] = useState("");
   const [abnahmeCustomerDevicesOpen, setAbnahmeCustomerDevicesOpen] = useState(false);
   const [abnahmeDate, setAbnahmeDate] = useState(
@@ -3914,10 +3925,8 @@ export default function Home() {
         "",
     );
 
-    // Seriennummern bleiben in der Geräteakte erhalten.
-    // Für das Abnahmeformular wird sie nicht automatisch gefüllt, damit das Protokoll neutral bleibt.
-    setAbnahmeSerial("");
-    setAbnahmeDefects("");
+    setAbnahmeSerial(deviceItem.serial_number || "");
+    setAbnahmeDefects(deviceItem.note || "");
   }
 
   function createInspectionTicket(item: Device) {
@@ -5590,12 +5599,50 @@ FE-SERVICE`,
       .join(" · ");
   }
 
+  function buildAbnahmeDeviceRow(item: Device): AbnahmeDeviceRow {
+    return {
+      rowId: `device-${item.id}`,
+      deviceId: String(item.id),
+      manufacturer:
+        item.manufacturer ||
+        getManufacturerNameById(item.manufacturer_id) ||
+        "",
+      model:
+        getDeviceModelNameById(item.model_id) ||
+        item.model ||
+        item.name ||
+        "",
+      serial: item.serial_number || "",
+      result: abnahmeDeviceResult || "OK",
+      defects: item.note || "",
+    };
+  }
+
+  function updateAbnahmeDeviceRow(
+    rowId: string,
+    field: keyof Omit<AbnahmeDeviceRow, "rowId" | "deviceId">,
+    value: string,
+  ) {
+    setAbnahmeDeviceRows((prev) =>
+      prev.map((row) =>
+        row.rowId === rowId ? { ...row, [field]: value } : row,
+      ),
+    );
+
+    if (field === "result") {
+      setAbnahmeDeviceResult(value);
+    }
+  }
+
   const selectedAbnahmeDevices = abnahmeSelectedDeviceIds
     .map((deviceId) => devices.find((item) => String(item.id) === String(deviceId)))
     .filter((item): item is Device => Boolean(item));
 
   function toggleAbnahmeDevice(deviceId: string) {
     if (!deviceId) return;
+
+    const selectedDevice = devices.find((item) => String(item.id) === String(deviceId));
+    if (!selectedDevice) return;
 
     setAbnahmeSelectedDeviceIds((prev) => {
       const exists = prev.includes(deviceId);
@@ -5605,6 +5652,18 @@ FE-SERVICE`,
 
       const firstDeviceId = nextIds[0] || "";
       setAbnahmeDeviceId(firstDeviceId);
+
+      setAbnahmeDeviceRows((prevRows) => {
+        if (exists) {
+          return prevRows.filter((row) => row.deviceId !== deviceId);
+        }
+
+        if (prevRows.some((row) => row.deviceId === deviceId)) {
+          return prevRows;
+        }
+
+        return [...prevRows, buildAbnahmeDeviceRow(selectedDevice)];
+      });
 
       if (firstDeviceId) {
         const firstDevice = devices.find((item) => String(item.id) === String(firstDeviceId));
@@ -5620,14 +5679,15 @@ FE-SERVICE`,
               firstDevice.name ||
               "",
           );
+          setAbnahmeSerial(firstDevice.serial_number || "");
+          setAbnahmeDefects(firstDevice.note || "");
         }
       } else {
         setAbnahmeManufacturer("");
         setAbnahmeModel("");
+        setAbnahmeSerial("");
+        setAbnahmeDefects("");
       }
-
-      setAbnahmeSerial("");
-      setAbnahmeDefects("");
 
       return nextIds;
     });
@@ -5637,6 +5697,7 @@ FE-SERVICE`,
     setAbnahmeCustomerId("");
     setAbnahmeDeviceId("");
     setAbnahmeSelectedDeviceIds([]);
+    setAbnahmeDeviceRows([]);
     setAbnahmeTicketId("");
     setAbnahmeCustomerDevicesOpen(false);
     setAbnahmeDate(new Date().toISOString().split("T")[0]);
@@ -5826,10 +5887,43 @@ FE-SERVICE`,
         : selectedDevice
           ? [selectedDevice]
           : [];
+    const protocolDeviceRows =
+      abnahmeDeviceRows.length > 0
+        ? abnahmeDeviceRows
+        : [
+            {
+              rowId: "manual",
+              deviceId: "",
+              manufacturer: abnahmeManufacturer || selectedDevice?.manufacturer || "",
+              model: abnahmeModel || selectedDevice?.name || "",
+              serial: abnahmeSerial || selectedDevice?.serial_number || "",
+              result: abnahmeDeviceResult || "OK",
+              defects: abnahmeDefects || "",
+            },
+          ];
     const protocolDeviceText =
-      protocolDevices.length > 0
-        ? protocolDevices.map((item, index) => `${index + 1}. ${getAbnahmeNeutralDeviceLabel(item)}`).join("<br/>")
+      protocolDeviceRows.length > 0
+        ? protocolDeviceRows
+            .map(
+              (item, index) =>
+                `${index + 1}. ${item.manufacturer || "-"} · ${item.model || "-"} · SN: ${item.serial || "-"}`,
+            )
+            .join("<br/>")
         : `${abnahmeManufacturer || ""} ${abnahmeModel || ""}`.trim();
+    const deviceRowsHtml = protocolDeviceRows
+      .map(
+        (item, index) => `
+          <tr>
+            <td colspan="6" class="question">Gerät ${index + 1}</td>
+            <td>${item.manufacturer || ""}</td>
+            <td>${item.model || ""}</td>
+            <td>${item.serial || ""}</td>
+            <td>${item.defects || ""}</td>
+            <td>${item.result || ""}</td>
+          </tr>
+        `,
+      )
+      .join("");
     const selectedTicket = tickets.find(
       (item) => item.id === Number(abnahmeTicketId),
     );
@@ -5840,7 +5934,7 @@ FE-SERVICE`,
       session?.user?.email ||
       "Nicht angegeben";
 
-    const checkRows = abnahmeChecks
+    const checkRows = deviceRowsHtml + abnahmeChecks
       .map(
         (item, index) => `
           <tr>
@@ -5850,9 +5944,9 @@ FE-SERVICE`,
             <td>${item.vs ? "X" : ""}</td>
             <td>${item.df ? "X" : ""}</td>
             <td>${index + 1}</td>
-            <td>${protocolDevices.length > 1 ? "siehe Geräteliste" : abnahmeManufacturer || selectedDevice?.manufacturer || ""}</td>
-            <td>${protocolDevices.length > 1 ? `${protocolDevices.length} Geräte / Modelle` : abnahmeModel || selectedDevice?.name || ""}</td>
-            <td>${abnahmeSerial || ""}</td>
+            <td>${protocolDeviceRows.length > 1 ? "siehe Geräteliste" : protocolDeviceRows[0]?.manufacturer || ""}</td>
+            <td>${protocolDeviceRows.length > 1 ? `${protocolDeviceRows.length} Geräte / Modelle` : protocolDeviceRows[0]?.model || ""}</td>
+            <td>${protocolDeviceRows.length > 1 ? "" : protocolDeviceRows[0]?.serial || ""}</td>
             <td>${item.comment || (index === 0 ? abnahmeDefects : "")}</td>
             <td>${abnahmeDeviceResult}</td>
           </tr>
@@ -6166,9 +6260,28 @@ FE-SERVICE`,
         : selectedDevice
           ? [selectedDevice]
           : [];
+    const protocolDeviceRows =
+      abnahmeDeviceRows.length > 0
+        ? abnahmeDeviceRows
+        : [
+            {
+              rowId: "manual",
+              deviceId: "",
+              manufacturer: abnahmeManufacturer || selectedDevice?.manufacturer || "",
+              model: abnahmeModel || selectedDevice?.name || "",
+              serial: abnahmeSerial || selectedDevice?.serial_number || "",
+              result: abnahmeDeviceResult || "OK",
+              defects: abnahmeDefects || "",
+            },
+          ];
     const protocolDeviceSummary =
-      protocolDevices.length > 0
-        ? protocolDevices.map((item, index) => `${index + 1}. ${getAbnahmeNeutralDeviceLabel(item)}`).join(" | ")
+      protocolDeviceRows.length > 0
+        ? protocolDeviceRows
+            .map(
+              (item, index) =>
+                `${index + 1}. ${item.manufacturer || "-"} · ${item.model || "-"} · SN: ${item.serial || "-"}`,
+            )
+            .join(" | ")
         : `${abnahmeManufacturer || ""} ${abnahmeModel || ""}`.trim();
     const selectedTicket = abnahmeTicketId
       ? tickets.find((item) => item.id === Number(abnahmeTicketId))
@@ -6271,7 +6384,7 @@ FE-SERVICE`,
       y,
       48,
       8,
-      protocolDevices.length > 1 ? "siehe Geräteliste" : abnahmeManufacturer || selectedDevice?.manufacturer || "-",
+      protocolDeviceRows.length > 1 ? "siehe Geräteliste" : protocolDeviceRows[0]?.manufacturer || "-",
       5.8,
     );
     drawCell(
@@ -6279,18 +6392,28 @@ FE-SERVICE`,
       y,
       76,
       8,
-      protocolDevices.length > 1 ? `${protocolDevices.length} Geräte / Modelle` : abnahmeModel || selectedDevice?.name || "-",
+      protocolDeviceRows.length > 1 ? `${protocolDeviceRows.length} Geräte` : protocolDeviceRows[0]?.model || "-",
       5.8,
     );
-    drawCell(134, y, 42, 8, abnahmeSerial || "-", 5.8);
-    drawCell(176, y, 30, 8, abnahmeDeviceResult || "-", 5.8, true, "center");
-    drawCell(206, y, 78, 8, abnahmeDefects || "-", 5.6);
+    drawCell(134, y, 42, 8, protocolDeviceRows.length > 1 ? "" : protocolDeviceRows[0]?.serial || "-", 5.8);
+    drawCell(176, y, 30, 8, protocolDeviceRows.length > 1 ? "" : protocolDeviceRows[0]?.result || "-", 5.8, true, "center");
+    drawCell(206, y, 78, 8, protocolDeviceRows.length > 1 ? "siehe Geräteliste unten" : protocolDeviceRows[0]?.defects || "-", 5.6);
 
     y += 10;
 
-    if (protocolDevices.length > 1) {
-      drawCell(10, y, 274, 10, `Geprüfte Geräte / Modelle: ${protocolDeviceSummary}`, 5.6);
-      y += 12;
+    if (protocolDeviceRows.length > 1) {
+      protocolDeviceRows.forEach((deviceRow, deviceIndex) => {
+        const rowHeight = 8;
+        drawCell(10, y, 18, rowHeight, `Gerät ${deviceIndex + 1}`, 5.4, true);
+        drawCell(28, y, 48, rowHeight, deviceRow.manufacturer || "-", 5.2);
+        drawCell(76, y, 70, rowHeight, deviceRow.model || "-", 5.2);
+        drawCell(146, y, 38, rowHeight, deviceRow.serial || "-", 5.2);
+        drawCell(184, y, 24, rowHeight, deviceRow.result || "-", 5.2, true, "center");
+        drawCell(208, y, 76, rowHeight, deviceRow.defects || "-", 5.1);
+        y += rowHeight;
+      });
+
+      y += 3;
     }
 
     const colX = [10, 151, 163, 175, 187, 199];
@@ -12900,47 +13023,126 @@ FE-SERVICE`,
 
                 <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
                   <h3 className="text-xl font-black">Geräte- und Ergebnisdaten</h3>
+                  <p className="mt-2 text-sm font-semibold text-slate-500">
+                    Ausgewählte Geräte erscheinen hier einzeln und können vor dem PDF korrigiert werden.
+                  </p>
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-2">
-                    <input
-                      value={abnahmeManufacturer}
-                      onChange={(e) => setAbnahmeManufacturer(e.target.value)}
-                      placeholder="Hersteller"
-                      className="rounded-2xl border border-slate-300 px-5 py-4"
-                    />
+                  {abnahmeDeviceRows.length === 0 ? (
+                    <div className="mt-5 grid gap-3 md:grid-cols-2">
+                      <input
+                        value={abnahmeManufacturer}
+                        onChange={(e) => setAbnahmeManufacturer(e.target.value)}
+                        placeholder="Hersteller"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
 
-                    <input
-                      value={abnahmeModel}
-                      onChange={(e) => setAbnahmeModel(e.target.value)}
-                      placeholder="Modell / NR"
-                      className="rounded-2xl border border-slate-300 px-5 py-4"
-                    />
+                      <input
+                        value={abnahmeModel}
+                        onChange={(e) => setAbnahmeModel(e.target.value)}
+                        placeholder="Modell / NR"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
 
-                    <input
-                      value={abnahmeSerial}
-                      onChange={(e) => setAbnahmeSerial(e.target.value)}
-                      placeholder="Seriennummer"
-                      className="rounded-2xl border border-slate-300 px-5 py-4"
-                    />
+                      <input
+                        value={abnahmeSerial}
+                        onChange={(e) => setAbnahmeSerial(e.target.value)}
+                        placeholder="Seriennummer"
+                        className="rounded-2xl border border-slate-300 px-5 py-4"
+                      />
 
-                    <select
-                      value={abnahmeDeviceResult}
-                      onChange={(e) => setAbnahmeDeviceResult(e.target.value)}
-                      className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
-                    >
-                      <option>OK</option>
-                      <option>DF</option>
-                      <option>Rep</option>
-                    </select>
-                  </div>
+                      <select
+                        value={abnahmeDeviceResult}
+                        onChange={(e) => setAbnahmeDeviceResult(e.target.value)}
+                        className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
+                      >
+                        <option>OK</option>
+                        <option>DF</option>
+                        <option>Rep</option>
+                      </select>
 
-                  <textarea
-                    value={abnahmeDefects}
-                    onChange={(e) => setAbnahmeDefects(e.target.value)}
-                    placeholder="Mängel / Feststellungen"
-                    rows={5}
-                    className="mt-4 w-full rounded-2xl border border-slate-300 px-5 py-4"
-                  />
+                      <textarea
+                        value={abnahmeDefects}
+                        onChange={(e) => setAbnahmeDefects(e.target.value)}
+                        placeholder="Mängel / Feststellungen"
+                        rows={5}
+                        className="md:col-span-2 rounded-2xl border border-slate-300 px-5 py-4"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-5 space-y-4">
+                      {abnahmeDeviceRows.map((row, rowIndex) => (
+                        <div
+                          key={row.rowId}
+                          className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
+                        >
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <p className="text-sm font-black text-green-700">
+                              Gerät {rowIndex + 1}
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={() => toggleAbnahmeDevice(row.deviceId)}
+                              className="rounded-full bg-red-100 px-3 py-2 text-xs font-black text-red-700"
+                            >
+                              Entfernen
+                            </button>
+                          </div>
+
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <input
+                              value={row.manufacturer}
+                              onChange={(e) =>
+                                updateAbnahmeDeviceRow(row.rowId, "manufacturer", e.target.value)
+                              }
+                              placeholder="Hersteller"
+                              className="rounded-2xl border border-slate-300 bg-white px-5 py-4"
+                            />
+
+                            <input
+                              value={row.model}
+                              onChange={(e) =>
+                                updateAbnahmeDeviceRow(row.rowId, "model", e.target.value)
+                              }
+                              placeholder="Modell / NR"
+                              className="rounded-2xl border border-slate-300 bg-white px-5 py-4"
+                            />
+
+                            <input
+                              value={row.serial}
+                              onChange={(e) =>
+                                updateAbnahmeDeviceRow(row.rowId, "serial", e.target.value)
+                              }
+                              placeholder="Seriennummer"
+                              className="rounded-2xl border border-slate-300 bg-white px-5 py-4"
+                            />
+
+                            <select
+                              value={row.result}
+                              onChange={(e) =>
+                                updateAbnahmeDeviceRow(row.rowId, "result", e.target.value)
+                              }
+                              className="rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold"
+                            >
+                              <option>OK</option>
+                              <option>DF</option>
+                              <option>Rep</option>
+                            </select>
+
+                            <textarea
+                              value={row.defects}
+                              onChange={(e) =>
+                                updateAbnahmeDeviceRow(row.rowId, "defects", e.target.value)
+                              }
+                              placeholder="Mängel / Feststellungen"
+                              rows={3}
+                              className="md:col-span-2 rounded-2xl border border-slate-300 bg-white px-5 py-4"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
