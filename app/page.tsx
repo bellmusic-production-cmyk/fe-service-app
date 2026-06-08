@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.56 · Abnahme neutrale Geräteauswahl ohne Hinweistext
+// FE-Service App v2.1.57 · Abnahme Mehrfachauswahl neutrale Geräte
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -474,6 +474,7 @@ export default function Home() {
 
   const [abnahmeCustomerId, setAbnahmeCustomerId] = useState("");
   const [abnahmeDeviceId, setAbnahmeDeviceId] = useState("");
+  const [abnahmeSelectedDeviceIds, setAbnahmeSelectedDeviceIds] = useState<string[]>([]);
   const [abnahmeTicketId, setAbnahmeTicketId] = useState("");
   const [abnahmeDate, setAbnahmeDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -5529,9 +5530,73 @@ FE-SERVICE`,
   }
 
 
+  function getAbnahmeNeutralDeviceLabel(item?: Device | null) {
+    if (!item) return "Unbekanntes Gerät";
+
+    const manufacturerName =
+      item.manufacturer ||
+      getManufacturerNameById(item.manufacturer_id) ||
+      "";
+
+    const modelName =
+      getDeviceModelNameById(item.model_id) ||
+      item.model ||
+      "";
+
+    const deviceName = item.name || modelName || "Unbekanntes Gerät";
+
+    return [manufacturerName, modelName || deviceName]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  const selectedAbnahmeDevices = abnahmeSelectedDeviceIds
+    .map((deviceId) => devices.find((item) => String(item.id) === String(deviceId)))
+    .filter((item): item is Device => Boolean(item));
+
+  function toggleAbnahmeDevice(deviceId: string) {
+    if (!deviceId) return;
+
+    setAbnahmeSelectedDeviceIds((prev) => {
+      const exists = prev.includes(deviceId);
+      const nextIds = exists
+        ? prev.filter((item) => item !== deviceId)
+        : [...prev, deviceId];
+
+      const firstDeviceId = nextIds[0] || "";
+      setAbnahmeDeviceId(firstDeviceId);
+
+      if (firstDeviceId) {
+        const firstDevice = devices.find((item) => String(item.id) === String(firstDeviceId));
+        if (firstDevice) {
+          setAbnahmeManufacturer(
+            firstDevice.manufacturer ||
+              getManufacturerNameById(firstDevice.manufacturer_id) ||
+              "",
+          );
+          setAbnahmeModel(
+            getDeviceModelNameById(firstDevice.model_id) ||
+              firstDevice.model ||
+              firstDevice.name ||
+              "",
+          );
+        }
+      } else {
+        setAbnahmeManufacturer("");
+        setAbnahmeModel("");
+      }
+
+      setAbnahmeSerial("");
+      setAbnahmeDefects("");
+
+      return nextIds;
+    });
+  }
+
   function resetAbnahmeProtocolForm() {
     setAbnahmeCustomerId("");
     setAbnahmeDeviceId("");
+    setAbnahmeSelectedDeviceIds([]);
     setAbnahmeTicketId("");
     setAbnahmeDate(new Date().toISOString().split("T")[0]);
     setAbnahmeAddressObject("");
@@ -5584,30 +5649,7 @@ FE-SERVICE`,
   }
 
   function fillAbnahmeFromDevice(deviceId: string) {
-    setAbnahmeDeviceId(deviceId);
-
-    const selectedDevice = devices.find((item) => item.id === Number(deviceId));
-
-    if (!selectedDevice) return;
-
-    // Wichtig:
-    // Geräteauswahl im Abnahmeprotokoll ist neutral.
-    // Der vorher ausgewählte Kunde darf NICHT überschrieben werden.
-    // Seriennummer, Standort, Kundenverknüpfung und Gerätenotizen aus Kundengeräten
-    // werden NICHT übernommen, weil sie pro Kunde/Gerät individuell sind.
-    setAbnahmeManufacturer(
-      selectedDevice.manufacturer ||
-        getManufacturerNameById(selectedDevice.manufacturer_id) ||
-        "",
-    );
-    setAbnahmeModel(
-      getDeviceModelNameById(selectedDevice.model_id) ||
-        selectedDevice.model ||
-        selectedDevice.name ||
-        "",
-    );
-    setAbnahmeSerial("");
-    setAbnahmeDefects("");
+    toggleAbnahmeDevice(deviceId);
   }
 
   function getAbnahmeCanvasContext(canvas: HTMLCanvasElement | null) {
@@ -5737,6 +5779,16 @@ FE-SERVICE`,
     const selectedDevice = devices.find(
       (item) => item.id === Number(abnahmeDeviceId),
     );
+    const protocolDevices =
+      selectedAbnahmeDevices.length > 0
+        ? selectedAbnahmeDevices
+        : selectedDevice
+          ? [selectedDevice]
+          : [];
+    const protocolDeviceText =
+      protocolDevices.length > 0
+        ? protocolDevices.map((item, index) => `${index + 1}. ${getAbnahmeNeutralDeviceLabel(item)}`).join("<br/>")
+        : `${abnahmeManufacturer || ""} ${abnahmeModel || ""}`.trim();
     const selectedTicket = tickets.find(
       (item) => item.id === Number(abnahmeTicketId),
     );
@@ -5757,9 +5809,9 @@ FE-SERVICE`,
             <td>${item.vs ? "X" : ""}</td>
             <td>${item.df ? "X" : ""}</td>
             <td>${index + 1}</td>
-            <td>${abnahmeManufacturer || selectedDevice?.manufacturer || ""}</td>
-            <td>${abnahmeModel || selectedDevice?.name || ""}</td>
-            <td>${abnahmeSerial || selectedDevice?.serial_number || ""}</td>
+            <td>${protocolDevices.length > 1 ? "siehe Geräteliste" : abnahmeManufacturer || selectedDevice?.manufacturer || ""}</td>
+            <td>${protocolDevices.length > 1 ? `${protocolDevices.length} Geräte / Modelle` : abnahmeModel || selectedDevice?.name || ""}</td>
+            <td>${abnahmeSerial || ""}</td>
             <td>${item.comment || (index === 0 ? abnahmeDefects : "")}</td>
             <td>${abnahmeDeviceResult}</td>
           </tr>
@@ -5948,6 +6000,12 @@ FE-SERVICE`,
               Adresse / Objekt <span class="line">${abnahmeAddressObject || (selectedCustomer ? buildCustomerAddress(selectedCustomer) : selectedDevice?.location || "")}</span>
             </div>
 
+            ${
+              protocolDevices.length > 1
+                ? `<div class="row">Geprüfte Geräte / Modelle <span class="line" style="min-width:520px;">${protocolDeviceText}</span></div>`
+                : ""
+            }
+
             <div class="row">
               Auftr. Nr. / Kunden Nr. <span class="line mid">${abnahmeOrderNumber || selectedTicket?.ticket_number || ""}</span>
               <span class="line mid">${abnahmeCustomerNumber || selectedCustomer?.id || ""}</span>
@@ -6061,6 +6119,16 @@ FE-SERVICE`,
     const selectedDevice = devices.find(
       (item) => item.id === Number(abnahmeDeviceId),
     );
+    const protocolDevices =
+      selectedAbnahmeDevices.length > 0
+        ? selectedAbnahmeDevices
+        : selectedDevice
+          ? [selectedDevice]
+          : [];
+    const protocolDeviceSummary =
+      protocolDevices.length > 0
+        ? protocolDevices.map((item, index) => `${index + 1}. ${getAbnahmeNeutralDeviceLabel(item)}`).join(" | ")
+        : `${abnahmeManufacturer || ""} ${abnahmeModel || ""}`.trim();
     const selectedTicket = abnahmeTicketId
       ? tickets.find((item) => item.id === Number(abnahmeTicketId))
       : null;
@@ -6157,13 +6225,32 @@ FE-SERVICE`,
     drawCell(206, y, 78, 7, "Mängel / Gerätedaten", 5.8, true);
 
     y += 7;
-    drawCell(10, y, 48, 8, abnahmeManufacturer || selectedDevice?.manufacturer || "-", 5.8);
-    drawCell(58, y, 76, 8, abnahmeModel || selectedDevice?.name || "-", 5.8);
-    drawCell(134, y, 42, 8, abnahmeSerial || selectedDevice?.serial_number || "-", 5.8);
+    drawCell(
+      10,
+      y,
+      48,
+      8,
+      protocolDevices.length > 1 ? "siehe Geräteliste" : abnahmeManufacturer || selectedDevice?.manufacturer || "-",
+      5.8,
+    );
+    drawCell(
+      58,
+      y,
+      76,
+      8,
+      protocolDevices.length > 1 ? `${protocolDevices.length} Geräte / Modelle` : abnahmeModel || selectedDevice?.name || "-",
+      5.8,
+    );
+    drawCell(134, y, 42, 8, abnahmeSerial || "-", 5.8);
     drawCell(176, y, 30, 8, abnahmeDeviceResult || "-", 5.8, true, "center");
     drawCell(206, y, 78, 8, abnahmeDefects || "-", 5.6);
 
     y += 10;
+
+    if (protocolDevices.length > 1) {
+      drawCell(10, y, 274, 10, `Geprüfte Geräte / Modelle: ${protocolDeviceSummary}`, 5.6);
+      y += 12;
+    }
 
     const colX = [10, 151, 163, 175, 187, 199];
     const colW = [141, 12, 12, 12, 12, 85];
@@ -6338,8 +6425,8 @@ FE-SERVICE`,
   }
 
   async function printAbnahmeProtocol() {
-    if (!abnahmeCustomerId || !abnahmeDeviceId) {
-      alert("Bitte Kunde und Gerät auswählen.");
+    if (!abnahmeCustomerId || selectedAbnahmeDevices.length === 0) {
+      alert("Bitte Kunde und mindestens ein Gerät / Modell auswählen.");
       return;
     }
 
@@ -12498,11 +12585,10 @@ FE-SERVICE`,
                                 key={`${abnahmeDeviceSearch.trim().toLowerCase()}-${deviceResultIndex}-${deviceItem.id}`}
                                 type="button"
                                 onClick={() => {
-                                  fillAbnahmeFromDevice(String(deviceItem.id));
-                                  setAbnahmeDeviceSearch(deviceItem.name || "");
+                                  toggleAbnahmeDevice(String(deviceItem.id));
                                 }}
                                 className={`w-full min-w-0 rounded-2xl border p-4 text-left transition ${
-                                  String(deviceItem.id) === abnahmeDeviceId
+                                  abnahmeSelectedDeviceIds.includes(String(deviceItem.id))
                                     ? "border-green-500 bg-green-50"
                                     : "border-slate-200 bg-white hover:border-green-400"
                                 }`}
@@ -12517,10 +12603,33 @@ FE-SERVICE`,
                                 <p className="mt-1 break-words text-xs font-bold text-slate-400">
                                   Neutraler Gerätetyp · keine Seriennummer · keine Kundenzuordnung
                                 </p>
+                                <p className="mt-2 text-xs font-black text-green-700">
+                                  {abnahmeSelectedDeviceIds.includes(String(deviceItem.id)) ? "✓ Ausgewählt" : "+ Zum Protokoll hinzufügen"}
+                                </p>
                               </button>
                             ))
                           )}
                         </div>
+
+                        {selectedAbnahmeDevices.length > 0 && (
+                          <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-4">
+                            <p className="text-xs font-black uppercase tracking-[0.14em] text-green-700">
+                              Ausgewählte Geräte / Modelle ({selectedAbnahmeDevices.length})
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {selectedAbnahmeDevices.map((item) => (
+                                <button
+                                  key={`selected-abnahme-device-${item.id}`}
+                                  type="button"
+                                  onClick={() => toggleAbnahmeDevice(String(item.id))}
+                                  className="rounded-full bg-white px-4 py-2 text-xs font-black text-slate-800 shadow-sm"
+                                >
+                                  {getAbnahmeNeutralDeviceLabel(item)} ✕
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {/* FE-SERVICE ABNAHME DIREKTSUCHE ENDE */}
@@ -12546,10 +12655,10 @@ FE-SERVICE`,
                     </select>
 <select
                       value={abnahmeDeviceId}
-                      onChange={(e) => fillAbnahmeFromDevice(e.target.value)}
+                      onChange={(e) => toggleAbnahmeDevice(e.target.value)}
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option value="">Gerät manuell auswählen</option>
+                      <option value="">Gerät / Modell zur Auswahl hinzufügen</option>
                       {abnahmeDevices.map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.manufacturer || getManufacturerNameById(item.manufacturer_id) || "Hersteller unbekannt"} · {item.model || getDeviceModelNameById(item.model_id) || item.name}
