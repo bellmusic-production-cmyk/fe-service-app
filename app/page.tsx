@@ -11681,10 +11681,10 @@ FE-SERVICE`,
               )}
 
               <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
-                <h3 className="break-words text-xl font-black">Kundensuche mit Geräteüberblick</h3>
+                <h3 className="break-words text-xl font-black">Kundenstamm</h3>
                 {!isAdmin && (
                   <p className="mt-2 rounded-2xl bg-blue-50 p-3 text-sm font-bold text-blue-700">
-                    Such- und Lesemodus: Techniker können Kundendaten und zugewiesene Geräte ansehen, aber nicht bearbeiten.
+                    Such- und Lesemodus: Techniker können Kundendaten ansehen, aber nicht bearbeiten.
                   </p>
                 )}
 
@@ -11692,7 +11692,7 @@ FE-SERVICE`,
                   <input
                     value={customerDirectorySearch}
                     onChange={(e) => setCustomerDirectorySearch(e.target.value)}
-                    placeholder="Kunden suchen: Firma, Kundennummer, Ort, E-Mail, Telefon..."
+                    placeholder="Kundenstamm suchen: Firma, Kundennummer, Ort, E-Mail, Telefon..."
                     className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-green-500 focus:ring-4 focus:ring-green-100"
                   />
 
@@ -11726,7 +11726,7 @@ FE-SERVICE`,
                             Kundenliste bereit
                           </p>
                           <p className="mt-2 text-sm font-semibold text-slate-500">
-                            Alle geladenen Kunden sind über die Suche abrufbar. Aus Übersichtsgründen wird die Liste erst nach Eingabe eines Suchbegriffs angezeigt.
+                            Alle geladenen Kundenstammdaten sind über die Suche abrufbar. Aus Übersichtsgründen wird die Liste erst nach Eingabe eines Suchbegriffs angezeigt.
                             Nutze oben Firma, Kundennummer, Ort, E-Mail, Telefon oder Adresse.
                           </p>
                         </div>
@@ -13445,25 +13445,9 @@ FE-SERVICE`,
                       </div>
                     )}
 
-<select
-                      value={abnahmeCustomerId}
-                      onChange={(e) => {
-                        const nextCustomerId = e.target.value;
-                        const selectedCustomer = customers.find((item) => item.id === Number(nextCustomerId));
-                        setAbnahmeCustomerId(nextCustomerId);
-                        setAbnahmeAddressObject(selectedCustomer ? buildCustomerAddress(selectedCustomer) : "");
-                        setAbnahmeCustomerSearch(selectedCustomer ? getCustomerLabel(selectedCustomer) : "");
-                        setAbnahmeCustomerNumber(selectedCustomer ? selectedCustomer.customer_number || String(selectedCustomer.id) : "");
-                      }}
-                      className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
-                    >
-                      <option value="">Kunde manuell auswählen</option>
-                      {abnahmeCustomers.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.customer_number ? `${item.customer_number} · ` : ""}{getCustomerLabel(item)}
-                        </option>
-                      ))}
-                    </select>
+{/* Kunde wird über die direkte Kundensuche oben ausgewählt.
+                       Das alte Dropdown „Kunde manuell auswählen“ wurde entfernt,
+                       weil es dieselbe Funktion doppelt und unübersichtlich angeboten hat. */}
 <select
                       value={abnahmeDeviceId}
                       onChange={(e) => toggleAbnahmeDevice(e.target.value)}
