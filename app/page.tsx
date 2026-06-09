@@ -1270,21 +1270,56 @@ export default function Home() {
   }
 
   async function loadUserProfile(userId: string) {
-    // NOTFALL-RESTORE:
-    // Die App darf nicht mehr an der Tabelle profiles hängen bleiben.
-    // Wir öffnen die App sofort als Admin und laden danach die echten Daten
-    // aus customers/devices/tickets usw.
-    const fallbackProfile: UserProfile = {
+    // Rollenrechte dürfen niemals pauschal auf Admin fallen.
+    // Das Profil wird aus public.profiles geladen. Nur dort entscheidet sich:
+    // admin / technician / customer.
+    // Falls kein Profil gefunden wird, wird aus Sicherheitsgründen customer gesetzt.
+    setProfileLoading(true);
+
+    const safeCustomerFallback: UserProfile = {
       id: userId,
-      full_name: session?.user?.email || "Admin",
-      role: "admin",
+      full_name: session?.user?.email || "Benutzer",
+      role: "customer",
       company: null,
       customer_id: null,
       created_at: new Date().toISOString(),
     };
 
-    setUserProfile(fallbackProfile);
-    setProfileLoading(false);
+    try {
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("Profil-Ladevorgang Timeout")), 3500);
+      });
+
+      const profileRequest = supabase
+        .from("profiles")
+        .select("id, full_name, role, company, customer_id, created_at")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const result: any = await Promise.race([profileRequest, timeout]);
+
+      if (result?.error) {
+        console.error("Profil konnte nicht geladen werden:", result.error.message);
+        setUserProfile(safeCustomerFallback);
+        setProfileLoading(false);
+        return;
+      }
+
+      const loadedProfile = result?.data as UserProfile | null;
+
+      if (!loadedProfile || !["admin", "technician", "customer"].includes(String(loadedProfile.role))) {
+        setUserProfile(safeCustomerFallback);
+        setProfileLoading(false);
+        return;
+      }
+
+      setUserProfile(loadedProfile);
+      setProfileLoading(false);
+    } catch (error) {
+      console.error("Profil-Ladevorgang übersprungen:", error);
+      setUserProfile(safeCustomerFallback);
+      setProfileLoading(false);
+    }
   }
 
   async function loadTickets() {
@@ -1609,8 +1644,8 @@ export default function Home() {
     serviceDate?: string | null,
     serviceTime?: string | null,
   ) {
-    if (!isAdmin) {
-      alert("Nur Admins können Tickets zuweisen.");
+    if (!canPlanDispatch) {
+      alert("Nur Admins können Tickets disponieren und Techniker zuweisen.");
       return;
     }
 
@@ -3539,8 +3574,8 @@ export default function Home() {
   }
 
   async function saveManufacturer() {
-    if (!isAdmin) {
-      alert("Nur Admins können Hersteller verwalten.");
+    if (!canCreateOrEditMasterData) {
+      alert("Nur Admins und Techniker können Hersteller anlegen oder bearbeiten.");
       return;
     }
 
@@ -3631,8 +3666,8 @@ export default function Home() {
   }
 
   async function saveDeviceModel() {
-    if (!isAdmin) {
-      alert("Nur Admins können Geräte / Modelle verwalten.");
+    if (!canCreateOrEditMasterData) {
+      alert("Nur Admins und Techniker können Geräte / Modelle anlegen oder bearbeiten.");
       return;
     }
 
@@ -3694,8 +3729,8 @@ export default function Home() {
   }
 
   async function createDevice() {
-    if (!isAdmin) {
-      alert("Nur Admins können Geräte anlegen.");
+    if (!canCreateOrEditMasterData) {
+      alert("Nur Admins und Techniker können Geräte anlegen.");
       return;
     }
 
@@ -3736,8 +3771,8 @@ export default function Home() {
   }
 
   async function updateDevice() {
-    if (!isAdmin) {
-      alert("Nur Admins können Geräte bearbeiten.");
+    if (!canCreateOrEditMasterData) {
+      alert("Nur Admins und Techniker können Geräte bearbeiten.");
       return;
     }
 
@@ -3809,8 +3844,8 @@ export default function Home() {
   }
 
   async function createCustomer() {
-    if (!isAdmin) {
-      alert("Nur Admins können Kunden anlegen.");
+    if (!canCreateOrEditMasterData) {
+      alert("Nur Admins und Techniker können Kunden anlegen.");
       return;
     }
 
@@ -3884,8 +3919,8 @@ export default function Home() {
   }
 
   async function updateCustomer() {
-    if (!isAdmin) {
-      alert("Nur Admins können Kunden bearbeiten.");
+    if (!canCreateOrEditMasterData) {
+      alert("Nur Admins und Techniker können Kunden bearbeiten.");
       return;
     }
 
@@ -7315,6 +7350,8 @@ FE-SERVICE`,
   const isAdmin = role === "admin";
   const isTechnician = role === "technician";
   const isCustomer = role === "customer";
+  const canCreateOrEditMasterData = isAdmin || isTechnician;
+  const canPlanDispatch = isAdmin;
 
   const visibleDocumentCategoriesForRole = isCustomer
     ? documentCategories.filter((category) => customerVisibleDocumentCategories.includes(category))
@@ -7859,7 +7896,11 @@ FE-SERVICE`,
     ? navItems
     : isTechnician
       ? ["Einsatz", "Kalender", "QR-Scan", "Service-Tickets", "Kunden", "Geräte", "Abnahmeprotokoll", "Ersatzteile", "Dokumente"]
-      : ["Kundenportal", "Service-Tickets", "Geräte", "Dokumente", "Rechnungen"];
+      : ["Kundenportal", "Service-Tickets", "Dokumente", "Rechnungen"];
+
+  if (session && legalAccepted && userProfile && !visibleNavItems.includes(activePage)) {
+    window.setTimeout(() => setActivePage(visibleNavItems[0] || "Kundenportal"), 0);
+  }
 
   const navGroups = [
     {
