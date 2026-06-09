@@ -745,26 +745,11 @@ export default function Home() {
   }, [activePage, session?.user?.id]);
 
 
-  useEffect(() => {
-    if (!session?.user?.id || !profileLoading) return;
-
-    const timer = window.setTimeout(() => {
-      const fallbackProfile: UserProfile = {
-        id: session.user.id,
-        full_name: session.user.email || "Admin",
-        role: "admin",
-        company: null,
-        customer_id: null,
-        created_at: new Date().toISOString(),
-      };
-
-      setUserProfile(fallbackProfile);
-      setProfileLoading(false);
-      loadApplicationData();
-    }, 2500);
-
-    return () => window.clearTimeout(timer);
-  }, [session?.user?.id, profileLoading]);
+  // WICHTIG: Kein automatischer Rollen-Fallback mehr.
+  // Früher wurde nach einem Timeout pauschal Admin gesetzt; danach wurde aus Sicherheitsgründen
+  // teils Customer gesetzt. Beim Tab-Wechsel konnte dadurch die sichtbare Rolle springen.
+  // Die Rolle kommt ausschließlich aus public.profiles oder aus dem letzten lokalen Rollen-Cache
+  // des exakt gleichen Users.
 
 
   useEffect(() => {
@@ -1271,10 +1256,14 @@ export default function Home() {
 
   async function loadUserProfile(userId: string) {
     // Rollenrechte dürfen niemals pauschal auf Admin fallen.
-    // Das Profil wird aus public.profiles geladen. Nur dort entscheidet sich:
-    // admin / technician / customer.
-    // Falls kein Profil gefunden wird, wird aus Sicherheitsgründen customer gesetzt.
-    setProfileLoading(true);
+    // Die sichtbare Rolle kommt aus public.profiles.
+    // Bei kurzem Tab-Wechsel behalten wir den bereits geladenen Rollenstand,
+    // statt bei einem Timeout auf Kunde/Admin umzuschalten.
+    const cacheKey = `fe-service-user-profile-${userId}`;
+
+    if (!userProfile || userProfile.id !== userId) {
+      setProfileLoading(true);
+    }
 
     const safeCustomerFallback: UserProfile = {
       id: userId,
@@ -1285,9 +1274,41 @@ export default function Home() {
       created_at: new Date().toISOString(),
     };
 
+    function readCachedProfile() {
+      if (typeof window === "undefined") return null;
+
+      try {
+        const cachedRaw = window.localStorage.getItem(cacheKey);
+        if (!cachedRaw) return null;
+
+        const cachedProfile = JSON.parse(cachedRaw) as UserProfile;
+
+        if (
+          cachedProfile?.id === userId &&
+          ["admin", "technician", "customer"].includes(String(cachedProfile.role))
+        ) {
+          return cachedProfile;
+        }
+      } catch {
+        // defekter Cache wird ignoriert
+      }
+
+      return null;
+    }
+
+    function cacheProfile(profile: UserProfile) {
+      if (typeof window === "undefined") return;
+
+      try {
+        window.localStorage.setItem(cacheKey, JSON.stringify(profile));
+      } catch {
+        // Cache ist nur Komfort, keine Pflicht
+      }
+    }
+
     try {
       const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error("Profil-Ladevorgang Timeout")), 3500);
+        setTimeout(() => reject(new Error("Profil-Ladevorgang Timeout")), 8000);
       });
 
       const profileRequest = supabase
@@ -1300,7 +1321,9 @@ export default function Home() {
 
       if (result?.error) {
         console.error("Profil konnte nicht geladen werden:", result.error.message);
-        setUserProfile(safeCustomerFallback);
+
+        const cachedProfile = readCachedProfile();
+        setUserProfile(cachedProfile || userProfile || safeCustomerFallback);
         setProfileLoading(false);
         return;
       }
@@ -1308,16 +1331,20 @@ export default function Home() {
       const loadedProfile = result?.data as UserProfile | null;
 
       if (!loadedProfile || !["admin", "technician", "customer"].includes(String(loadedProfile.role))) {
-        setUserProfile(safeCustomerFallback);
+        const cachedProfile = readCachedProfile();
+        setUserProfile(cachedProfile || userProfile || safeCustomerFallback);
         setProfileLoading(false);
         return;
       }
 
       setUserProfile(loadedProfile);
+      cacheProfile(loadedProfile);
       setProfileLoading(false);
     } catch (error) {
       console.error("Profil-Ladevorgang übersprungen:", error);
-      setUserProfile(safeCustomerFallback);
+
+      const cachedProfile = readCachedProfile();
+      setUserProfile(cachedProfile || userProfile || safeCustomerFallback);
       setProfileLoading(false);
     }
   }
@@ -8921,24 +8948,15 @@ FE-SERVICE`,
       <main className="flex min-h-screen items-center justify-center bg-[#07130d] p-6 text-white">
         <div className="text-center">
           <h1 className="text-4xl font-black">Rolle wird geladen...</h1>
+          <p className="mt-4 max-w-xl text-sm font-semibold text-slate-300">
+            Die App prüft dein Benutzerprofil. Es wird kein automatischer Admin- oder Kundenmodus mehr gesetzt.
+          </p>
           <button
             type="button"
-            onClick={() => {
-              const fallbackProfile: UserProfile = {
-                id: session?.user?.id || "fallback",
-                full_name: session?.user?.email || "Admin",
-                role: "admin",
-                company: null,
-                customer_id: null,
-                created_at: new Date().toISOString(),
-              };
-              setUserProfile(fallbackProfile);
-              setProfileLoading(false);
-              loadApplicationData();
-            }}
+            onClick={() => window.location.reload()}
             className="mt-8 rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
           >
-            App jetzt öffnen
+            Neu laden
           </button>
         </div>
       </main>
