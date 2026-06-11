@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.73 · Fast Role Cache · keine Sprachsteuerung
+// FE-Service App v2.1.74 · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -241,6 +241,7 @@ type UserProfile = {
   role: "admin" | "technician" | "customer";
   company: string | null;
   customer_id: number | null;
+  is_active?: boolean | null;
   created_at: string;
 };
 
@@ -706,8 +707,11 @@ export default function Home() {
 
         if (currentSession) {
           setAppDataLoaded(false);
-          await loadUserProfile(currentSession.user.id);
-          loadApplicationData();
+          const profileIsValid = await loadUserProfile(currentSession.user.id);
+
+          if (profileIsValid) {
+            loadApplicationData();
+          }
         } else {
           setUserProfile(null);
           setProfileLoading(false);
@@ -743,6 +747,34 @@ export default function Home() {
       window.localStorage.setItem(`fe-service-active-page-${session.user.id}`, activePage);
     }
   }, [activePage, session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    let cancelled = false;
+
+    async function verifyAccess() {
+      if (!session?.user?.id || cancelled) return;
+
+      const profileIsValid = await loadUserProfile(session.user.id);
+
+      if (!profileIsValid || cancelled) return;
+    }
+
+    const intervalId = window.setInterval(verifyAccess, 60000);
+
+    const handleFocus = () => {
+      verifyAccess();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [session?.user?.id]);
 
 
   // WICHTIG: Kein automatischer Rollen-Fallback mehr.
@@ -1076,8 +1108,11 @@ export default function Home() {
 
     if (data.session) {
       setAppDataLoaded(false);
-      await loadUserProfile(data.session.user.id);
-      loadApplicationData();
+      const profileIsValid = await loadUserProfile(data.session.user.id);
+
+      if (profileIsValid) {
+        loadApplicationData();
+      }
     } else {
       setProfileLoading(false);
       setAppDataLoaded(false);
@@ -1105,6 +1140,63 @@ export default function Home() {
     ]);
 
     setAppDataLoaded(true);
+  }
+
+  async function forceSecureLogout(reason: string, userId?: string | null) {
+    console.warn("Sicherheits-Logout:", reason);
+
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Supabase Logout fehlgeschlagen:", error);
+    }
+
+    setSession(null);
+    setTickets([]);
+    setDevices([]);
+    setCustomers([]);
+    setManufacturers([]);
+    setDeviceModels([]);
+    setDocuments([]);
+    setDeviceHistory([]);
+    setMaintenancePlans([]);
+    setServiceParts([]);
+    setPartUsages([]);
+    setInvoices([]);
+    setNotifications([]);
+    setContracts([]);
+    setTechnicians([]);
+    setUserProfile(null);
+    setProfileLoading(false);
+    setAppDataLoaded(false);
+    setLegalAccepted(false);
+    setSelectedDeviceView(null);
+    setSelectedTicketView(null);
+    setServiceSigningTicket(null);
+    setPreviewUrl("");
+    setPreviewName("");
+
+    if (typeof window !== "undefined") {
+      const keysToRemove: string[] = [];
+
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (!key) continue;
+
+        if (
+          key.startsWith("fe-service-user-profile-") ||
+          key.startsWith("fe-service-legal-accepted-") ||
+          key.startsWith("fe-service-active-page-") ||
+          (userId && key.includes(userId))
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+      window.sessionStorage.clear();
+      window.location.href = "/";
+    }
   }
 
   async function checkLegalAcceptance(userId: string) {
@@ -1217,12 +1309,16 @@ export default function Home() {
 
   async function logout() {
     try {
+      const currentUserId = session?.user?.id || userProfile?.id || null;
+
       await supabase.auth.signOut();
 
       setSession(null);
       setTickets([]);
       setDevices([]);
       setCustomers([]);
+      setManufacturers([]);
+      setDeviceModels([]);
       setDocuments([]);
       setDeviceHistory([]);
       setMaintenancePlans([]);
@@ -1234,6 +1330,8 @@ export default function Home() {
       setTechnicians([]);
       setUserProfile(null);
       setProfileLoading(false);
+      setAppDataLoaded(false);
+      setLegalAccepted(false);
       setSelectedDeviceView(null);
       setSelectedTicketView(null);
       setServiceSigningTicket(null);
@@ -1245,7 +1343,24 @@ export default function Home() {
       resetCustomerForm();
 
       if (typeof window !== "undefined") {
-        sessionStorage.clear();
+        const keysToRemove: string[] = [];
+
+        for (let index = 0; index < window.localStorage.length; index += 1) {
+          const key = window.localStorage.key(index);
+          if (!key) continue;
+
+          if (
+            key.startsWith("fe-service-user-profile-") ||
+            key.startsWith("fe-service-legal-accepted-") ||
+            key.startsWith("fe-service-active-page-") ||
+            (currentUserId && key.includes(currentUserId))
+          ) {
+            keysToRemove.push(key);
+          }
+        }
+
+        keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+        window.sessionStorage.clear();
         window.location.href = "/";
       }
     } catch (error) {
@@ -1254,22 +1369,12 @@ export default function Home() {
     }
   }
 
-  async function loadUserProfile(userId: string) {
-    // Fast Role Cache:
-    // Beim Tab-Wechsel darf die App nicht wieder 5-10 Sekunden auf
-    // "Rolle wird geladen" fallen. Wenn ein gültiger Rollen-Cache für exakt
-    // diesen User vorhanden ist, wird er sofort angezeigt. Supabase prüft die
-    // Rolle danach nur im Hintergrund und korrigiert sie, falls sie sich geändert hat.
+  async function loadUserProfile(userId: string): Promise<boolean> {
+    // Sicherheitsregel:
+    // Der lokale Fast Role Cache darf die App nur schneller anzeigen, aber niemals Zugriff erlauben.
+    // Entscheidend ist immer ein aktiver Datensatz in public.profiles.
+    // Wenn Profil, Rolle oder Aktivstatus fehlen, wird die Sitzung beendet.
     const cacheKey = `fe-service-user-profile-${userId}`;
-
-    const safeCustomerFallback: UserProfile = {
-      id: userId,
-      full_name: session?.user?.email || "Benutzer",
-      role: "customer",
-      company: null,
-      customer_id: null,
-      created_at: new Date().toISOString(),
-    };
 
     function readCachedProfile() {
       if (typeof window === "undefined") return null;
@@ -1282,6 +1387,7 @@ export default function Home() {
 
         if (
           cachedProfile?.id === userId &&
+          cachedProfile.is_active !== false &&
           ["admin", "technician", "customer"].includes(String(cachedProfile.role))
         ) {
           return cachedProfile;
@@ -1303,17 +1409,23 @@ export default function Home() {
       }
     }
 
+    function removeCachedProfile() {
+      if (typeof window === "undefined") return;
+
+      try {
+        window.localStorage.removeItem(cacheKey);
+      } catch {
+        // Cache-Löschung darf nicht blockieren
+      }
+    }
+
     const cachedProfile = readCachedProfile();
-    const hasProfileForSameUser = userProfile?.id === userId;
 
     if (cachedProfile) {
       setUserProfile(cachedProfile);
-      setProfileLoading(false);
-    } else if (hasProfileForSameUser) {
-      setProfileLoading(false);
-    } else {
-      setProfileLoading(true);
     }
+
+    setProfileLoading(true);
 
     try {
       const timeout = new Promise<never>((_, reject) => {
@@ -1322,45 +1434,37 @@ export default function Home() {
 
       const profileRequest = supabase
         .from("profiles")
-        .select("id, full_name, role, company, customer_id, created_at")
+        .select("id, full_name, role, company, customer_id, is_active, created_at")
         .eq("id", userId)
         .maybeSingle();
 
       const result: any = await Promise.race([profileRequest, timeout]);
 
       if (result?.error) {
-        console.error("Profil konnte nicht geladen werden:", result.error.message);
-
-        if (!cachedProfile && !hasProfileForSameUser) {
-          setUserProfile(safeCustomerFallback);
-        }
-
-        setProfileLoading(false);
-        return;
+        removeCachedProfile();
+        await forceSecureLogout(`Profil konnte nicht geladen werden: ${result.error.message}`, userId);
+        return false;
       }
 
       const loadedProfile = result?.data as UserProfile | null;
+      const roleIsValid = ["admin", "technician", "customer"].includes(
+        String(loadedProfile?.role || ""),
+      );
 
-      if (!loadedProfile || !["admin", "technician", "customer"].includes(String(loadedProfile.role))) {
-        if (!cachedProfile && !hasProfileForSameUser) {
-          setUserProfile(safeCustomerFallback);
-        }
-
-        setProfileLoading(false);
-        return;
+      if (!loadedProfile || !roleIsValid || loadedProfile.is_active === false) {
+        removeCachedProfile();
+        await forceSecureLogout("Profil fehlt, Rolle wurde entzogen oder Benutzer ist deaktiviert.", userId);
+        return false;
       }
 
       setUserProfile(loadedProfile);
       cacheProfile(loadedProfile);
       setProfileLoading(false);
+      return true;
     } catch (error) {
-      console.error("Profil-Ladevorgang im Hintergrund übersprungen:", error);
-
-      if (!cachedProfile && !hasProfileForSameUser) {
-        setUserProfile(safeCustomerFallback);
-      }
-
-      setProfileLoading(false);
+      removeCachedProfile();
+      await forceSecureLogout("Profilprüfung fehlgeschlagen. Zugriff wurde aus Sicherheitsgründen beendet.", userId);
+      return false;
     }
   }
 
@@ -1591,16 +1695,7 @@ export default function Home() {
     // Sicherer Restore:
     // Techniker werden wieder aus public.profiles geladen.
     // Falls Supabase/RLS hängt oder einen Fehler liefert, blockiert die App nicht.
-    const fallbackTechnicians: UserProfile[] = [
-      {
-        id: "ffb8678a-a6c5-48f0-9ad0-f9d5c0df099c",
-        full_name: "Andreas Wick",
-        role: "technician",
-        company: null,
-        customer_id: null,
-        created_at: new Date().toISOString(),
-      },
-    ];
+    const fallbackTechnicians: UserProfile[] = [];
 
     try {
       const timeout = new Promise<never>((_, reject) => {
@@ -1609,7 +1704,7 @@ export default function Home() {
 
       const profilesRequest = supabase
         .from("profiles")
-        .select("id, full_name, role, company, customer_id, created_at")
+        .select("id, full_name, role, company, customer_id, is_active, created_at")
         .in("role", ["technician", "admin"])
         .order("full_name", { ascending: true });
 
@@ -1622,6 +1717,8 @@ export default function Home() {
       }
 
       const assignableProfiles = ((result?.data || []) as UserProfile[]).filter((profile) => {
+        if (profile.is_active === false) return false;
+
         const role = String(profile.role || "").toLowerCase();
         const name = String(profile.full_name || "").trim().toLowerCase();
 
