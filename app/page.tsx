@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.74 · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// FE-Service App v2.1.76 · Secure Auth · Fast Role Cache · Vercel Supabase Fix · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
