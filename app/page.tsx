@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-// Pro-Effekt App v2.1.82 · Final Rebranding · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// Pro-Effekt App v2.1.86 · Final Rebranding · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -4399,13 +4399,13 @@ export default function Home() {
   }
 
   function statusIcon(statusValue: string) {
-    if (statusValue === "Abgeschlossen" || statusValue === "Erledigt") return "âš«";
-    if (statusValue === "In Bearbeitung") return "ðŸŸ¡";
-    if (statusValue === "Termin vereinbart" || statusValue === "Zugewiesen") return "ðŸ”µ";
-    if (statusValue === "Wartet auf Ersatzteil" || statusValue === "Wartet auf Teile") return "ðŸŸ£";
-    if (statusValue === "Wartet auf Kundenfreigabe") return "ðŸŸ ";
-    if (statusValue === "Dringend") return "ðŸ”´";
-    return "ðŸŸ¢";
+    if (statusValue === "Abgeschlossen" || statusValue === "Erledigt") return "•";
+    if (statusValue === "In Bearbeitung") return "•";
+    if (statusValue === "Termin vereinbart" || statusValue === "Zugewiesen") return "•";
+    if (statusValue === "Wartet auf Ersatzteil" || statusValue === "Wartet auf Teile") return "•";
+    if (statusValue === "Wartet auf Kundenfreigabe") return "•";
+    if (statusValue === "Dringend") return "•";
+    return "•";
   }
 
   function isOwnCustomerTicket(ticket: Ticket) {
@@ -4749,7 +4749,7 @@ export default function Home() {
         <img
           src="/pro-effekt-logo.png"
           alt="Pro-Effekt Logo"
-          className="h-auto w-full max-w-[280px] object-contain drop-shadow-xl"
+          className="h-auto w-full max-w-[132px] object-contain mx-auto drop-shadow-md"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
@@ -7315,7 +7315,7 @@ PRO-EFFEKT`,
         printWindow.print();
       }, 500);
 
-      alert("Abnahmeprotokoll wurde als PDF unter Dokumente â†’ Abnahmeprotokolle gespeichert.");
+      alert("Abnahmeprotokoll wurde als PDF unter Dokumente → Abnahmeprotokolle gespeichert.");
     } catch (error: any) {
       console.error("PDF Erstellung/Archivierung fehlgeschlagen:", error);
       alert(
@@ -8012,7 +8012,7 @@ PRO-EFFEKT`,
             <img
               src="/pro-effekt-logo.png"
               alt="Pro-Effekt"
-              className="h-auto w-full max-w-[220px] object-contain"
+              className="h-auto w-full max-w-[120px] object-contain mx-auto"
               onError={(event) => {
                 event.currentTarget.style.display = "none";
               }}
@@ -8152,37 +8152,37 @@ PRO-EFFEKT`,
   const navGroups = [
     {
       title: "Start",
-      icon: "ðŸ“Š",
+      icon: "",
       items: ["Dashboard", "Kundenportal"],
     },
     {
       title: "Service",
-      icon: "ðŸ”§",
+      icon: "",
       items: ["Einsatz", "Kalender", "Service-Tickets", "QR-Scan", "Abnahmeprotokoll"],
     },
     {
       title: "Stammdaten",
-      icon: "ðŸ¢",
+      icon: "",
       items: ["Kunden", "Geräte"],
     },
     {
       title: "Dokumente",
-      icon: "ðŸ“",
+      icon: "",
       items: ["Dokumente", "Verträge", "Rechnungen"],
     },
     {
       title: "Lager",
-      icon: "ðŸ“¦",
+      icon: "",
       items: ["Ersatzteile"],
     },
     {
       title: "Kommunikation",
-      icon: "ðŸ’¬",
+      icon: "",
       items: ["Benachrichtigungen"],
     },
     {
       title: "Management",
-      icon: "ðŸ“ˆ",
+      icon: "",
       items: ["Auswertungen"],
     },
   ]
@@ -9054,7 +9054,7 @@ PRO-EFFEKT`,
               <img
                 src="/pro-effekt-logo.png"
                 alt="Pro-Effekt Logo"
-                className="mx-auto mt-6 h-auto w-full max-w-[220px] object-contain drop-shadow-xl"
+                className="mx-auto mt-4 h-auto w-full max-w-[120px] object-contain drop-shadow-md"
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
                 }}
@@ -9194,10 +9194,9 @@ PRO-EFFEKT`,
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-3xl px-4 py-3 text-sm font-black text-slate-200 transition hover:bg-white/5">
                     <span className="flex items-center gap-3">
-                      <span>{group.icon}</span>
                       <span>{group.title}</span>
                     </span>
-                    <span className="text-xs text-slate-500 transition group-open:rotate-180">â–¼</span>
+                    <span className="text-xs text-slate-500 transition group-open:rotate-180"></span>
                   </summary>
 
                   <div className="space-y-2 px-2 pb-3">
@@ -9278,7 +9277,7 @@ PRO-EFFEKT`,
                 className="shrink-0 rounded-2xl border border-sky-500/30 bg-sky-500 px-4 py-3 text-sm font-black text-black shadow-lg shadow-sky-950/30 active:scale-[0.98]"
                 aria-label="Menü öffnen"
               >
-                â˜° Menü
+                Menü
               </button>
             </div>
           </div>
@@ -9301,7 +9300,7 @@ PRO-EFFEKT`,
                     className="shrink-0 rounded-2xl bg-white/10 px-4 py-3 text-sm font-black text-white"
                     aria-label="Menü schließen"
                   >
-                    âœ•
+                    Schließen
                   </button>
                 </div>
 
@@ -9490,7 +9489,7 @@ PRO-EFFEKT`,
                     onClick={closePreview}
                     className="shrink-0 rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white shadow-lg active:scale-[0.98] sm:bg-red-100 sm:px-5 sm:text-red-700"
                   >
-                    âœ• Schließen
+                    Schließen
                   </button>
                 </div>
 
@@ -9572,7 +9571,7 @@ PRO-EFFEKT`,
 
               {!appDataLoaded ? (
                 <div className="rounded-[24px] bg-white p-6 text-sm font-black text-slate-500 shadow-sm">
-                  Dashboard-Daten werden vollständig geladen â€¦
+                  Dashboard-Daten werden vollständig geladen ...
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-5">
@@ -9638,7 +9637,7 @@ PRO-EFFEKT`,
                                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                                   <div className="rounded-2xl bg-slate-50 p-3">
                                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                      ðŸ¢ Auftraggeber
+                                      Auftraggeber
                                     </p>
                                     <p className="mt-1 break-words text-sm font-black text-slate-900">
                                       {ticket.customer || "Nicht zugeordnet"}
@@ -9653,7 +9652,7 @@ PRO-EFFEKT`,
                                   {hasDifferentServiceLocation(ticket, meta.billingCustomer) && (
                                     <div className="rounded-2xl bg-sky-50 p-3">
                                       <p className="text-[11px] font-black uppercase tracking-[0.16em] text-sky-600">
-                                        ðŸ“ Einsatzort
+                                        Einsatzort
                                       </p>
                                       <p className="mt-1 break-words text-sm font-black text-slate-900">
                                         {meta.serviceLocation}
@@ -9668,7 +9667,7 @@ PRO-EFFEKT`,
 
                                   <div className="rounded-2xl bg-slate-50 p-3">
                                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                      ðŸ”§ Gerät
+                                      Gerät
                                     </p>
                                     <p className="mt-1 break-words text-sm font-black text-slate-900">
                                       {ticket.device || "Noch nicht zugewiesen"}
@@ -9680,7 +9679,7 @@ PRO-EFFEKT`,
 
                                   <div className="rounded-2xl bg-slate-50 p-3">
                                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                      ðŸ‘¨ Techniker / Termin
+                                      Techniker / Termin
                                     </p>
                                     <p className="mt-1 break-words text-sm font-black text-slate-900">
                                       {meta.technicianName}
@@ -9693,7 +9692,7 @@ PRO-EFFEKT`,
 
                                 <div className="mt-3 rounded-2xl bg-slate-50 p-3">
                                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                    ðŸ“‹ Leistung
+                                    Leistung
                                   </p>
                                   <p className="mt-1 break-words text-sm font-black text-slate-900">
                                     {meta.serviceType}
@@ -10827,7 +10826,7 @@ PRO-EFFEKT`,
                                 Kunde: {getInvoiceCustomerName(item)}
                               </p>
                               <p className="mt-1 text-sm font-bold text-slate-800">
-                                Netto: {item.amount_net.toFixed(2)} â‚¬ · Brutto: {item.amount_gross.toFixed(2)} â‚¬
+                                Netto: {item.amount_net.toFixed(2)} € · Brutto: {item.amount_gross.toFixed(2)} €
                               </p>
                               {item.note && (
                                 <p className="mt-2 break-words text-sm text-slate-500">
@@ -11354,7 +11353,7 @@ PRO-EFFEKT`,
                                 <div className="min-w-0 flex-1">
                                   <div className="flex min-w-0 items-center gap-3">
                                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-lg">
-                                      ðŸ“„
+                                      Dokument
                                     </span>
                                     <div className="min-w-0">
                                       <p className="truncate text-base font-black text-[#07111d]">
@@ -11372,7 +11371,7 @@ PRO-EFFEKT`,
                                     {item.category}
                                   </span>
                                   <span className="text-lg font-black text-slate-400">
-                                    {isExpanded ? "âŒƒ" : "âŒ„"}
+                                    {isExpanded ? "▲" : "▼"}
                                   </span>
                                 </div>
                               </button>
@@ -13382,7 +13381,7 @@ PRO-EFFEKT`,
                         onChange={(e) => setContractMonthlyAmount(e.target.value)}
                         type="number"
                         step="0.01"
-                        placeholder="Monatspauschale â‚¬"
+                        placeholder="Monatspauschale €"
                         className="rounded-2xl border border-slate-300 px-5 py-4"
                       />
 
@@ -13466,7 +13465,7 @@ PRO-EFFEKT`,
                                 </span>
 
                                 <span className="rounded-full bg-sky-100 px-3 py-2 text-xs font-black text-sky-600">
-                                  {(item.monthly_amount || 0).toFixed(2)} â‚¬ / Monat
+                                  {(item.monthly_amount || 0).toFixed(2)} € / Monat
                                 </span>
 
                                 <span className="rounded-full bg-yellow-100 px-3 py-2 text-xs font-black text-yellow-800">
@@ -13688,7 +13687,7 @@ PRO-EFFEKT`,
                                   Bibliotheksmodell · keine Seriennummer · keine Kundenzuordnung
                                 </p>
                                 <p className="mt-2 text-xs font-black text-sky-600">
-                                  {abnahmeSelectedDeviceIds.includes(String(deviceItem.id)) ? "âœ“ Ausgewählt" : "+ Zum Protokoll hinzufügen"}
+                                  {abnahmeSelectedDeviceIds.includes(String(deviceItem.id)) ? "Ausgewählt" : "+ Zum Protokoll hinzufügen"}
                                 </p>
                               </button>
                             ))
@@ -13708,7 +13707,7 @@ PRO-EFFEKT`,
                                   onClick={() => toggleAbnahmeDevice(String(item.id))}
                                   className="rounded-full bg-white px-4 py-2 text-xs font-black text-slate-800 shadow-sm"
                                 >
-                                  {getAbnahmeNeutralDeviceLabel(item)} âœ•
+                                  {getAbnahmeNeutralDeviceLabel(item)} Schließen
                                 </button>
                               ))}
                             </div>
@@ -13739,7 +13738,7 @@ PRO-EFFEKT`,
                               {getDevicesForCustomer(Number(abnahmeCustomerId)).length} Gerät(e)
                             </span>
                             <span className="rounded-full bg-white px-3 py-2 text-sm font-black text-sky-600">
-                              {abnahmeCustomerDevicesOpen ? "â–²" : "â–¼"}
+                              {abnahmeCustomerDevicesOpen ? "▲" : ""}
                             </span>
                           </div>
                         </button>
@@ -13783,7 +13782,7 @@ PRO-EFFEKT`,
                                           : "bg-sky-100 text-sky-600"
                                       }`}
                                     >
-                                      {alreadySelected ? "âœ“" : "+"}
+                                      {alreadySelected ? "✓" : "+"}
                                     </span>
                                   </div>
                                 </button>
@@ -14842,7 +14841,7 @@ PRO-EFFEKT`,
                                     href={`tel:${contactPhone.replace(/\s+/g, "")}`}
                                     className="mt-3 inline-flex rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                                   >
-                                    â˜Ž Anrufen
+                                    Anrufen
                                   </a>
                                 )}
                               </div>
@@ -14883,7 +14882,7 @@ PRO-EFFEKT`,
                                 rel="noreferrer"
                                 className="rounded-3xl bg-slate-900 px-4 py-4 text-center text-sm font-black text-white"
                               >
-                                ðŸ“ Navigation
+                                Navigation
                               </a>
                             )}
 
@@ -14892,7 +14891,7 @@ PRO-EFFEKT`,
                               onClick={() => updateServiceStatus(ticket.id, "Gestartet")}
                               className="rounded-3xl bg-yellow-100 px-4 py-4 text-center text-sm font-black text-yellow-800"
                             >
-                              â–¶ Einsatz starten
+                              Einsatz starten
                             </button>
 
                             <button
@@ -14908,7 +14907,7 @@ PRO-EFFEKT`,
                               onClick={() => openServiceReportSigning(ticket)}
                               className="rounded-3xl bg-blue-100 px-4 py-4 text-center text-sm font-black text-blue-700"
                             >
-                              âœ Bericht / Signatur
+                              Bericht / Signatur
                             </button>
 
                             <button
@@ -14916,7 +14915,7 @@ PRO-EFFEKT`,
                               onClick={() => updateServiceStatus(ticket.id, "Abgeschlossen")}
                               className="rounded-3xl bg-sky-500 px-4 py-4 text-center text-sm font-black text-white"
                             >
-                              âœ“ Abschließen
+                              Abschließen
                             </button>
                           </div>
                         </div>
@@ -15326,7 +15325,7 @@ PRO-EFFEKT`,
                     className="flex w-full items-center justify-between rounded-2xl bg-sky-500 px-5 py-4 text-left text-base font-black text-white md:hidden"
                   >
                     <span>{editingTicket ? "Ticket bearbeiten" : "Neues Ticket erstellen"}</span>
-                    <span>{mobileTicketFormOpen || editingTicket ? "â–²" : "â–¼"}</span>
+                    <span>{mobileTicketFormOpen || editingTicket ? "▲" : ""}</span>
                   </button>
 
                   <h3 className="hidden text-xl font-black md:block">
@@ -15486,7 +15485,7 @@ PRO-EFFEKT`,
                             {getTicketTypeLabel()}
                           </span>
                           <span className="ml-3 text-slate-500">
-                            {ticketTypeDropdownOpen ? "â–²" : "â–¼"}
+                            {ticketTypeDropdownOpen ? "▲" : ""}
                           </span>
                         </button>
 
@@ -15507,7 +15506,7 @@ PRO-EFFEKT`,
                                   }`}
                                 >
                                   <span>{typeName}</span>
-                                  <span>{checked ? "âœ“" : ""}</span>
+                                  <span>{checked ? "✓" : ""}</span>
                                 </button>
                               );
                             })}
@@ -15577,7 +15576,7 @@ PRO-EFFEKT`,
                                   onClick={() => toggleTicketCustomerDevice(String(deviceItem.id))}
                                   className="w-full rounded-xl bg-white px-3 py-2 text-left text-xs font-black text-slate-700 shadow-sm"
                                 >
-                                  {getCustomerDeviceTicketLabel(deviceItem)} âœ•
+                                  {getCustomerDeviceTicketLabel(deviceItem)} Schließen
                                 </button>
                               ))}
                             </div>
@@ -15592,7 +15591,7 @@ PRO-EFFEKT`,
                                   onClick={() => toggleTicketLibraryModel(String(modelItem.id))}
                                   className="rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm"
                                 >
-                                  {getTicketLibraryModelLabel(modelItem)} âœ•
+                                  {getTicketLibraryModelLabel(modelItem)} Schließen
                                 </button>
                               ))}
                             </div>
@@ -15656,7 +15655,7 @@ PRO-EFFEKT`,
                                     {linkedCustomer ? ` · ${getCustomerLabel(linkedCustomer)}` : ""}
                                   </p>
                                   <p className="mt-1 text-xs font-black text-sky-600">
-                                    {selected ? "âœ“ Ausgewählt" : "+ Kundengerät zum Ticket hinzufügen"}
+                                    {selected ? "Ausgewählt" : "+ Kundengerät zum Ticket hinzufügen"}
                                   </p>
                                 </button>
                               );
@@ -15691,7 +15690,7 @@ PRO-EFFEKT`,
                                     {getManufacturerNameById(modelItem.manufacturer_id)} · {getDeviceModelTypeName(modelItem) || "Kategorie offen"}
                                   </p>
                                   <p className="mt-1 text-xs font-black text-sky-600">
-                                    {selected ? "âœ“ Ausgewählt" : "+ Bibliotheksmodell zum Ticket hinzufügen"}
+                                    {selected ? "Ausgewählt" : "+ Bibliotheksmodell zum Ticket hinzufügen"}
                                   </p>
                                 </button>
                               );
@@ -15826,7 +15825,7 @@ PRO-EFFEKT`,
                     className="flex w-full items-center justify-between rounded-2xl bg-sky-500 px-5 py-4 text-left text-base font-black text-white md:hidden"
                   >
                     <span>Ticketliste</span>
-                    <span>{mobileTicketListOpen ? "â–²" : "â–¼"}</span>
+                    <span>{mobileTicketListOpen ? "▲" : ""}</span>
                   </button>
 
                   <h3 className="hidden text-xl font-black md:block">Ticketliste</h3>
@@ -15928,7 +15927,7 @@ PRO-EFFEKT`,
                               <div className="mt-4 grid gap-3 md:grid-cols-2">
                                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                    ðŸ¢ Auftraggeber
+                                    Auftraggeber
                                   </p>
                                   <h4 className="mt-1 break-words text-lg font-black leading-tight text-slate-900">
                                     {ticket.customer || "Auftraggeber nicht zugeordnet"}
@@ -15943,7 +15942,7 @@ PRO-EFFEKT`,
                                 {hasDifferentServiceLocation(ticket, billingCustomer) && (
                                   <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
                                     <p className="text-[11px] font-black uppercase tracking-[0.16em] text-sky-600">
-                                      ðŸ“ Einsatzort
+                                      Einsatzort
                                     </p>
                                     <h4 className="mt-1 break-words text-lg font-black leading-tight text-slate-900">
                                       {serviceLocation}
@@ -15963,7 +15962,7 @@ PRO-EFFEKT`,
 
                                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                    ðŸ”§ Gerät
+                                    Gerät
                                   </p>
                                   <p className="mt-1 break-words text-sm font-black text-slate-900">
                                     {ticket.device || "Noch nicht zugewiesen"}
@@ -15976,7 +15975,7 @@ PRO-EFFEKT`,
 
                                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                                   <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                    ðŸ‘¨ Techniker / Termin
+                                    Techniker / Termin
                                   </p>
                                   <p className="mt-1 break-words text-sm font-black text-slate-900">
                                     {getTechnicianNameById(ticket.assigned_to)}
@@ -15992,7 +15991,7 @@ PRO-EFFEKT`,
 
                               <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
                                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">
-                                  ðŸ“‹ Leistung
+                                  Leistung
                                 </p>
                                 <p className="mt-1 break-words text-sm font-black text-slate-900">
                                   {ticketServiceTypeText(ticket)}
