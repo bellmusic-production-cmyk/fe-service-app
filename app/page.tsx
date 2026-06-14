@@ -1,7 +1,7 @@
 
 "use client";
 
-// Pro-Effekt App v2.1.74 · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// Pro-Effekt App v2.1.81 · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
