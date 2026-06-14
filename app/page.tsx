@@ -7184,7 +7184,7 @@ PRO-EFFEKT`,
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-zA-Z0-9._-]/g, "_");
-      const filePath = `abnahmeprotokolle/${Date.now()}-${fileName}`;
+      const filePath = `abnahmeprotokoll-${Date.now()}-${fileName}`;
 
       const uploadResult = await supabase.storage
         .from("documents")
@@ -7255,10 +7255,15 @@ PRO-EFFEKT`,
         : null;
 
       const pdfBlob = await createAbnahmeProtocolPdfBlob();
-      const fileName = `Abnahmeprotokoll-DGUV-Sicherheitsprüfung-${Date.now()
+      const rawFileName = `Abnahmeprotokoll-DGUV-Sicherheitspruefung-${Date.now()
         .toString()
         .slice(-6)}.pdf`;
-      const filePath = `Abnahmeprotokolle/${Date.now()}-${fileName}`;
+      const fileName = rawFileName
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "_")
+        .toLowerCase();
+      const filePath = `abnahmeprotokoll-${Date.now()}-${fileName}`;
 
       const uploadResult = await supabase.storage
         .from("documents")
@@ -7269,7 +7274,22 @@ PRO-EFFEKT`,
 
       if (uploadResult.error) {
         console.error("PDF Upload fehlgeschlagen:", uploadResult.error);
-        alert(`PDF Upload fehlgeschlagen: ${uploadResult.error.message}`);
+
+        const html = buildAbnahmeProtocolHtml();
+        const printWindow = window.open("", "_blank");
+
+        if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        }
+
+        alert(
+          `PDF konnte nicht im Archiv gespeichert werden. Die Druckansicht wurde trotzdem geöffnet. Fehler: ${uploadResult.error.message}`,
+        );
         return;
       }
 
@@ -9160,7 +9180,7 @@ PRO-EFFEKT`,
             <img
               src="/pro-effekt-logo.png"
               alt="Pro-Effekt Logo"
-              className="mt-4 w-28 max-w-[112px] object-contain"
+              className="mt-4 h-auto w-[72px] max-w-[72px] object-contain"
             />
 
             <p className="mt-8 break-all text-center text-sm text-slate-400">
