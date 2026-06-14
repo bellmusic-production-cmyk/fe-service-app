@@ -1,7 +1,7 @@
 
 "use client";
 
-// FE-Service App v2.1.74 · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// Pro-Effekt App v2.1.74 · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -291,9 +291,10 @@ const filterStatusOptions = [
 const filterPriorityOptions = ["Alle", "Niedrig", "Mittel", "Hoch"];
 
 const ticketTypeOptions = [
+  "Reparatur & Wartung",
   "Reparatur",
   "Wartung",
-  "Prüfung / UVV",
+  "Sicherheitsprüfung",
   "Installation",
   "Beratung",
   "Dienstleistung",
@@ -320,7 +321,7 @@ const documentCategories = [
   "Abnahmeprotokolle",
   "Serviceberichte",
   "Prüfberichte",
-  "UVV-Prüfungen",
+  "Sicherheitsprüfungen",
   "Wartungsprotokolle",
   "Rechnungen",
   "Angebote",
@@ -350,7 +351,7 @@ const customerVisibleDocumentCategories = [
   "Serviceberichte",
   "Abnahmeprotokolle",
   "Prüfberichte",
-  "UVV-Prüfungen",
+  "Sicherheitsprüfungen",
   "Wartungsprotokolle",
   "Rechnungen",
   "Angebote",
@@ -373,7 +374,7 @@ const abnahmeProtocolQuestions = [
   "Seile / Zugseile geprüft",
   "Einstellungen / Lager geprüft",
   "Laufgurt geprüft / eingestellt",
-  "DGUV (UVV)-Unfallverhütungsvorschrift Prüfung",
+  "Sicherheitsprüfung / Funktionsprüfung",
 ];
 
 type AbnahmeProtocolCheck = {
@@ -744,7 +745,7 @@ export default function Home() {
     if (!session?.user?.id || !activePage) return;
 
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(`fe-service-active-page-${session.user.id}`, activePage);
+      window.localStorage.setItem(`pro-effekt-active-page-${session.user.id}`, activePage);
     }
   }, [activePage, session?.user?.id]);
 
@@ -1184,9 +1185,9 @@ export default function Home() {
         if (!key) continue;
 
         if (
-          key.startsWith("fe-service-user-profile-") ||
-          key.startsWith("fe-service-legal-accepted-") ||
-          key.startsWith("fe-service-active-page-") ||
+          key.startsWith("pro-effekt-user-profile-") ||
+          key.startsWith("pro-effekt-legal-accepted-") ||
+          key.startsWith("pro-effekt-active-page-") ||
           (userId && key.includes(userId))
         ) {
           keysToRemove.push(key);
@@ -1218,7 +1219,7 @@ export default function Home() {
       return;
     }
 
-    const localKey = `fe-service-legal-accepted-${userId}`;
+    const localKey = `pro-effekt-legal-accepted-${userId}`;
 
     if (typeof window !== "undefined") {
       const localValue = window.localStorage.getItem(localKey);
@@ -1262,7 +1263,7 @@ export default function Home() {
     setLegalChecking(true);
 
     const userId = session.user.id;
-    const localKey = `fe-service-legal-accepted-${userId}`;
+    const localKey = `pro-effekt-legal-accepted-${userId}`;
 
     const payload = {
       user_id: userId,
@@ -1363,9 +1364,9 @@ export default function Home() {
           if (!key) continue;
 
           if (
-            key.startsWith("fe-service-user-profile-") ||
-            key.startsWith("fe-service-legal-accepted-") ||
-            key.startsWith("fe-service-active-page-") ||
+            key.startsWith("pro-effekt-user-profile-") ||
+            key.startsWith("pro-effekt-legal-accepted-") ||
+            key.startsWith("pro-effekt-active-page-") ||
             (currentUserId && key.includes(currentUserId))
           ) {
             keysToRemove.push(key);
@@ -1387,7 +1388,7 @@ export default function Home() {
     // Der lokale Fast Role Cache darf die App nur schneller anzeigen, aber niemals Zugriff erlauben.
     // Entscheidend ist immer ein aktiver Datensatz in public.profiles.
     // Wenn Profil, Rolle oder Aktivstatus fehlen, wird die Sitzung beendet.
-    const cacheKey = `fe-service-user-profile-${userId}`;
+    const cacheKey = `pro-effekt-user-profile-${userId}`;
 
     function readCachedProfile() {
       if (typeof window === "undefined") return null;
@@ -1619,7 +1620,7 @@ export default function Home() {
       .order("next_due", { ascending: true });
 
     if (error) {
-      console.error("UVV-/Wartungsplanung konnte nicht geladen werden:", error.message);
+      console.error("Service-/Wartungsplanung konnte nicht geladen werden:", error.message);
       setMaintenancePlans([]);
       return;
     }
@@ -1878,7 +1879,7 @@ export default function Home() {
       : null;
 
     if (isCustomer && !userProfile?.customer_id) {
-      alert("Dein Kundenkonto ist noch keinem Kunden zugeordnet. Bitte FE-Service kontaktieren.");
+      alert("Dein Kundenkonto ist noch keinem Kunden zugeordnet. Bitte Pro-Effekt kontaktieren.");
       event.target.value = "";
       return;
     }
@@ -3092,11 +3093,11 @@ export default function Home() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>FE-SERVICE Servicebericht ${ticket.ticket_number || ""}</title>
+          <title>PRO-EFFEKT Servicebericht ${ticket.ticket_number || ""}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
-            h1 { margin: 0; color: #16a34a; letter-spacing: 4px; }
-            h2 { margin-top: 28px; border-bottom: 2px solid #16a34a; padding-bottom: 8px; }
+            h1 { margin: 0; color: #38bdf8; letter-spacing: 4px; }
+            h2 { margin-top: 28px; border-bottom: 2px solid #38bdf8; padding-bottom: 8px; }
             .muted { color: #64748b; font-size: 13px; }
             .box { border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px; margin: 14px 0; }
             .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -3108,8 +3109,8 @@ export default function Home() {
           </style>
         </head>
         <body>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
-          <p class="muted">Fitness Equipment Service · Automatisch archivierter Servicebericht</p>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/pro-effekt-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">PRO-EFFEKT</h1></div>
+          <p class="muted">Pro-Effekt Software Service · Automatisch archivierter Servicebericht</p>
 
           <h2>Kunde & Gerät</h2>
           <div class="box grid">
@@ -3139,9 +3140,9 @@ export default function Home() {
             ${serviceReport || ticket.service_report || "Keine Arbeiten dokumentiert."}
           </div>
 
-          <h2>Prüfsiegel / UVV-Prüfung</h2>
+          <h2>Prüfsiegel / Sicherheitsprüfung-Prüfung</h2>
           <div class="box">
-            UVV- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen,
+            Sicherheitsprüfung- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen,
             Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.
           </div>
           <div class="box grid">
@@ -3280,10 +3281,10 @@ export default function Home() {
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(20);
     pdf.setTextColor(22, 163, 74);
-    pdf.text("FE-SERVICE", margin, y);
+    pdf.text("PRO-EFFEKT", margin, y);
     pdf.setFontSize(9);
     pdf.setTextColor(100, 116, 139);
-    pdf.text("Fitness Equipment Service · Servicebericht / Prüfbericht", margin, y + 6);
+    pdf.text("Pro-Effekt Software Service · Servicebericht / Prüfbericht", margin, y + 6);
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
@@ -3307,9 +3308,9 @@ export default function Home() {
     sectionTitle("Durchgeführte Arbeiten");
     textBox(serviceReport || ticket.service_report || "Keine Arbeiten dokumentiert.", 38);
 
-    sectionTitle("Prüfsiegel / UVV-Prüfung");
+    sectionTitle("Prüfsiegel / Sicherheitsprüfung-Prüfung");
     textBox(
-      "UVV- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen, Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.",
+      "Sicherheitsprüfung- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen, Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.",
       20,
     );
     infoBox([
@@ -3363,7 +3364,7 @@ export default function Home() {
     const footerY = pageHeight - 9;
     pdf.setFontSize(7);
     pdf.setTextColor(100, 116, 139);
-    pdf.text("FE-Service e.K. · Fitness Equipment Service", margin, footerY);
+    pdf.text("Pro-Effekt e.K. · Pro-Effekt Software Service", margin, footerY);
     pdf.text(`Erstellt: ${new Date().toLocaleString("de-DE")}`, pageWidth - margin, footerY, { align: "right" });
 
     return pdf.output("blob") as Blob;
@@ -3507,11 +3508,11 @@ export default function Home() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>FE-SERVICE Servicebericht ${ticket.ticket_number}</title>
+          <title>PRO-EFFEKT Servicebericht ${ticket.ticket_number}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
-            h1 { margin: 0; color: #16a34a; letter-spacing: 4px; }
-            h2 { margin-top: 28px; border-bottom: 2px solid #16a34a; padding-bottom: 8px; }
+            h1 { margin: 0; color: #38bdf8; letter-spacing: 4px; }
+            h2 { margin-top: 28px; border-bottom: 2px solid #38bdf8; padding-bottom: 8px; }
             .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; }
             .muted { color: #64748b; font-size: 13px; }
             .box { border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px; margin: 14px 0; }
@@ -3527,8 +3528,8 @@ export default function Home() {
         <body>
           <div class="top">
             <div>
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
-              <p class="muted">Fitness Equipment Service · Servicebericht / Prüfbericht</p>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/pro-effekt-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">PRO-EFFEKT</h1></div>
+              <p class="muted">Pro-Effekt Software Service · Servicebericht / Prüfbericht</p>
             </div>
             <div>
               <div class="label">Ticket</div>
@@ -3564,9 +3565,9 @@ export default function Home() {
             ${ticket.service_report || serviceReport || "Keine Arbeiten dokumentiert."}
           </div>
 
-          <h2>Prüfsiegel / UVV-Prüfung</h2>
+          <h2>Prüfsiegel / Sicherheitsprüfung-Prüfung</h2>
           <div class="box">
-            UVV- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen,
+            Sicherheitsprüfung- und Sicherheitsprüfungen helfen, technische Mängel frühzeitig zu erkennen,
             Unfallrisiken zu reduzieren und den sicheren Betrieb der Fitnessgeräte nachvollziehbar zu dokumentieren.
           </div>
           <div class="box grid">
@@ -3621,7 +3622,7 @@ export default function Home() {
             </div>
           </div>
 
-          <button onclick="window.print()" style="margin-top:40px;padding:14px 22px;border-radius:14px;border:0;background:#16a34a;color:white;font-weight:bold;">Drucken / als PDF speichern</button>
+          <button onclick="window.print()" style="margin-top:40px;padding:14px 22px;border-radius:14px;border:0;background:#38bdf8;color:white;font-weight:bold;">Drucken / als PDF speichern</button>
         </body>
       </html>
     `;
@@ -3646,7 +3647,7 @@ export default function Home() {
 
   function openServiceReportSigning(ticket: Ticket) {
     if (isCustomer) {
-      alert("PDF / Signatur, Servicebericht, UVV und Abnahme sind nur für Techniker und Admin vorgesehen.");
+      alert("PDF / Signatur, Servicebericht, Sicherheitsprüfung und Abnahme sind nur für Techniker und Admin vorgesehen.");
       return;
     }
 
@@ -3852,7 +3853,7 @@ export default function Home() {
       category: modelCategory.trim() || null,
       type: cleanedModelType,
       device_type: cleanedModelType,
-      source: "FE-Service App",
+      source: "Pro-Effekt App",
       note: modelNote.trim() || null,
     };
 
@@ -4243,7 +4244,7 @@ export default function Home() {
 
   function prepareAbnahmeFromCustomer(item: Customer) {
     if (isCustomer) {
-      alert("Abnahmeprotokolle / UVV dürfen nur Techniker und Admin erstellen.");
+      alert("Abnahmeprotokolle / Sicherheitsprüfung dürfen nur Techniker und Admin erstellen.");
       return;
     }
 
@@ -4260,7 +4261,7 @@ export default function Home() {
 
   function prepareAbnahmeFromTicket(ticket: Ticket) {
     if (isCustomer) {
-      alert("Abnahmeprotokolle / UVV dürfen nur Techniker und Admin erstellen.");
+      alert("Abnahmeprotokolle / Sicherheitsprüfung dürfen nur Techniker und Admin erstellen.");
       return;
     }
 
@@ -4348,7 +4349,7 @@ export default function Home() {
   function priorityClass(priorityValue: string) {
     if (priorityValue === "Hoch") return "bg-red-100 text-red-700";
     if (priorityValue === "Mittel") return "bg-yellow-100 text-yellow-700";
-    return "bg-green-100 text-green-700";
+    return "bg-sky-100 text-sky-600";
   }
 
   function statusClass(statusValue: string) {
@@ -4364,7 +4365,7 @@ export default function Home() {
       return "bg-orange-100 text-orange-700";
     if (statusValue === "Dringend")
       return "bg-red-100 text-red-700";
-    return "bg-green-100 text-green-700";
+    return "bg-sky-100 text-sky-600";
   }
 
   function statusIcon(statusValue: string) {
@@ -4429,7 +4430,7 @@ export default function Home() {
   function priorityBorderClass(priorityValue: string) {
     if (priorityValue === "Hoch") return "border-l-8 border-l-red-500";
     if (priorityValue === "Mittel") return "border-l-8 border-l-yellow-400";
-    return "border-l-8 border-l-green-500";
+    return "border-l-8 border-l-sky-500";
   }
 
   function getTicketDashboardMeta(ticket: Ticket) {
@@ -4466,7 +4467,7 @@ export default function Home() {
   }
 
   function deviceStatusClass(statusValue: string | null) {
-    if (statusValue === "Aktiv") return "bg-green-100 text-green-700";
+    if (statusValue === "Aktiv") return "bg-sky-100 text-sky-600";
     if (statusValue === "Wartung bald fällig") {
       return "bg-yellow-100 text-yellow-700";
     }
@@ -4511,7 +4512,7 @@ export default function Home() {
     return {
       label: "Gültig",
       daysText: `${diffDays} Tage gültig`,
-      className: "bg-green-100 text-green-700",
+      className: "bg-sky-100 text-sky-600",
     };
   }
 
@@ -4669,11 +4670,11 @@ export default function Home() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>FE-SERVICE QR ${item.name}</title>
+          <title>PRO-EFFEKT QR ${item.name}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 30px; color: #0f172a; }
-            .label { width: 360px; border: 2px solid #16a34a; border-radius: 24px; padding: 22px; text-align: center; }
-            h1 { margin: 0; color: #16a34a; letter-spacing: 3px; font-size: 20px; }
+            .label { width: 360px; border: 2px solid #38bdf8; border-radius: 24px; padding: 22px; text-align: center; }
+            h1 { margin: 0; color: #38bdf8; letter-spacing: 3px; font-size: 20px; }
             h2 { margin: 12px 0 4px; font-size: 22px; }
             p { margin: 4px 0; color: #334155; font-size: 13px; }
             img { margin: 18px auto; width: 220px; height: 220px; display: block; }
@@ -4683,7 +4684,7 @@ export default function Home() {
         </head>
         <body>
           <div class="label">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/pro-effekt-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">PRO-EFFEKT</h1></div>
             <p>Geräteakte / Service-QR</p>
             <img src="${qrUrl}" />
             <h2>${item.name}</h2>
@@ -4692,7 +4693,7 @@ export default function Home() {
             <p><strong>Standort:</strong> ${item.location || "-"}</p>
             <p class="small">${getDeviceDirectUrl(item)}</p>
           </div>
-          <button onclick="window.print()" style="margin-top:20px;padding:12px 18px;border:0;border-radius:12px;background:#16a34a;color:white;font-weight:bold;">
+          <button onclick="window.print()" style="margin-top:20px;padding:12px 18px;border:0;border-radius:12px;background:#38bdf8;color:white;font-weight:bold;">
             QR-Etikett drucken
           </button>
         </body>
@@ -4712,12 +4713,12 @@ export default function Home() {
     printWindow.document.close();
   }
 
-  function FeServiceLogo({ dark = false }: { dark?: boolean }) {
+  function ProEffektLogo({ dark = false }: { dark?: boolean }) {
     return (
       <div className="flex w-full flex-col items-center justify-center text-center">
         <img
-          src="/fe-service-logo.png"
-          alt="Fitness Equipment Service"
+          src="/pro-effekt-logo.png"
+          alt="Pro-Effekt Software Service"
           className="h-auto w-full max-w-[280px] object-contain drop-shadow-xl"
           onError={(event) => {
             event.currentTarget.style.display = "none";
@@ -4726,15 +4727,15 @@ export default function Home() {
 
         <p
           className={`mt-4 text-sm font-black uppercase tracking-[0.28em] ${
-            dark ? "text-[var(--fe-green)]" : "text-green-600"
+            dark ? "text-[var(--pe-blue)]" : "text-sky-500"
           }`}
         >
-          FE-SERVICE
+          PRO-EFFEKT
         </p>
 
         <p
           className={`mt-1 text-[10px] font-bold uppercase tracking-[0.22em] ${
-            dark ? "text-green-400" : "text-green-600"
+            dark ? "text-sky-400" : "text-sky-500"
           }`}
         >
           Serviceplattform
@@ -4793,7 +4794,7 @@ export default function Home() {
 
       await new Promise((resolve) => setTimeout(resolve, 400));
 
-      const readerElement = document.getElementById("fe-service-qr-reader");
+      const readerElement = document.getElementById("pro-effekt-qr-reader");
 
       if (!readerElement) {
         setQrScanStatus("Scanner-Feld wurde noch nicht geladen. Bitte erneut QR-Scan starten.");
@@ -4811,7 +4812,7 @@ export default function Home() {
         }
       }
 
-      const scanner = new Html5Qrcode("fe-service-qr-reader");
+      const scanner = new Html5Qrcode("pro-effekt-qr-reader");
       qrScannerRef.current = scanner;
 
       setQrScanStatus("Kamera-Berechtigung wird angefragt...");
@@ -4857,7 +4858,7 @@ export default function Home() {
 
   function getDeviceDirectUrl(item: Device) {
     if (typeof window === "undefined") {
-      return `FE-SERVICE Gerät ${item.id}`;
+      return `PRO-EFFEKT Gerät ${item.id}`;
     }
 
     const url = new URL(window.location.href);
@@ -4911,7 +4912,7 @@ export default function Home() {
 
     return {
       label: `${diffDays} Tage geplant`,
-      className: "bg-green-100 text-green-700",
+      className: "bg-sky-100 text-sky-600",
     };
   }
 
@@ -5631,10 +5632,10 @@ export default function Home() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>FE-SERVICE Prüfbericht</title>
+          <title>PRO-EFFEKT Prüfbericht</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
-            h1 { color: #15803d; margin-bottom: 4px; }
+            h1 { color: #0284c7; margin-bottom: 4px; }
             h2 { margin-top: 32px; }
             .box { border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px; margin: 16px 0; }
             .muted { color: #64748b; font-size: 13px; }
@@ -5644,8 +5645,8 @@ export default function Home() {
           </style>
         </head>
         <body>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
-          <p class="muted">Fitness Equipment Service · Automatischer Prüfbericht</p>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/pro-effekt-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">PRO-EFFEKT</h1></div>
+          <p class="muted">Pro-Effekt Software Service · Automatischer Prüfbericht</p>
 
           <h2>Prüfbericht</h2>
           <div class="box grid">
@@ -5657,11 +5658,11 @@ export default function Home() {
             <div><strong>Prüfstatus</strong><br />${inspection.label}</div>
           </div>
 
-          <h2>UVV- und UVV-/Wartungsplanung</h2>
+          <h2>Sicherheitsprüfung- und Service-/Wartungsplanung</h2>
           <div class="box">
-            <p><strong>UVV-/Wartungsplan:</strong> ${plan?.title || "Kein Wartungsplan hinterlegt"}</p>
+            <p><strong>Sicherheitsprüfung-/Wartungsplan:</strong> ${plan?.title || "Kein Wartungsplan hinterlegt"}</p>
             <p><strong>Intervall:</strong> ${plan?.interval_days || "-"} Tage</p>
-            <p><strong>Nächste UVV/Wartung:</strong> ${plan?.next_due || "Nicht geplant"}</p>
+            <p><strong>Nächste Sicherheitsprüfung/Wartung:</strong> ${plan?.next_due || "Nicht geplant"}</p>
           </div>
 
           <h2>Hinweise</h2>
@@ -5708,14 +5709,14 @@ export default function Home() {
     const body = encodeURIComponent(
       `Hallo,
 
-anbei bzw. im FE-SERVICE Portal finden Sie den Prüfbericht für folgendes Gerät:
+anbei bzw. im PRO-EFFEKT Portal finden Sie den Prüfbericht für folgendes Gerät:
 
 Gerät: ${item.name}
 Seriennummer: ${item.serial_number || "nicht angegeben"}
 Standort: ${item.location || "nicht angegeben"}
 
 Viele Grüße
-FE-SERVICE`,
+PRO-EFFEKT`,
     );
 
     window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
@@ -5736,7 +5737,7 @@ FE-SERVICE`,
       };
     }
 
-    return { label: "OK", className: "bg-green-100 text-green-700" };
+    return { label: "OK", className: "bg-sky-100 text-sky-600" };
   }
 
   function getPartNameById(partId: number | null) {
@@ -5921,7 +5922,7 @@ FE-SERVICE`,
     const maintenanceRows = customerDevices.map((deviceItem) => ({
       device_id: deviceItem.id,
       customer_id: contract.customer_id,
-      title: `Automatische UVV/Wartung · ${contract.contract_number} · ${deviceItem.name}`,
+      title: `Automatische Sicherheitsprüfung/Wartung · ${contract.contract_number} · ${deviceItem.name}`,
       maintenance_type: contract.contract_type || "Wartungsvertrag",
       interval_days: intervalMonths * 30,
       next_due: nextDue.toISOString().split("T")[0],
@@ -5942,7 +5943,7 @@ FE-SERVICE`,
     for (const deviceItem of customerDevices) {
       await createDeviceHistory(
         deviceItem.id,
-        "UVV/Wartung automatisch erzeugt",
+        "Sicherheitsprüfung/Wartung automatisch erzeugt",
         `${contract.contract_number} · nächste Wartung: ${nextDue.toISOString().split("T")[0]}`,
         "Vertrag",
       );
@@ -6575,7 +6576,7 @@ FE-SERVICE`,
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung</title>
+          <title>Abnahmeprotokoll Reparatur & Wartung</title>
           <style>
             * { box-sizing: border-box; }
             body {
@@ -6720,7 +6721,7 @@ FE-SERVICE`,
               padding: 12px 18px;
               border: 0;
               border-radius: 12px;
-              background: #16a34a;
+              background: #38bdf8;
               color: white;
               font-weight: 800;
             }
@@ -6735,10 +6736,10 @@ FE-SERVICE`,
           <div class="page">
             <div class="top">
               <div>
-                <img src="/fe-service-logo.png" class="logo" onerror="this.style.display='none'" />
+                <img src="/pro-effekt-logo.png" class="logo" onerror="this.style.display='none'" />
               </div>
               <div>
-                <h1>Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung für Sport-Fitness – Kraft & Medizin Geräte</h1>
+                <h1>Abnahmeprotokoll Reparatur & Wartung für Sport-Fitness – Kraft & Medizin Geräte</h1>
               </div>
               <div class="small" style="text-align:right;">
                 Seite <span class="line short">${abnahmePage}</span> von
@@ -6764,7 +6765,7 @@ FE-SERVICE`,
               Einmalige Wartung ( ${abnahmeContractType === "Einmalige Wartung" ? "X" : ""} )
               Abnahme ( ${abnahmeContractType === "Abnahme" ? "X" : ""} )
               DGUV202-044 ( ${abnahmeDguvChecked ? "X" : ""} )
-              UVV-Unfallverhütungsvorschrift Prüfung ( ${abnahmeUvvChecked ? "X" : ""} )
+              Sicherheitsprüfung-Unfallverhütungsvorschrift Prüfung ( ${abnahmeUvvChecked ? "X" : ""} )
             </div>
 
             <table>
@@ -6838,14 +6839,14 @@ FE-SERVICE`,
 
             <div class="company">
               <div>
-                <div class="footer-service-logo">FE-Service e.K.</div>
-                <div class="footer-service-sub">Fitness Equipment Service</div>
+                <div class="footer-service-logo">Pro-Effekt e.K.</div>
+                <div class="footer-service-sub">Pro-Effekt Software Service</div>
               </div>
 
               <div class="footer-details">
                 Lockenbach 1, 51491 Overath&nbsp;&nbsp;&nbsp; Lager: Mathildenstr. 5, 53797 Lohmar<br/>
                 Tel. 02206-9389333, Fax 02206-9389339<br/>
-                E-Mail: info@fe-service.de, URL: www.fe-service.de<br/>
+                E-Mail: info@pro-effekt.de, URL: www.pro-effekt.de<br/>
                 Inhaber-Geschäftsführer: Frank Ehlers&nbsp;&nbsp; Ust_iD: DE2335605663&nbsp;&nbsp; HRA 37460 Amtsgericht Köln
               </div>
 
@@ -6957,7 +6958,7 @@ FE-SERVICE`,
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(11);
     pdf.text(
-      "Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung für Sport-Fitness – Kraft & Medizin Geräte",
+      "Abnahmeprotokoll Reparatur & Wartung für Sport-Fitness – Kraft & Medizin Geräte",
       pageWidth / 2,
       y,
       { align: "center" },
@@ -6984,7 +6985,7 @@ FE-SERVICE`,
     checkbox("Einmalige Wartung", abnahmeContractType === "Einmalige Wartung", 48, y);
     checkbox("Abnahme", abnahmeContractType === "Abnahme", 91, y);
     checkbox("DGUV202-044", abnahmeDguvChecked, 118, y);
-    checkbox("UVV-Unfallverhütungsvorschrift Prüfung", abnahmeUvvChecked, 153, y);
+    checkbox("Sicherheitsprüfung-Unfallverhütungsvorschrift Prüfung", abnahmeUvvChecked, 153, y);
 
     y += 6;
 
@@ -7115,7 +7116,7 @@ FE-SERVICE`,
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(7.4);
-    pdf.text("FE-Service e.K.", 12, footerY);
+    pdf.text("Pro-Effekt e.K.", 12, footerY);
     pdf.setFontSize(4.4);
     pdf.text("FITNESS EQUIPMENT SERVICE", 12, footerY + 3.4);
 
@@ -7123,7 +7124,7 @@ FE-SERVICE`,
     pdf.setFontSize(5.0);
     pdf.text("Lockenbach 1, 51491 Overath   Lager: Mathildenstr. 5, 53797 Lohmar", 58, footerY);
     pdf.text("Tel. 02206-9389333, Fax 02206-9389339", 58, footerY + 3.8);
-    pdf.text("E-Mail: info@fe-service.de, URL: www.fe-service.de", 58, footerY + 7.6);
+    pdf.text("E-Mail: info@pro-effekt.de, URL: www.pro-effekt.de", 58, footerY + 7.6);
     pdf.text("Inhaber-Geschäftsführer: Frank Ehlers   Ust_iD: DE2335605663   HRA 37460 Amtsgericht Köln", 58, footerY + 11.4);
 
     pdf.setFont("helvetica", "bold");
@@ -7148,7 +7149,7 @@ FE-SERVICE`,
 
     try {
       const pdfBlob = await createAbnahmeProtocolPdfBlob();
-      const fileName = `Abnahmeprotokoll-DGUV-UVV-${Date.now().toString().slice(-6)}.pdf`;
+      const fileName = `Abnahmeprotokoll-DGUV-Sicherheitsprüfung-${Date.now().toString().slice(-6)}.pdf`;
       const filePath = `Abnahmeprotokolle/${Date.now()}-${fileName}`;
 
       const uploadResult = await supabase.storage
@@ -7186,7 +7187,7 @@ FE-SERVICE`,
 
       await createDeviceHistory(
         null,
-        "Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung als PDF archiviert",
+        "Abnahmeprotokoll Reparatur & Wartung als PDF archiviert",
         `${fileName} · nächste Prüfung: ${abnahmeNextInspection || "nicht angegeben"}`,
         "PDF",
       );
@@ -7220,7 +7221,7 @@ FE-SERVICE`,
         : null;
 
       const pdfBlob = await createAbnahmeProtocolPdfBlob();
-      const fileName = `Abnahmeprotokoll-DGUV-UVV-${Date.now()
+      const fileName = `Abnahmeprotokoll-DGUV-Sicherheitsprüfung-${Date.now()
         .toString()
         .slice(-6)}.pdf`;
       const filePath = `Abnahmeprotokolle/${Date.now()}-${fileName}`;
@@ -7262,7 +7263,7 @@ FE-SERVICE`,
 
       await createDeviceHistory(
         null,
-        "Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung als PDF archiviert",
+        "Abnahmeprotokoll Reparatur & Wartung als PDF archiviert",
         `${fileName} · nächste Prüfung: ${abnahmeNextInspection || "nicht angegeben"}`,
         "PDF",
       );
@@ -7442,22 +7443,22 @@ FE-SERVICE`,
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>FE-SERVICE ${item.type} ${item.number}</title>
+          <title>PRO-EFFEKT ${item.type} ${item.number}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 40px; color: #0f172a; }
-            h1 { color: #16a34a; letter-spacing: 4px; }
-            h2 { margin-top: 30px; border-bottom: 2px solid #16a34a; padding-bottom: 8px; }
+            h1 { color: #38bdf8; letter-spacing: 4px; }
+            h2 { margin-top: 30px; border-bottom: 2px solid #38bdf8; padding-bottom: 8px; }
             .box { border: 1px solid #cbd5e1; border-radius: 16px; padding: 18px; margin: 16px 0; }
             .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
             .label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold; }
             .value { margin-top: 4px; font-weight: bold; }
-            .total { font-size: 28px; font-weight: 900; color: #16a34a; }
+            .total { font-size: 28px; font-weight: 900; color: #38bdf8; }
             @media print { button { display: none; } }
           </style>
         </head>
         <body>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/fe-service-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">FE-SERVICE</h1></div>
-          <p>Fitness Equipment Service · ${item.type}</p>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;"><img src="/pro-effekt-logo.png" onerror="this.style.display='none'" style="height:38px;max-width:160px;object-fit:contain;" /><h1 style="margin:0;">PRO-EFFEKT</h1></div>
+          <p>Pro-Effekt Software Service · ${item.type}</p>
 
           <h2>${item.type} ${item.number}</h2>
           <div class="box grid">
@@ -7481,7 +7482,7 @@ FE-SERVICE`,
             <div><div class="label">Brutto</div><div class="total">${item.amount_gross.toFixed(2)} EUR</div></div>
           </div>
 
-          <button onclick="window.print()" style="padding:14px 22px;border-radius:14px;border:0;background:#16a34a;color:white;font-weight:bold;">Drucken / PDF speichern</button>
+          <button onclick="window.print()" style="padding:14px 22px;border-radius:14px;border:0;background:#38bdf8;color:white;font-weight:bold;">Drucken / PDF speichern</button>
         </body>
       </html>
     `;
@@ -7975,12 +7976,12 @@ FE-SERVICE`,
     : null;
   if (session && !legalAccepted) {
     return (
-      <main className="min-h-screen bg-[#07130d] px-5 py-8 text-white">
-        <div className="mx-auto max-w-5xl rounded-[36px] border border-green-500/20 bg-[#0f1d15] p-6 shadow-2xl shadow-black/40 md:p-8">
+      <main className="min-h-screen bg-[#07111d] px-5 py-8 text-white">
+        <div className="mx-auto max-w-5xl rounded-[36px] border border-sky-500/20 bg-[#0b1726] p-6 shadow-2xl shadow-black/40 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center">
             <img
-              src="/fe-service-logo.png"
-              alt="FE-Service"
+              src="/pro-effekt-logo.png"
+              alt="Pro-Effekt"
               className="h-auto w-full max-w-[220px] object-contain"
               onError={(event) => {
                 event.currentTarget.style.display = "none";
@@ -7988,8 +7989,8 @@ FE-SERVICE`,
             />
 
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.28em] text-green-400">
-                FE-SERVICE
+              <p className="text-sm font-black uppercase tracking-[0.28em] text-sky-400">
+                PRO-EFFEKT
               </p>
               <h1 className="mt-2 text-3xl font-black md:text-5xl">
                 Zustimmung erforderlich
@@ -8002,17 +8003,17 @@ FE-SERVICE`,
           </div>
 
           <div className="mt-8 grid gap-5 lg:grid-cols-3">
-            <section className="rounded-[28px] border border-green-500/15 bg-[#13241a] p-5">
-              <h2 className="text-xl font-black text-green-400">Datenschutz</h2>
+            <section className="rounded-[28px] border border-sky-500/15 bg-[#0f1e2e] p-5">
+              <h2 className="text-xl font-black text-sky-400">Datenschutz</h2>
               <p className="mt-3 text-sm font-semibold leading-7 text-slate-300">
-                Die FE-Service Plattform verarbeitet Kundendaten, Kontaktdaten,
+                Die Pro-Effekt Plattform verarbeitet Kundendaten, Kontaktdaten,
                 Gerätedaten, Tickets, Dokumente, Serviceberichte und Prüfprotokolle
                 zur Durchführung von Service-, Wartungs- und Prüfleistungen.
               </p>
             </section>
 
-            <section className="rounded-[28px] border border-green-500/15 bg-[#13241a] p-5">
-              <h2 className="text-xl font-black text-green-400">
+            <section className="rounded-[28px] border border-sky-500/15 bg-[#0f1e2e] p-5">
+              <h2 className="text-xl font-black text-sky-400">
                 Nutzungsbedingungen
               </h2>
               <p className="mt-3 text-sm font-semibold leading-7 text-slate-300">
@@ -8022,8 +8023,8 @@ FE-SERVICE`,
               </p>
             </section>
 
-            <section className="rounded-[28px] border border-green-500/15 bg-[#13241a] p-5">
-              <h2 className="text-xl font-black text-green-400">
+            <section className="rounded-[28px] border border-sky-500/15 bg-[#0f1e2e] p-5">
+              <h2 className="text-xl font-black text-sky-400">
                 Digitale Dokumentation
               </h2>
               <p className="mt-3 text-sm font-semibold leading-7 text-slate-300">
@@ -8033,38 +8034,38 @@ FE-SERVICE`,
             </section>
           </div>
 
-          <div className="mt-8 space-y-4 rounded-[30px] border border-green-500/20 bg-[#13241a] p-5">
-            <label className="flex items-start gap-4 rounded-2xl bg-[#0f1d15] p-4">
+          <div className="mt-8 space-y-4 rounded-[30px] border border-sky-500/20 bg-[#0f1e2e] p-5">
+            <label className="flex items-start gap-4 rounded-2xl bg-[#0b1726] p-4">
               <input
                 type="checkbox"
                 checked={acceptPrivacy}
                 onChange={(event) => setAcceptPrivacy(event.target.checked)}
-                className="mt-1 h-6 w-6 accent-green-500"
+                className="mt-1 h-6 w-6 accent-sky-500"
               />
               <span className="text-sm font-semibold leading-7 text-slate-200 md:text-base">
                 Ich akzeptiere die Datenschutzerklärung und stimme der Verarbeitung
-                personenbezogener Daten im Rahmen der FE-Service Plattform zu.
+                personenbezogener Daten im Rahmen der Pro-Effekt Plattform zu.
               </span>
             </label>
 
-            <label className="flex items-start gap-4 rounded-2xl bg-[#0f1d15] p-4">
+            <label className="flex items-start gap-4 rounded-2xl bg-[#0b1726] p-4">
               <input
                 type="checkbox"
                 checked={acceptTerms}
                 onChange={(event) => setAcceptTerms(event.target.checked)}
-                className="mt-1 h-6 w-6 accent-green-500"
+                className="mt-1 h-6 w-6 accent-sky-500"
               />
               <span className="text-sm font-semibold leading-7 text-slate-200 md:text-base">
-                Ich akzeptiere die Nutzungsbedingungen der FE-Service Plattform.
+                Ich akzeptiere die Nutzungsbedingungen der Pro-Effekt Plattform.
               </span>
             </label>
 
-            <label className="flex items-start gap-4 rounded-2xl bg-[#0f1d15] p-4">
+            <label className="flex items-start gap-4 rounded-2xl bg-[#0b1726] p-4">
               <input
                 type="checkbox"
                 checked={acceptDigitalDocumentation}
                 onChange={(event) => setAcceptDigitalDocumentation(event.target.checked)}
-                className="mt-1 h-6 w-6 accent-green-500"
+                className="mt-1 h-6 w-6 accent-sky-500"
               />
               <span className="text-sm font-semibold leading-7 text-slate-200 md:text-base">
                 Ich stimme der digitalen Speicherung von Signaturen,
@@ -8076,13 +8077,13 @@ FE-SERVICE`,
           <button
             onClick={acceptLegalAgreement}
             disabled={legalChecking}
-            className="mt-8 w-full rounded-[28px] bg-green-500 px-8 py-5 text-xl font-black text-black shadow-lg shadow-green-950/30 transition hover:bg-green-400 active:scale-[0.99] disabled:opacity-60"
+            className="mt-8 w-full rounded-[28px] bg-sky-500 px-8 py-5 text-xl font-black text-black shadow-lg shadow-sky-950/30 transition hover:bg-sky-400 active:scale-[0.99] disabled:opacity-60"
           >
             {legalChecking ? "Wird gespeichert..." : "Akzeptieren & Plattform starten"}
           </button>
 
           <p className="mt-6 text-center text-xs font-semibold leading-6 text-slate-500">
-            FE-Service e.K. · Fitness Equipment Service · Digitale Service-,
+            Pro-Effekt e.K. · Pro-Effekt Software Service · Digitale Service-,
             Wartungs- und Dokumentationsplattform. Hinweis: Diese technische
             Einwilligung ersetzt keine individuelle Rechtsberatung.
           </p>
@@ -8098,9 +8099,9 @@ FE-SERVICE`,
       : "Kundenportal";
 
   const portalSubtitle = isAdmin
-    ? "Vollzugriff auf Kunden, Geräte, Tickets, UVV-Wartung, Einsatz, Teile, Dokumente und Berichte."
+    ? "Vollzugriff auf Kunden, Geräte, Tickets, Sicherheitsprüfung-Wartung, Einsatz, Teile, Dokumente und Berichte."
     : isTechnician
-      ? "Einsatzbereich für Tickets, Geräte, UVV-Prüfungen, Fotos und Serviceberichte."
+      ? "Einsatzbereich für Tickets, Geräte, Sicherheitsprüfungen, Fotos und Serviceberichte."
       : "Eigene Geräte, Tickets und Dokumente im Überblick.";
 
   const primaryActionLabel = isAdmin
@@ -8194,7 +8195,7 @@ FE-SERVICE`,
     }
 
     if (typeof window !== "undefined" && session?.user?.id) {
-      window.localStorage.setItem(`fe-service-active-page-${session.user.id}`, item);
+      window.localStorage.setItem(`pro-effekt-active-page-${session.user.id}`, item);
     }
 
     resetTicketForm();
@@ -8222,7 +8223,7 @@ FE-SERVICE`,
     setDocumentDeviceFilter("Alle");
 
     if (typeof window !== "undefined" && session?.user?.id) {
-      window.localStorage.setItem(`fe-service-active-page-${session.user.id}`, "Geräte");
+      window.localStorage.setItem(`pro-effekt-active-page-${session.user.id}`, "Geräte");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
@@ -9000,7 +9001,7 @@ FE-SERVICE`,
 
   if (authLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07130d] text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#07111d] text-white">
         <h1 className="text-4xl font-black">Lädt...</h1>
       </main>
     );
@@ -9008,21 +9009,21 @@ FE-SERVICE`,
 
   if (!session) {
     return (
-      <main className="min-h-screen bg-[#07130d] text-white">
+      <main className="min-h-screen bg-[#07111d] text-white">
         <div className="flex min-h-screen min-h-[100dvh] items-center justify-center px-5 py-8">
-          <div className="w-full max-w-md rounded-[36px] border border-green-500/25 bg-[#07130d] p-7 text-white shadow-2xl shadow-black/50">
+          <div className="w-full max-w-md rounded-[36px] border border-sky-500/25 bg-[#07111d] p-7 text-white shadow-2xl shadow-black/50">
             <div className="text-center">
-              <p className="text-2xl font-black uppercase tracking-[0.35em] text-green-500">
-                FE-SERVICE
+              <p className="text-2xl font-black uppercase tracking-[0.35em] text-sky-500">
+                PRO-EFFEKT
               </p>
 
-              <p className="mt-1 text-xs font-bold uppercase tracking-[0.22em] text-green-400">
+              <p className="mt-1 text-xs font-bold uppercase tracking-[0.22em] text-sky-400">
                 Serviceplattform
               </p>
 
               <img
-                src="/fe-service-logo.png"
-                alt="Fitness Equipment Service"
+                src="/pro-effekt-logo.png"
+                alt="Pro-Effekt Software Service"
                 className="mx-auto mt-6 h-auto w-full max-w-[220px] object-contain drop-shadow-xl"
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
@@ -9034,7 +9035,7 @@ FE-SERVICE`,
               </h2>
 
               <p className="mx-auto mt-5 max-w-sm text-base font-semibold leading-relaxed text-slate-300">
-                Service-Tickets, UVV-Wartungen und Kundenanfragen sicher verwalten.
+                Service-Tickets, Sicherheitsprüfung-Wartungen und Kundenanfragen sicher verwalten.
               </p>
             </div>
 
@@ -9044,7 +9045,7 @@ FE-SERVICE`,
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="E-Mail-Adresse"
                 type="email"
-                className="h-14 w-full rounded-2xl border border-green-500/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-green-500"
+                className="h-14 w-full rounded-2xl border border-sky-500/25 bg-[#0b1b2b] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-sky-500"
               />
 
               <input
@@ -9052,12 +9053,12 @@ FE-SERVICE`,
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Passwort"
                 type="password"
-                className="h-14 w-full rounded-2xl border border-green-500/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-green-500"
+                className="h-14 w-full rounded-2xl border border-sky-500/25 bg-[#0b1b2b] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-sky-500"
               />
 
               <button
                 onClick={login}
-                className="h-14 w-full rounded-2xl bg-green-600 text-lg font-black text-white shadow-lg shadow-green-900/30 transition hover:bg-green-700 active:scale-[0.99]"
+                className="h-14 w-full rounded-2xl bg-sky-500 text-lg font-black text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-600 active:scale-[0.99]"
               >
                 Einloggen
               </button>
@@ -9070,7 +9071,7 @@ FE-SERVICE`,
 
   if (profileLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07130d] p-6 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#07111d] p-6 text-white">
         <div className="text-center">
           <h1 className="text-4xl font-black">Rolle wird geladen...</h1>
           <p className="mt-4 max-w-xl text-sm font-semibold text-slate-300">
@@ -9079,7 +9080,7 @@ FE-SERVICE`,
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-8 rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+            className="mt-8 rounded-2xl bg-sky-500 px-6 py-4 font-black text-white"
           >
             Neu laden
           </button>
@@ -9090,9 +9091,9 @@ FE-SERVICE`,
 
   if (!userProfile) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07130d] p-6 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[#07111d] p-6 text-white">
         <div className="max-w-xl rounded-[32px] bg-white/10 p-8 text-center">
-          <h1 className="text-xl font-black text-green-400">
+          <h1 className="text-xl font-black text-sky-400">
             Keine Rolle zugewiesen
           </h1>
           <p className="mt-4 text-slate-200">
@@ -9104,7 +9105,7 @@ FE-SERVICE`,
           </p>
           <button
             onClick={logout}
-            className="mt-6 rounded-2xl bg-black px-6 py-4 font-bold text-green-400"
+            className="mt-6 rounded-2xl bg-black px-6 py-4 font-bold text-sky-400"
           >
             Logout
           </button>
@@ -9114,17 +9115,17 @@ FE-SERVICE`,
   }
 
   return (
-    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--fe-black)] pb-[max(env(safe-area-inset-bottom),2rem)] text-slate-900 lg:bg-slate-100 lg:pb-0">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--pe-black)] pb-[max(env(safe-area-inset-bottom),2rem)] text-slate-900 lg:bg-slate-100 lg:pb-0">
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
-        <aside className="hidden min-h-screen w-72 shrink-0 border-r border-white/10 bg-[#07130d] p-6 text-white lg:sticky lg:top-0 lg:flex lg:flex-col">
+        <aside className="hidden min-h-screen w-72 shrink-0 border-r border-white/10 bg-[#07111d] p-6 text-white lg:sticky lg:top-0 lg:flex lg:flex-col">
           <div className="flex flex-col items-center">
-            <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-green-500">
-              FE-SERVICE
+            <h1 className="whitespace-nowrap text-center text-xl font-black tracking-[0.18em] text-sky-500">
+              PRO-EFFEKT
             </h1>
 
             <img
-              src="/fe-service-logo.png"
-              alt="Fitness Equipment Service"
+              src="/pro-effekt-logo.png"
+              alt="Pro-Effekt Software Service"
               className="mt-4 w-56 object-contain"
             />
 
@@ -9145,7 +9146,7 @@ FE-SERVICE`,
                     onClick={() => openPage(item)}
                     className={`flex w-full items-center gap-3 rounded-3xl border px-4 py-4 text-left text-sm font-black transition-all ${
                       activePage === item
-                        ? "border-green-500 bg-green-600 text-white shadow-lg shadow-green-950/30"
+                        ? "border-sky-500 bg-sky-500 text-white shadow-lg shadow-sky-950/30"
                         : "border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/5"
                     }`}
                   >
@@ -9176,7 +9177,7 @@ FE-SERVICE`,
                         onClick={() => openPage(item)}
                         className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
                           activePage === item
-                            ? "bg-green-600 text-white shadow-lg shadow-green-950/30"
+                            ? "bg-sky-500 text-white shadow-lg shadow-sky-950/30"
                             : "text-slate-300 hover:bg-white/5"
                         }`}
                       >
@@ -9204,8 +9205,8 @@ FE-SERVICE`,
 
         <section className="w-full min-w-0 max-w-full flex-1 overflow-x-hidden px-3 pb-5 pt-0 sm:px-5 lg:p-10">
           <div className="mb-6 hidden rounded-[24px] bg-white p-4 shadow-sm lg:block">
-            <p className="fe-login-brand text-center text-2xl font-black uppercase tracking-[0.35em] text-[var(--fe-green)]">
-              FE-SERVICE
+            <p className="fe-login-brand text-center text-2xl font-black uppercase tracking-[0.35em] text-[var(--pe-blue)]">
+              PRO-EFFEKT
             </p>
             <h2 className="mt-2 text-xl font-black leading-tight lg:text-4xl">
               {portalTitle}
@@ -9215,21 +9216,21 @@ FE-SERVICE`,
             </p>
           </div>
 
-          <div className="sticky top-0 z-40 -mx-3 mb-5 border-b border-[var(--fe-green)]/20 bg-[var(--fe-black)] px-3 pb-3 pt-[max(env(safe-area-inset-top),12px)] shadow-lg sm:-mx-5 sm:px-4 lg:hidden">
+          <div className="sticky top-0 z-40 -mx-3 mb-5 border-b border-[var(--pe-blue)]/20 bg-[var(--pe-black)] px-3 pb-3 pt-[max(env(safe-area-inset-top),12px)] shadow-lg sm:-mx-5 sm:px-4 lg:hidden">
             <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex min-w-0 items-center gap-2">
                   <img
-                    src="/fe-service-logo.png"
-                    alt="FE-Service Logo"
+                    src="/pro-effekt-logo.png"
+                    alt="Pro-Effekt Logo"
                     className="h-9 w-auto max-w-[96px] shrink-0 object-contain"
                     onError={(event) => {
                       event.currentTarget.style.display = "none";
                     }}
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-[var(--fe-green)]">
-                      FE-SERVICE
+                    <p className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-[var(--pe-blue)]">
+                      PRO-EFFEKT
                     </p>
                     <p className="truncate text-xs font-semibold text-slate-300">
                       {session.user.email}
@@ -9244,7 +9245,7 @@ FE-SERVICE`,
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="shrink-0 rounded-2xl border border-green-500/30 bg-green-500 px-4 py-3 text-sm font-black text-black shadow-lg shadow-green-950/30 active:scale-[0.98]"
+                className="shrink-0 rounded-2xl border border-sky-500/30 bg-sky-500 px-4 py-3 text-sm font-black text-black shadow-lg shadow-sky-950/30 active:scale-[0.98]"
                 aria-label="Menü öffnen"
               >
                 ☰ Menü
@@ -9255,12 +9256,12 @@ FE-SERVICE`,
           {mobileMenuOpen && (
             <div className="fixed inset-0 z-[70] bg-black/70 lg:hidden" onClick={() => setMobileMenuOpen(false)}>
               <div
-                className="flex h-full max-h-[100dvh] w-[88vw] max-w-sm flex-col overflow-hidden bg-[#07130d] p-4 text-white shadow-2xl"
+                className="flex h-full max-h-[100dvh] w-[88vw] max-w-sm flex-col overflow-hidden bg-[#07111d] p-4 text-white shadow-2xl"
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-4 pt-[env(safe-area-inset-top)]">
                   <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-[0.24em] text-green-400">FE-SERVICE</p>
+                    <p className="text-xs font-black uppercase tracking-[0.24em] text-sky-400">PRO-EFFEKT</p>
                     <h3 className="mt-1 text-2xl font-black">Menü</h3>
                     <p className="mt-1 truncate text-xs font-semibold text-slate-400">{session.user.email}</p>
                   </div>
@@ -9277,7 +9278,7 @@ FE-SERVICE`,
                 <nav className="mt-4 flex-1 space-y-3 overflow-y-auto pr-1 pb-[max(env(safe-area-inset-bottom),1rem)]">
                   {navGroups.map((group) => (
                     <div key={group.title} className="rounded-3xl border border-white/10 bg-white/[0.03] p-2">
-                      <p className="px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-green-400">
+                      <p className="px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-sky-400">
                         {group.icon} {group.title}
                       </p>
                       <div className="space-y-1">
@@ -9288,7 +9289,7 @@ FE-SERVICE`,
                             onClick={() => openPage(item)}
                             className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
                               activePage === item
-                                ? "bg-green-600 text-white shadow-lg shadow-green-950/30"
+                                ? "bg-sky-500 text-white shadow-lg shadow-sky-950/30"
                                 : "text-slate-300 hover:bg-white/5"
                             }`}
                           >
@@ -9321,7 +9322,7 @@ FE-SERVICE`,
                 <div className="flex h-[100dvh] w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[92vh] sm:rounded-[32px]">
                   <div className="flex items-center justify-between gap-3 border-b border-slate-200 p-4">
                     <div className="min-w-0">
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-green-600">
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-500">
                         PDF / Signatur
                       </p>
                       <h3 className="truncate text-xl font-black text-slate-900">
@@ -9339,7 +9340,7 @@ FE-SERVICE`,
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4">
-                    <div className="rounded-3xl border border-green-200 bg-green-50 p-5">
+                    <div className="rounded-3xl border border-sky-200 bg-sky-50 p-5">
                       <p className="text-sm font-bold text-slate-600">
                         Techniker und Kunde können direkt am Handy, Tablet oder Notebook unterschreiben. Danach wird der Servicebericht archiviert und das Ticket abgeschlossen.
                       </p>
@@ -9435,7 +9436,7 @@ FE-SERVICE`,
                     <button
                       type="button"
                       onClick={() => saveServiceReport(currentTicket)}
-                      className="rounded-3xl bg-green-600 px-5 py-4 font-black text-white"
+                      className="rounded-3xl bg-sky-500 px-5 py-4 font-black text-white"
                     >
                       Unterschrieben abschließen & archivieren
                     </button>
@@ -9450,7 +9451,7 @@ FE-SERVICE`,
               <div className="flex h-[100dvh] w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[90vh] sm:rounded-[32px]">
                 <div className="sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 bg-white px-4 pb-3 pt-[max(env(safe-area-inset-top),12px)] shadow-sm sm:p-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-green-600">Vorschau</p>
+                    <p className="text-sm font-bold text-sky-500">Vorschau</p>
                     <h3 className="max-w-[62vw] truncate text-base font-black sm:max-w-none sm:text-lg">{previewName}</h3>
                   </div>
 
@@ -9476,16 +9477,16 @@ FE-SERVICE`,
 
           {activePage === "Dashboard" && (
             <div className="space-y-6">
-<div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <div className="mb-5 flex w-full justify-center overflow-hidden"><FeServiceLogo dark /></div>
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+<div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <div className="mb-5 flex w-full justify-center overflow-hidden"><ProEffektLogo dark /></div>
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Admin-Zentrale
                 </p>
                 <h3 className="mt-2 text-4xl font-black">
-                  FE-Service Leitstand
+                  Pro-Effekt Leitstand
                 </h3>
                 <p className="mt-3 max-w-3xl text-sm font-semibold text-slate-300">
-                  Alle offenen Servicefälle, Einsätze, UVV-Wartungen, Prüfungen, Teile und Berichte auf einen Blick.
+                  Alle offenen Servicefälle, Einsätze, Sicherheitsprüfung-Wartungen, Prüfungen, Teile und Berichte auf einen Blick.
                 </p>
 
                 <button
@@ -9499,7 +9500,7 @@ FE-SERVICE`,
                 <div className="mt-6 grid gap-3 md:grid-cols-4">
                   <button
                     onClick={() => openPage("Service-Tickets")}
-                    className="rounded-2xl bg-green-600 px-4 py-4 text-left font-black text-white"
+                    className="rounded-2xl bg-sky-500 px-4 py-4 text-left font-black text-white"
                   >
                     Neues Ticket
                     <span className="mt-1 block text-xs font-bold opacity-80">
@@ -9513,7 +9514,7 @@ FE-SERVICE`,
                   >
                     Abnahmeprotokoll
                     <span className="mt-1 block text-xs font-bold opacity-80">
-                      Wartung + DGUV / U.V.V
+                      Wartung + DGUV / Sicherheitsprüfung
                     </span>
                   </button>
 
@@ -9564,7 +9565,7 @@ FE-SERVICE`,
                     </div>
                     <button
                       onClick={() => openPage("Service-Tickets")}
-                      className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                      className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                     >
                       Öffnen
                     </button>
@@ -9593,7 +9594,7 @@ FE-SERVICE`,
                             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                  <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-600">
                                     {ticket.ticket_number}
                                   </span>
                                   <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
@@ -9620,8 +9621,8 @@ FE-SERVICE`,
                                   </div>
 
                                   {hasDifferentServiceLocation(ticket, meta.billingCustomer) && (
-                                    <div className="rounded-2xl bg-green-50 p-3">
-                                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
+                                    <div className="rounded-2xl bg-sky-50 p-3">
+                                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-sky-600">
                                         📍 Einsatzort
                                       </p>
                                       <p className="mt-1 break-words text-sm font-black text-slate-900">
@@ -9733,7 +9734,7 @@ FE-SERVICE`,
                                   <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
                                     {statusIcon(ticket.status)} {ticket.status}
                                   </span>
-                                  <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                  <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-600">
                                     {ticket.ticket_number}
                                   </span>
                                 </div>
@@ -9768,11 +9769,11 @@ FE-SERVICE`,
 
               <div className="grid gap-6 xl:grid-cols-3">
                 <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
-                  <h3 className="text-xl font-black">Überfällige UVV/Wartungen</h3>
+                  <h3 className="text-xl font-black">Überfällige Sicherheitsprüfung/Wartungen</h3>
                   <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
                     {overdueAdminMaintenancePlans.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
-                        Keine überfälligen UVV/Wartungen.
+                        Keine überfälligen Sicherheitsprüfung/Wartungen.
                       </div>
                     ) : (
                       overdueAdminMaintenancePlans.slice(0, 5).map((plan) => (
@@ -9860,17 +9861,17 @@ FE-SERVICE`,
                     </div>
                     <button
                       onClick={() => openAbnahmeDocuments("Alle")}
-                      className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                      className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                     >
                       Abnahme öffnen
                     </button>
                   </div>
 
                   <div className="mt-5 grid gap-3 md:grid-cols-4">
-                    <button onClick={() => openAbnahmeDocuments("Alle")} className="rounded-2xl bg-green-50 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md">
-                      <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">Gesamt</p>
+                    <button onClick={() => openAbnahmeDocuments("Alle")} className="rounded-2xl bg-sky-50 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">Gesamt</p>
                       <p className="mt-2 text-2xl font-black text-slate-900">{acceptanceProtocolDocuments.length}</p>
-                      <p className="mt-2 text-xs font-black text-green-700">Öffnen</p>
+                      <p className="mt-2 text-xs font-black text-sky-600">Öffnen</p>
                     </button>
                     <button onClick={() => openAbnahmeDocuments("Dieser Monat")} className="rounded-2xl bg-blue-50 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md">
                       <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">Dieser Monat</p>
@@ -9902,7 +9903,7 @@ FE-SERVICE`,
                         <div key={documentItem.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
                           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                             <div>
-                              <p className="text-xs font-black text-green-700">{documentItem.next_inspection_date || "-"}</p>
+                              <p className="text-xs font-black text-sky-600">{documentItem.next_inspection_date || "-"}</p>
                               <p className="mt-1 font-black text-slate-900">{getDocumentCustomerName(documentItem)}</p>
                               <p className="mt-1 text-sm font-semibold text-slate-500">
                                 {getDeviceNameById(documentItem.device_id)} · {documentItem.file_name}
@@ -9933,12 +9934,12 @@ FE-SERVICE`,
 
           {activePage === "Kalender" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Disposition
                 </p>
                 <h3 className="mt-2 text-4xl font-black">
@@ -9973,7 +9974,7 @@ FE-SERVICE`,
                     <p className="text-xs font-bold text-slate-300">
                       Einträge am Tag
                     </p>
-                    <p className="text-xl font-black text-green-400">
+                    <p className="text-xl font-black text-sky-400">
                       {calendarItemsCount}
                     </p>
                   </div>
@@ -9982,7 +9983,7 @@ FE-SERVICE`,
 
               <div className="grid gap-4 md:grid-cols-4">
                 <StatCard label="Tickets" value={calendarTickets.length} />
-                <StatCard label="UVV/Wartungen" value={calendarMaintenancePlans.length} />
+                <StatCard label="Sicherheitsprüfung/Wartungen" value={calendarMaintenancePlans.length} />
                 <StatCard
                   label="Offene Einsätze"
                   value={
@@ -10019,7 +10020,7 @@ FE-SERVICE`,
                     </div>
                     <button
                       onClick={() => openPage("Service-Tickets")}
-                      className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                      className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                     >
                       Tickets
                     </button>
@@ -10038,7 +10039,7 @@ FE-SERVICE`,
                           >
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
-                                <p className="text-xs font-black text-green-600">
+                                <p className="text-xs font-black text-sky-500">
                                   {ticket.service_time || "ohne Uhrzeit"} · {ticket.ticket_number}
                                 </p>
                                 <h4 className="mt-1 break-words text-xl font-black">
@@ -10075,12 +10076,12 @@ FE-SERVICE`,
                     <div>
                       <h3 className="text-xl font-black">Wartungen</h3>
                       <p className="mt-1 text-sm font-semibold text-slate-500">
-                        UVV- und Wartungspläne mit Fälligkeit am gewählten Tag.
+                        Sicherheitsprüfung- und Wartungspläne mit Fälligkeit am gewählten Tag.
                       </p>
                     </div>
                     <button
                       onClick={() => openPage("Abnahmeprotokoll")}
-                      className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                      className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                     >
                       Wartung
                     </button>
@@ -10089,7 +10090,7 @@ FE-SERVICE`,
                   <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
                     {calendarMaintenancePlans.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
-                        Keine UVV/Wartungen für diesen Tag.
+                        Keine Sicherheitsprüfung/Wartungen für diesen Tag.
                       </div>
                     ) : (
                       calendarMaintenancePlans.map((plan) => {
@@ -10104,7 +10105,7 @@ FE-SERVICE`,
                           >
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
-                                <p className="text-xs font-black text-green-600">
+                                <p className="text-xs font-black text-sky-500">
                                   {plan.maintenance_type || "Wartung"}
                                 </p>
                                 <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
@@ -10137,8 +10138,8 @@ FE-SERVICE`,
 
           {activePage === "Benachrichtigungen" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -10149,7 +10150,7 @@ FE-SERVICE`,
               </div>
 
               <div className="rounded-[24px] border border-blue-200 bg-blue-50 p-4 text-sm font-bold text-blue-800">
-                Verträge können automatisch UVV- und Wartungspläne für alle Geräte des Kunden erzeugen. Gleichnamige Geräte bleiben über Kunde + Gerät eindeutig getrennt.
+                Verträge können automatisch Sicherheitsprüfung- und Wartungspläne für alle Geräte des Kunden erzeugen. Gleichnamige Geräte bleiben über Kunde + Gerät eindeutig getrennt.
               </div>
 
               {selectedTicketView && (() => {
@@ -10190,10 +10191,10 @@ FE-SERVICE`,
                 const customerDevices = ticketCustomer?.id ? getDevicesForCustomer(ticketCustomer.id) : [];
 
                 return (
-                  <div className="mb-6 rounded-[28px] border-2 border-green-200 bg-white p-5 shadow-sm">
+                  <div className="mb-6 rounded-[28px] border-2 border-sky-200 bg-white p-5 shadow-sm">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div>
-                        <p className="text-xs font-black uppercase tracking-[0.18em] text-green-600">
+                        <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-500">
                           Ticket-Akte · alles auf einen Blick
                         </p>
                         <h3 className="mt-2 text-2xl font-black text-slate-900">
@@ -10207,7 +10208,7 @@ FE-SERVICE`,
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => startEdit(currentTicket)}
-                          className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                          className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                         >
                           Ticket bearbeiten
                         </button>
@@ -10306,8 +10307,8 @@ FE-SERVICE`,
                       </div>
                     </div>
 
-                    <div className="mt-5 rounded-3xl border border-green-200 bg-green-50 p-5">
-                      <h4 className="text-xl font-black text-green-800">
+                    <div className="mt-5 rounded-3xl border border-sky-200 bg-sky-50 p-5">
+                      <h4 className="text-xl font-black text-sky-700">
                         Servicebericht unterschreiben
                       </h4>
                       <p className="mt-2 text-sm font-bold text-slate-600">
@@ -10403,7 +10404,7 @@ FE-SERVICE`,
                         <button
                           type="button"
                           onClick={() => saveServiceReport(currentTicket)}
-                          className="rounded-3xl bg-green-600 px-5 py-4 font-black text-white"
+                          className="rounded-3xl bg-sky-500 px-5 py-4 font-black text-white"
                         >
                           Unterschrieben abschließen & archivieren
                         </button>
@@ -10464,7 +10465,7 @@ FE-SERVICE`,
                                     </div>
                                     <button
                                       onClick={() => assignDocumentToTicketContext(doc, currentTicket)}
-                                      className="shrink-0 rounded-2xl bg-green-100 px-4 py-2 text-xs font-black text-green-700"
+                                      className="shrink-0 rounded-2xl bg-sky-100 px-4 py-2 text-xs font-black text-sky-600"
                                     >
                                       Zuordnen
                                     </button>
@@ -10512,7 +10513,7 @@ FE-SERVICE`,
                                 <button
                                   key={item.id}
                                   onClick={() => openDeviceFromQr(item)}
-                                  className="w-full rounded-2xl bg-white p-3 text-left text-sm font-bold text-slate-700 hover:bg-green-50"
+                                  className="w-full rounded-2xl bg-white p-3 text-left text-sm font-bold text-slate-700 hover:bg-sky-50"
                                 >
                                   {item.name} · {item.serial_number || "ohne Seriennr."}
                                 </button>
@@ -10531,7 +10532,7 @@ FE-SERVICE`,
                                 <button
                                   key={ticketItem.id}
                                   onClick={() => setSelectedTicketView(ticketItem)}
-                                  className={`w-full rounded-2xl p-3 text-left text-sm font-bold hover:bg-green-50 ${ticketItem.id === currentTicket.id ? "bg-green-50 text-green-800" : "bg-white text-slate-700"}`}
+                                  className={`w-full rounded-2xl p-3 text-left text-sm font-bold hover:bg-sky-50 ${ticketItem.id === currentTicket.id ? "bg-sky-50 text-sky-700" : "bg-white text-slate-700"}`}
                                 >
                                   {ticketItem.ticket_number} · {ticketItem.issue}
                                 </button>
@@ -10556,7 +10557,7 @@ FE-SERVICE`,
                       className="w-full rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
                       <option>Einsatzbestätigung</option>
-                      <option>UVV-/Wartungserinnerung</option>
+                      <option>Sicherheitsprüfung-/Wartungserinnerung</option>
                       <option>Ticketstatus</option>
                       <option>Interner Hinweis</option>
                     </select>
@@ -10578,14 +10579,14 @@ FE-SERVICE`,
                       value={notificationRecipient}
                       onChange={(e) => setNotificationRecipient(e.target.value)}
                       placeholder="Empfänger (E-Mail / intern)"
-                      className="h-14 w-full rounded-2xl border border-[var(--fe-green)]/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[var(--fe-green)]"
+                      className="h-14 w-full rounded-2xl border border-[var(--pe-blue)]/25 bg-[#0b1b2b] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[var(--pe-blue)]"
                     />
 
                     <input
                       value={notificationSubject}
                       onChange={(e) => setNotificationSubject(e.target.value)}
                       placeholder="Betreff"
-                      className="h-14 w-full rounded-2xl border border-[var(--fe-green)]/25 bg-[#102219] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[var(--fe-green)]"
+                      className="h-14 w-full rounded-2xl border border-[var(--pe-blue)]/25 bg-[#0b1b2b] px-5 font-semibold text-white outline-none placeholder:text-slate-500 focus:border-[var(--pe-blue)]"
                     />
 
                     <textarea
@@ -10598,7 +10599,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={saveNotification}
-                      className="fe-login-button h-14 w-full rounded-2xl bg-[var(--fe-green)] text-lg font-black text-white shadow-lg shadow-green-900/30 transition hover:opacity-90 active:scale-[0.99]"
+                      className="fe-login-button h-14 w-full rounded-2xl bg-[var(--pe-blue)] text-lg font-black text-white shadow-lg shadow-sky-900/30 transition hover:opacity-90 active:scale-[0.99]"
                     >
                       Benachrichtigung speichern
                     </button>
@@ -10621,7 +10622,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div>
-                              <p className="text-xs font-black text-green-600">
+                              <p className="text-xs font-black text-sky-500">
                                 {item.type}
                               </p>
 
@@ -10663,8 +10664,8 @@ FE-SERVICE`,
 
           {activePage === "Rechnungen" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -10762,7 +10763,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={saveInvoice}
-                      className="w-full rounded-2xl bg-green-600 py-4 font-black text-white"
+                      className="w-full rounded-2xl bg-sky-500 py-4 font-black text-white"
                     >
                       {invoiceType} speichern
                     </button>
@@ -10786,7 +10787,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div>
-                              <p className="text-xs font-black text-green-600">
+                              <p className="text-xs font-black text-sky-500">
                                 {item.type} · {item.number}
                               </p>
                               <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
@@ -10878,7 +10879,7 @@ FE-SERVICE`,
                       }}
                       className={`shrink-0 rounded-2xl px-4 py-3 text-sm font-black transition-all ${
                         activeDocumentCategory === category
-                          ? "bg-green-600 text-white"
+                          ? "bg-sky-500 text-white"
                           : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                       }`}
                     >
@@ -10898,10 +10899,10 @@ FE-SERVICE`,
                     </p>
                   </div>
 
-                  <div className="rounded-[24px] border border-green-100 bg-green-50 p-4">
+                  <div className="rounded-[24px] border border-sky-100 bg-sky-50 p-4">
                     <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)_minmax(0,1fr)_220px]">
                       <div>
-                        <label className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                        <label className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                           Kategorie
                         </label>
                         <select
@@ -10917,12 +10918,12 @@ FE-SERVICE`,
                       </div>
 
                       <div>
-                        <label className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                        <label className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                           {isCustomer ? "Dein Kundenkonto" : "Kunde zuweisen"}
                         </label>
 
                         {isCustomer ? (
-                          <div className="mt-2 rounded-2xl border border-green-200 bg-white px-5 py-4">
+                          <div className="mt-2 rounded-2xl border border-sky-200 bg-white px-5 py-4">
                             <p className="font-black text-slate-900">
                               {profileCustomer ? getCustomerLabel(profileCustomer) : "Dein Kundenkonto"}
                             </p>
@@ -10945,8 +10946,8 @@ FE-SERVICE`,
                         )}
 
                         {!isCustomer && selectedUploadCustomer && (
-                          <div className="mt-3 rounded-2xl border border-green-200 bg-white p-3">
-                            <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                          <div className="mt-3 rounded-2xl border border-sky-200 bg-white p-3">
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                               Ausgewählter Auftraggeber
                             </p>
                             <p className="mt-1 font-black text-slate-900">
@@ -10986,7 +10987,7 @@ FE-SERVICE`,
                                     setSelectedDeviceId("");
                                     setUploadDeviceSearch("");
                                   }}
-                                  className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-green-300 hover:bg-green-50"
+                                  className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-sky-300 hover:bg-sky-50"
                                 >
                                   <p className="font-black text-slate-900">
                                     {getCustomerLabel(customerItem)}
@@ -11016,7 +11017,7 @@ FE-SERVICE`,
                       </div>
 
                       <div>
-                        <label className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                        <label className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                           Gerät optional zuweisen
                         </label>
                         <input
@@ -11034,8 +11035,8 @@ FE-SERVICE`,
                         />
 
                         {selectedUploadDevice && (
-                          <div className="mt-3 rounded-2xl border border-green-200 bg-white p-3">
-                            <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                          <div className="mt-3 rounded-2xl border border-sky-200 bg-white p-3">
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                               Ausgewähltes Gerät
                             </p>
                             <p className="mt-1 font-black text-slate-900">
@@ -11080,7 +11081,7 @@ FE-SERVICE`,
                                         setUploadCustomerSearch(getCustomerLabel(linkedCustomer));
                                       }
                                     }}
-                                    className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-green-300 hover:bg-green-50"
+                                    className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-sky-300 hover:bg-sky-50"
                                   >
                                     <p className="font-black text-slate-900">
                                       {deviceItem.name}
@@ -11177,7 +11178,7 @@ FE-SERVICE`,
 
                       <div className="flex flex-col justify-end">
                         <label className={`cursor-pointer rounded-2xl px-6 py-4 text-center font-black text-white ${
-                          uploading ? "bg-slate-400" : "bg-green-600 hover:bg-green-700"
+                          uploading ? "bg-slate-400" : "bg-sky-500 hover:bg-sky-600"
                         }`}>
                           {uploading ? "Upload läuft..." : "Dokument hochladen"}
 
@@ -11205,7 +11206,7 @@ FE-SERVICE`,
                     {documentQuickFilter !== "Alle" && (
                       <button
                         onClick={() => setDocumentQuickFilter("Alle")}
-                        className="rounded-2xl bg-green-100 px-4 py-2 text-sm font-black text-green-700"
+                        className="rounded-2xl bg-sky-100 px-4 py-2 text-sm font-black text-sky-600"
                       >
                         Filter: {documentQuickFilter} ×
                       </button>
@@ -11326,7 +11327,7 @@ FE-SERVICE`,
                                       📄
                                     </span>
                                     <div className="min-w-0">
-                                      <p className="truncate text-base font-black text-[#07130d]">
+                                      <p className="truncate text-base font-black text-[#07111d]">
                                         {item.file_name}
                                       </p>
                                       <p className="mt-1 truncate text-xs font-bold text-slate-500">
@@ -11350,27 +11351,27 @@ FE-SERVICE`,
                                 <div className="border-t border-slate-100 bg-slate-50 px-4 py-4 md:px-16">
                                   <div className="grid gap-3 text-sm md:grid-cols-2">
                                     <p className="font-bold text-slate-700">
-                                      <span className="text-green-700">Kunde:</span> {customerName}
+                                      <span className="text-sky-600">Kunde:</span> {customerName}
                                     </p>
                                     <p className="font-bold text-slate-700">
-                                      <span className="text-green-700">Gerät:</span> {deviceName}
+                                      <span className="text-sky-600">Gerät:</span> {deviceName}
                                     </p>
                                     <p className="font-bold text-slate-700">
-                                      <span className="text-green-700">Ticket:</span> {ticketNumber}
+                                      <span className="text-sky-600">Ticket:</span> {ticketNumber}
                                     </p>
                                     <p className="font-bold text-slate-700">
-                                      <span className="text-green-700">Techniker:</span> {getDocumentTechnicianName(item)}
+                                      <span className="text-sky-600">Techniker:</span> {getDocumentTechnicianName(item)}
                                     </p>
                                     <p className="font-bold text-slate-700">
-                                      <span className="text-green-700">Größe:</span> {fileSizeText(item.file_size)}
+                                      <span className="text-sky-600">Größe:</span> {fileSizeText(item.file_size)}
                                     </p>
                                     <p className="font-bold text-slate-700">
-                                      <span className="text-green-700">Datum:</span> {formatDate(item.created_at)}
+                                      <span className="text-sky-600">Datum:</span> {formatDate(item.created_at)}
                                     </p>
 
                                     {item.category === "Abnahmeprotokolle" && (
                                       <p className="font-bold text-slate-700 md:col-span-2">
-                                        <span className="text-green-700">Prüfung:</span> {item.inspection_date || "-"} · nächste Prüfung: {item.next_inspection_date || "-"}
+                                        <span className="text-sky-600">Prüfung:</span> {item.inspection_date || "-"} · nächste Prüfung: {item.next_inspection_date || "-"}
                                         {item.inspection_badge_number ? ` · Siegel: ${item.inspection_badge_number}` : ""}
                                       </p>
                                     )}
@@ -11416,16 +11417,16 @@ FE-SERVICE`,
 
           {activePage === "Auswertungen" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Business Dashboard
                 </p>
                 <h3 className="mt-2 text-4xl font-black">
-                  FE-Service Auswertungen
+                  Pro-Effekt Auswertungen
                 </h3>
                 <p className="mt-3 max-w-3xl text-sm font-semibold text-slate-300">
                   Kennzahlen für Umsatz, Tickets, Wartungen, Prüfungen, Technikerleistung und Kundenaktivität.
@@ -11435,7 +11436,7 @@ FE-SERVICE`,
               <div className="grid gap-4 md:grid-cols-4">
                 <div className="rounded-3xl bg-white p-6 shadow-sm">
                   <p className="text-sm font-bold text-slate-500">Umsatz bezahlt</p>
-                  <p className="mt-2 text-xl font-black text-green-700">
+                  <p className="mt-2 text-xl font-black text-sky-600">
                     {euro(invoiceRevenueGross)}
                   </p>
                 </div>
@@ -11455,7 +11456,7 @@ FE-SERVICE`,
                 </div>
 
                 <div className="rounded-3xl bg-white p-6 shadow-sm">
-                  <p className="text-sm font-bold text-slate-500">UVV-/Wartungsquote</p>
+                  <p className="text-sm font-bold text-slate-500">Sicherheitsprüfung-/Wartungsquote</p>
                   <p className="mt-2 text-xl font-black text-purple-700">
                     {maintenanceCompletionRate}%
                   </p>
@@ -11496,11 +11497,11 @@ FE-SERVICE`,
                                 Zugewiesen: {item.assigned}
                               </p>
                             </div>
-                            <div className="rounded-2xl bg-green-100 px-4 py-3 text-center">
-                              <p className="text-xl font-black text-green-700">
+                            <div className="rounded-2xl bg-sky-100 px-4 py-3 text-center">
+                              <p className="text-xl font-black text-sky-600">
                                 {item.completed}
                               </p>
-                              <p className="text-xs font-bold text-green-700">
+                              <p className="text-xs font-bold text-sky-600">
                                 erledigt
                               </p>
                             </div>
@@ -11566,7 +11567,7 @@ FE-SERVICE`,
                           className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <p className="font-black">{item.customer.company}</p>
-                          <p className="mt-1 text-sm font-bold text-green-700">
+                          <p className="mt-1 text-sm font-bold text-sky-600">
                             {item.count} Ticket(s)
                           </p>
                         </div>
@@ -11623,7 +11624,7 @@ FE-SERVICE`,
               {isAdmin && (
               <div
                 className={`rounded-[24px] bg-white p-4 shadow-sm ${
-                  editingCustomer ? "ring-4 ring-green-200" : ""
+                  editingCustomer ? "ring-4 ring-sky-200" : ""
                 }`}
               >
                 <h3 className="text-xl font-black">
@@ -11766,7 +11767,7 @@ FE-SERVICE`,
                         </p>
                       </div>
 
-                      <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-black text-green-700">
+                      <span className="rounded-full bg-sky-100 px-4 py-2 text-sm font-black text-sky-600">
                         {assignedDeviceIds.length + customerAssignedLibraryModels.length} ausgewählt
                       </span>
                     </div>
@@ -11775,7 +11776,7 @@ FE-SERVICE`,
                       value={customerDeviceAssignSearch}
                       onChange={(event) => setCustomerDeviceAssignSearch(event.target.value)}
                       placeholder="Bibliothek suchen: Hersteller, Kategorie, Modellbezeichnung"
-                      className="mt-4 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-green-500"
+                      className="mt-4 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none transition focus:border-sky-500"
                     />
 
                     <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
@@ -11807,14 +11808,14 @@ FE-SERVICE`,
                           {assignedCustomerDevices.map((deviceItem) => (
                             <div
                               key={deviceItem.id}
-                              className="rounded-2xl border border-green-100 bg-green-50 p-3"
+                              className="rounded-2xl border border-sky-100 bg-sky-50 p-3"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <p className="break-words text-sm font-black text-green-900">
+                                  <p className="break-words text-sm font-black text-sky-900">
                                     {deviceItem.name}
                                   </p>
-                                  <p className="mt-1 text-xs font-bold text-green-700">
+                                  <p className="mt-1 text-xs font-bold text-sky-600">
                                     Bestehendes Kundengerät{deviceItem.serial_number ? ` · SN: ${deviceItem.serial_number}` : ""}
                                   </p>
                                 </div>
@@ -11825,7 +11826,7 @@ FE-SERVICE`,
                                       prev.filter((id) => id !== String(deviceItem.id)),
                                     )
                                   }
-                                  className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-green-900 transition hover:bg-red-100 hover:text-red-700"
+                                  className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-sky-900 transition hover:bg-red-100 hover:text-red-700"
                                 >
                                   ×
                                 </button>
@@ -11838,20 +11839,20 @@ FE-SERVICE`,
                             if (!modelItem) return null;
 
                             return (
-                              <div key={draft.key} className="rounded-2xl border border-green-100 bg-green-50 p-4">
+                              <div key={draft.key} className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
                                 <div className="flex items-start justify-between gap-3">
                                   <div className="min-w-0">
-                                    <p className="text-xs font-black uppercase tracking-[0.16em] text-green-600">
+                                    <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-500">
                                       Neues Kundengerät {index + 1}
                                     </p>
-                                    <p className="mt-1 break-words font-black text-green-950">
+                                    <p className="mt-1 break-words font-black text-sky-950">
                                       {getTicketLibraryModelLabel(modelItem)}
                                     </p>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => removeCustomerLibraryDraft(draft.key)}
-                                    className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-green-900 transition hover:bg-red-100 hover:text-red-700"
+                                    className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-black text-sky-900 transition hover:bg-red-100 hover:text-red-700"
                                   >
                                     ×
                                   </button>
@@ -11862,19 +11863,19 @@ FE-SERVICE`,
                                     value={draft.serial}
                                     onChange={(event) => updateCustomerLibraryDraft(draft.key, { serial: event.target.value })}
                                     placeholder="Seriennummer nur für diesen Kunden"
-                                    className="rounded-2xl border border-green-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-green-500"
+                                    className="rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-sky-500"
                                   />
                                   <input
                                     value={draft.location}
                                     onChange={(event) => updateCustomerLibraryDraft(draft.key, { location: event.target.value })}
                                     placeholder="Standort optional"
-                                    className="rounded-2xl border border-green-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-green-500"
+                                    className="rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-sky-500"
                                   />
                                   <input
                                     value={draft.note}
                                     onChange={(event) => updateCustomerLibraryDraft(draft.key, { note: event.target.value })}
                                     placeholder="Notiz optional"
-                                    className="rounded-2xl border border-green-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-green-500"
+                                    className="rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-sky-500"
                                   />
                                 </div>
                               </div>
@@ -11899,7 +11900,7 @@ FE-SERVICE`,
                             key={modelItem.id}
                             type="button"
                             onClick={() => addCustomerLibraryModel(modelItem)}
-                            className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-green-400 hover:bg-green-50"
+                            className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-sky-400 hover:bg-sky-50"
                           >
                             <p className="break-words font-black text-slate-900">
                               {getDeviceModelDisplayName(modelItem)}
@@ -11908,7 +11909,7 @@ FE-SERVICE`,
                               {getManufacturerNameById(modelItem.manufacturer_id) || "Hersteller unbekannt"}
                               {getDeviceModelTypeName(modelItem) ? ` · ${getDeviceModelTypeName(modelItem)}` : ""}
                             </p>
-                            <p className="mt-2 text-xs font-black text-green-700">
+                            <p className="mt-2 text-xs font-black text-sky-600">
                               + diesem Kunden als eigenes Gerät zuordnen
                             </p>
                           </button>
@@ -11957,7 +11958,7 @@ FE-SERVICE`,
                     <div className="grid gap-3 md:grid-cols-2">
                       <button
                         onClick={updateCustomer}
-                        className="rounded-2xl bg-green-600 py-4 font-bold text-white"
+                        className="rounded-2xl bg-sky-500 py-4 font-bold text-white"
                       >
                         Kunde speichern
                       </button>
@@ -11972,7 +11973,7 @@ FE-SERVICE`,
                   ) : (
                     <button
                       onClick={createCustomer}
-                      className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white"
+                      className="w-full rounded-2xl bg-sky-500 py-4 font-bold text-white"
                     >
                       Kunde hinzufügen
                     </button>
@@ -11994,13 +11995,13 @@ FE-SERVICE`,
                     value={customerDirectorySearch}
                     onChange={(e) => setCustomerDirectorySearch(e.target.value)}
                     placeholder="Kundenstamm suchen: Firma, Kundennummer, Ort, E-Mail, Telefon..."
-                    className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-green-500 focus:ring-4 focus:ring-green-100"
+                    className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
                   />
 
                   <select
                     value={customerTypeFilter}
                     onChange={(e) => setCustomerTypeFilter(e.target.value)}
-                    className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-black text-slate-900 outline-none focus:border-green-500 focus:ring-4 focus:ring-green-100 md:max-w-xs"
+                    className="block w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-base font-black text-slate-900 outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100 md:max-w-xs"
                   >
                     <option value="Alle">Alle Kundentypen</option>
                     <option value="B2B">Nur B2B</option>
@@ -12008,7 +12009,7 @@ FE-SERVICE`,
                   </select>
                 </div>
 
-                <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 p-4 text-sm font-bold text-green-800">
+                <div className="mt-3 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm font-bold text-sky-700">
                   {customerDirectorySearchIsActive
                     ? `${filteredCustomerDirectory.length} Treffer werden angezeigt. Bitte Suche verfeinern, falls der Kunde nicht dabei ist.`
                     : `Bitte mindestens 1 Zeichen eingeben. Insgesamt sind ${customers.length} Kunden geladen und per Suche abrufbar.`}
@@ -12041,7 +12042,7 @@ FE-SERVICE`,
                       >
                         <div className="flex min-w-0 flex-col gap-4">
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-green-600">
+                            <p className="text-xs font-bold text-sky-500">
                               {getCustomerDisplayName(item) || "Kein Ansprechpartner"}
                             </p>
 
@@ -12061,13 +12062,13 @@ FE-SERVICE`,
                               {buildCustomerAddress(item) || "Keine Adresse vorhanden."}
                             </p>
 
-                            <div className="mt-4 rounded-2xl border border-green-100 bg-white p-4">
+                            <div className="mt-4 rounded-2xl border border-sky-100 bg-white p-4">
                               <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm font-black text-green-700">
+                                <p className="text-sm font-black text-sky-600">
                                   Zugewiesene Geräte
                                 </p>
 
-                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
+                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600">
                                   {getDevicesForCustomer(item.id).length} Gerät(e)
                                 </span>
                               </div>
@@ -12103,7 +12104,7 @@ FE-SERVICE`,
                                         <button
                                           type="button"
                                           onClick={() => addCustomerDeviceToAbnahmeProtocol(item, deviceItem)}
-                                          className="mt-2 w-full rounded-xl bg-green-100 px-3 py-2 text-xs font-black text-green-700 transition hover:bg-green-600 hover:text-white"
+                                          className="mt-2 w-full rounded-xl bg-sky-100 px-3 py-2 text-xs font-black text-sky-600 transition hover:bg-sky-500 hover:text-white"
                                         >
                                           In Abnahme übernehmen
                                         </button>
@@ -12135,7 +12136,7 @@ FE-SERVICE`,
                             {!isCustomer && (
                               <button
                                 onClick={() => prepareAbnahmeFromCustomer(item)}
-                                className="w-full rounded-2xl bg-green-100 px-3 py-3 text-center text-xs font-bold text-green-700 md:text-sm"
+                                className="w-full rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-bold text-sky-600 md:text-sm"
                               >
                                 Abnahme
                               </button>
@@ -12145,7 +12146,7 @@ FE-SERVICE`,
                               <>
                                 <button
                                   onClick={() => startEditCustomer(item)}
-                                  className="w-full rounded-2xl bg-green-100 px-3 py-3 text-center text-xs font-bold text-green-700 md:text-sm"
+                                  className="w-full rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-bold text-sky-600 md:text-sm"
                                 >
                                   Bearbeiten
                                 </button>
@@ -12172,8 +12173,8 @@ FE-SERVICE`,
 
                     {activePage === "Geräte" && !selectedDeviceView && (isAdmin || isTechnician) && (
             <div className="space-y-6">
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   {isAdmin ? "Admin-Katalog" : "Techniker-Suche"}
                 </p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">
@@ -12259,7 +12260,7 @@ FE-SERVICE`,
                         <div className="grid gap-3 md:grid-cols-2">
                           <button
                             onClick={saveManufacturer}
-                            className="rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+                            className="rounded-2xl bg-sky-500 px-6 py-4 font-black text-white"
                           >
                             {editingManufacturer ? "Änderungen speichern" : "Hersteller speichern"}
                           </button>
@@ -12329,7 +12330,7 @@ FE-SERVICE`,
                         <div className="grid gap-3 md:grid-cols-2">
                           <button
                             onClick={saveDeviceModel}
-                            className="rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+                            className="rounded-2xl bg-sky-500 px-6 py-4 font-black text-white"
                           >
                             {editingDeviceModel ? "Modell speichern" : "Gerät / Modell hinzufügen"}
                           </button>
@@ -12380,7 +12381,7 @@ FE-SERVICE`,
                     <select
                       value={catalogManufacturerId}
                       onChange={(e) => setCatalogManufacturerId(e.target.value)}
-                      className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-lg font-black text-[#07130d]"
+                      className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 text-lg font-black text-[#07111d]"
                     >
                       <option value="">
                         Hersteller auswählen ({filteredManufacturerDirectory.length})
@@ -12425,7 +12426,7 @@ FE-SERVICE`,
                             <div key={item.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
                               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                  <h4 className="text-2xl font-black text-[#07130d]">{item.name}</h4>
+                                  <h4 className="text-2xl font-black text-[#07111d]">{item.name}</h4>
                                   <p className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-slate-400">
                                     {modelsForManufacturer.length} Modellbezeichnung(en) · {Object.keys(modelsByType).length} Kategorie(n)
                                   </p>
@@ -12452,7 +12453,7 @@ FE-SERVICE`,
 
                               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                                 <div className="rounded-2xl bg-white p-4">
-                                  <h5 className="font-black text-green-700">Herstellerdaten</h5>
+                                  <h5 className="font-black text-sky-600">Herstellerdaten</h5>
                                   <div className="mt-3 space-y-2 text-sm font-semibold text-slate-600">
                                     <p>Ansprechpartner: {item.contact_person || "-"}</p>
                                     <p>Telefon: {item.phone || "-"}</p>
@@ -12464,7 +12465,7 @@ FE-SERVICE`,
                                 </div>
 
                                 <div className="rounded-2xl bg-white p-4">
-                                  <h5 className="font-black text-green-700">Kategorien / Modellbezeichnungen</h5>
+                                  <h5 className="font-black text-sky-600">Kategorien / Modellbezeichnungen</h5>
                                   <select
                                     className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 font-bold"
                                     defaultValue=""
@@ -12489,7 +12490,7 @@ FE-SERVICE`,
                                     ) : (
                                       Object.entries(modelsByType).map(([typeName, typeModels]) => (
                                         <div key={typeName} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                          <p className="text-sm font-black uppercase tracking-[0.14em] text-green-700">
+                                          <p className="text-sm font-black uppercase tracking-[0.14em] text-sky-600">
                                             {typeName} · {typeModels.length}
                                           </p>
                                           <div className="mt-2 space-y-2">
@@ -12539,7 +12540,7 @@ FE-SERVICE`,
             <div className="mb-6 rounded-[24px] bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <p className="text-sm font-bold text-green-600">
+                  <p className="text-sm font-bold text-sky-500">
                     Geräte-Detailansicht
                   </p>
 
@@ -12593,7 +12594,7 @@ FE-SERVICE`,
                 <div className="flex w-full flex-col gap-3 xl:w-64">
                   <button
                     onClick={() => createTicketFromDevice(selectedDeviceView)}
-                    className="rounded-2xl bg-green-600 px-4 py-4 font-bold text-white"
+                    className="rounded-2xl bg-sky-500 px-4 py-4 font-bold text-white"
                   >
                     Ticket erstellen
                   </button>
@@ -12607,7 +12608,7 @@ FE-SERVICE`,
 
                   <button
                     onClick={() => prepareInspectionMail(selectedDeviceView)}
-                    className="rounded-2xl bg-emerald-100 px-4 py-4 font-bold text-emerald-700"
+                    className="rounded-2xl bg-sky-100 px-4 py-4 font-bold text-sky-600"
                   >
                     E-Mail vorbereiten
                   </button>
@@ -12637,7 +12638,7 @@ FE-SERVICE`,
                         ))}
                     </select>
 
-                    <label className="block cursor-pointer rounded-2xl bg-green-600 px-4 py-4 text-center font-bold text-white hover:bg-green-700">
+                    <label className="block cursor-pointer rounded-2xl bg-sky-500 px-4 py-4 text-center font-bold text-white hover:bg-sky-600">
                       {uploading ? "Upload läuft..." : "Datei auswählen"}
 
                       <input
@@ -12651,8 +12652,8 @@ FE-SERVICE`,
                     </label>
                   </div>
 
-                  <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-center">
-                    <p className="mb-3 text-sm font-bold text-green-700">
+                  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-center">
+                    <p className="mb-3 text-sm font-bold text-sky-600">
                       QR-Code für dieses Gerät
                     </p>
 
@@ -12668,7 +12669,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={() => copyDeviceLink(selectedDeviceView)}
-                      className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-bold text-green-700"
+                      className="mt-3 w-full rounded-2xl bg-white px-4 py-3 text-sm font-bold text-sky-600"
                     >
                       Geräte-Link kopieren
                     </button>
@@ -12689,7 +12690,7 @@ FE-SERVICE`,
               </div>
 
               <div className="mt-10">
-                <h4 className="text-xl font-black">UVV-/Wartungsplanung</h4>
+                <h4 className="text-xl font-black">Service-/Wartungsplanung</h4>
 
                 {getMaintenancePlanForDevice(selectedDeviceView.id) ? (
                   <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -12797,7 +12798,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <div>
-                              <p className="text-xs font-bold text-green-600">
+                              <p className="text-xs font-bold text-sky-500">
                                 {ticket.ticket_number}
                               </p>
 
@@ -12832,7 +12833,7 @@ FE-SERVICE`,
                               {!isCustomer && (
                                 <button
                                   onClick={() => startEdit(ticket)}
-                                  className="w-full rounded-2xl bg-green-100 px-3 py-3 text-center text-xs font-bold text-green-700 md:text-sm"
+                                  className="w-full rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-bold text-sky-600 md:text-sm"
                                 >
                                   Bearbeiten
                                 </button>
@@ -12875,7 +12876,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div>
-                              <p className="text-xs font-bold text-green-600">
+                              <p className="text-xs font-bold text-sky-500">
                                 {entry.type}
                               </p>
 
@@ -12904,7 +12905,7 @@ FE-SERVICE`,
               {isAdmin && (
               <div
                 className={`rounded-[24px] bg-white p-4 shadow-sm ${
-                  editingDevice ? "ring-4 ring-green-200" : ""
+                  editingDevice ? "ring-4 ring-sky-200" : ""
                 }`}
               >
                 <h3 className="text-xl font-black">
@@ -13030,7 +13031,7 @@ FE-SERVICE`,
                     <div className="grid gap-3 md:grid-cols-2">
                       <button
                         onClick={updateDevice}
-                        className="rounded-2xl bg-green-600 py-4 font-bold text-white"
+                        className="rounded-2xl bg-sky-500 py-4 font-bold text-white"
                       >
                         Gerät speichern
                       </button>
@@ -13045,7 +13046,7 @@ FE-SERVICE`,
                   ) : (
                     <button
                       onClick={createDevice}
-                      className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white"
+                      className="w-full rounded-2xl bg-sky-500 py-4 font-bold text-white"
                     >
                       Gerät hinzufügen
                     </button>
@@ -13100,7 +13101,7 @@ FE-SERVICE`,
                             key={item.id}
                             type="button"
                             onClick={() => setDeviceDirectorySearch(item.name)}
-                            className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-green-400 hover:bg-green-50"
+                            className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-sky-400 hover:bg-sky-50"
                           >
                             <p className="truncate text-lg font-black text-slate-900">{item.name}</p>
                           </button>
@@ -13119,7 +13120,7 @@ FE-SERVICE`,
                             key={item.id}
                             type="button"
                             onClick={() => setDeviceDirectorySearch(item.name)}
-                            className="max-w-full rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-green-100 hover:text-green-700"
+                            className="max-w-full rounded-full bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:bg-sky-100 hover:text-sky-600"
                             title={`${item.manufacturerName} ${item.name}`}
                           >
                             <span className="inline-block max-w-[260px] truncate align-bottom">
@@ -13141,7 +13142,7 @@ FE-SERVICE`,
                             key={item.id}
                             type="button"
                             onClick={() => setSelectedDeviceView(item)}
-                            className="min-w-0 rounded-3xl bg-white p-4 text-left shadow-sm transition hover:bg-green-50"
+                            className="min-w-0 rounded-3xl bg-white p-4 text-left shadow-sm transition hover:bg-sky-50"
                           >
                             <p className="truncate font-black text-slate-900">
                               {getCleanModelName(item.model_id) || item.name}
@@ -13149,7 +13150,7 @@ FE-SERVICE`,
                             <p className="truncate text-sm font-semibold text-slate-600">
                               {getCustomerNameById(item.customer_id)}
                             </p>
-                            <p className="truncate text-xs font-bold text-green-600">
+                            <p className="truncate text-xs font-bold text-sky-500">
                               SN: {item.serial_number || "Keine Seriennummer"}
                             </p>
                           </button>
@@ -13178,7 +13179,7 @@ FE-SERVICE`,
                       >
                         <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-green-600">
+                            <p className="text-xs font-bold text-sky-500">
                               {item.serial_number || "Keine Seriennummer"}
                             </p>
 
@@ -13238,7 +13239,7 @@ FE-SERVICE`,
                               <>
                                 <button
                                   onClick={() => startEditDevice(item)}
-                                  className="w-full rounded-2xl bg-green-100 px-3 py-3 text-center text-xs font-bold text-green-700 md:text-sm"
+                                  className="w-full rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-bold text-sky-600 md:text-sm"
                                 >
                                   Bearbeiten
                                 </button>
@@ -13263,8 +13264,8 @@ FE-SERVICE`,
 
           {activePage === "Verträge" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
@@ -13319,7 +13320,7 @@ FE-SERVICE`,
                         onChange={(e) => setContractType(e.target.value)}
                         className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                       >
-                        <option>UVV-Wartungsvertrag</option>
+                        <option>Sicherheitsprüfung-Wartungsvertrag</option>
                         <option>Wartungsvertrag</option>
                         <option>Servicevertrag</option>
                         <option>Premium SLA</option>
@@ -13392,7 +13393,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={saveContract}
-                      className="w-full rounded-2xl bg-green-600 py-4 font-black text-white"
+                      className="w-full rounded-2xl bg-sky-500 py-4 font-black text-white"
                     >
                       {editingContractId ? "Vertrag aktualisieren" : "Vertrag speichern"}
                     </button>
@@ -13417,7 +13418,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div>
-                              <p className="text-xs font-black text-green-600">
+                              <p className="text-xs font-black text-sky-500">
                                 {item.contract_type} · {item.contract_number}
                               </p>
 
@@ -13434,7 +13435,7 @@ FE-SERVICE`,
                                   SLA {item.sla_hours || 0}h
                                 </span>
 
-                                <span className="rounded-full bg-green-100 px-3 py-2 text-xs font-black text-green-700">
+                                <span className="rounded-full bg-sky-100 px-3 py-2 text-xs font-black text-sky-600">
                                   {(item.monthly_amount || 0).toFixed(2)} € / Monat
                                 </span>
 
@@ -13476,7 +13477,7 @@ FE-SERVICE`,
 
                               <button
                                 onClick={() => generateMaintenanceFromContract(item)}
-                                className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                                className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                               >
                                 Wartungen erzeugen
                               </button>
@@ -13500,15 +13501,15 @@ FE-SERVICE`,
 
           {activePage === "Abnahmeprotokoll" && (
             <div className="space-y-6">
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Digitales Prüfprotokoll
                 </p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">
-                  Abnahmeprotokoll Wartung + DGUV / U.V.V Prüfung
+                  Abnahmeprotokoll Reparatur & Wartung
                 </h3>
                 <p className="mt-3 max-w-4xl text-sm font-semibold text-slate-300">
-                  Ein gemeinsames Formular für Wartung, DGUV202-044 und U.V.V.-Prüfung.
+                  Ein gemeinsames Formular für Wartung, DGUV202-044 und Sicherheitsprüfung.-Prüfung.
                   Der Techniker arbeitet die Prüfpunkte direkt am Handy ab, Kunde und Techniker unterschreiben digital.
                 </p>
               </div>
@@ -13537,7 +13538,7 @@ FE-SERVICE`,
                       />
                     </div>
 
-                    {/* FE-SERVICE ABNAHME DIREKTSUCHE START */}
+                    {/* PRO-EFFEKT ABNAHME DIREKTSUCHE START */}
                     <div className="grid gap-4 xl:grid-cols-2">
                       <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                         <label className="block text-sm font-black uppercase tracking-[0.12em] text-slate-500">
@@ -13553,7 +13554,7 @@ FE-SERVICE`,
                             }
                           }}
                           placeholder="Kundennummer, Name, Firma, Ort, PLZ, E-Mail, Telefon"
-                          className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-green-500"
+                          className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-sky-500"
                         />
                         <p className="mt-2 text-xs font-bold text-slate-500">
                           {abnahmeCustomerSearch.trim().length < 2 ? "Bitte mindestens 2 Zeichen oder Kundennummer eingeben." : `${abnahmeCustomers.length} Treffer · nach Relevanz sortiert`}
@@ -13585,14 +13586,14 @@ FE-SERVICE`,
                                 }}
                                 className={`w-full min-w-0 rounded-2xl border p-4 text-left transition ${
                                   String(customerItem.id) === abnahmeCustomerId
-                                    ? "border-green-500 bg-green-50"
-                                    : "border-slate-200 bg-white hover:border-green-400"
+                                    ? "border-sky-500 bg-sky-50"
+                                    : "border-slate-200 bg-white hover:border-sky-400"
                                 }`}
                               >
                                 <p className="font-black text-slate-900">
                                   {getCustomerLabel(customerItem)}
                                 </p>
-                                <p className="mt-1 break-words text-sm font-black text-green-700">
+                                <p className="mt-1 break-words text-sm font-black text-sky-600">
                                   Kundennr.: {customerItem.customer_number || "nicht hinterlegt"}
                                 </p>
                                 <p className="mt-1 text-sm font-semibold text-slate-500">
@@ -13616,7 +13617,7 @@ FE-SERVICE`,
                           value={abnahmeDeviceSearch}
                           onChange={(e) => setAbnahmeDeviceSearch(e.target.value)}
                           placeholder="Hersteller, Kategorie oder Modell suchen (z. B. Gym80, Laufband, Sygnum)"
-                          className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-green-500"
+                          className="mt-3 w-full rounded-2xl border border-slate-300 bg-white px-5 py-4 font-bold text-slate-900 outline-none focus:border-sky-500"
                         />
                         <p className="mt-2 text-xs font-bold text-slate-500">
                           {abnahmeDevices.length} Treffer aus Hersteller-/Gerätebibliothek · ohne Seriennummer und Kundenzuordnung
@@ -13641,8 +13642,8 @@ FE-SERVICE`,
                                 }}
                                 className={`w-full min-w-0 rounded-2xl border p-4 text-left transition ${
                                   abnahmeSelectedDeviceIds.includes(String(deviceItem.id))
-                                    ? "border-green-500 bg-green-50"
-                                    : "border-slate-200 bg-white hover:border-green-400"
+                                    ? "border-sky-500 bg-sky-50"
+                                    : "border-slate-200 bg-white hover:border-sky-400"
                                 }`}
                               >
                                 <p className="font-black text-slate-900">
@@ -13656,7 +13657,7 @@ FE-SERVICE`,
                                 <p className="mt-1 break-words text-xs font-bold text-slate-400">
                                   Bibliotheksmodell · keine Seriennummer · keine Kundenzuordnung
                                 </p>
-                                <p className="mt-2 text-xs font-black text-green-700">
+                                <p className="mt-2 text-xs font-black text-sky-600">
                                   {abnahmeSelectedDeviceIds.includes(String(deviceItem.id)) ? "✓ Ausgewählt" : "+ Zum Protokoll hinzufügen"}
                                 </p>
                               </button>
@@ -13665,8 +13666,8 @@ FE-SERVICE`,
                         </div>
 
                         {selectedAbnahmeDevices.length > 0 && (
-                          <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 p-4">
-                            <p className="text-xs font-black uppercase tracking-[0.14em] text-green-700">
+                          <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4">
+                            <p className="text-xs font-black uppercase tracking-[0.14em] text-sky-600">
                               Ausgewählte Geräte / Geräte / Modelle ({selectedAbnahmeDevices.length})
                             </p>
                             <div className="mt-3 flex flex-wrap gap-2">
@@ -13685,10 +13686,10 @@ FE-SERVICE`,
                         )}
                       </div>
                     </div>
-                    {/* FE-SERVICE ABNAHME DIREKTSUCHE ENDE */}
+                    {/* PRO-EFFEKT ABNAHME DIREKTSUCHE ENDE */}
 
                     {abnahmeCustomerId && getDevicesForCustomer(Number(abnahmeCustomerId)).length > 0 && (
-                      <div className="rounded-[24px] border border-green-100 bg-green-50 p-4">
+                      <div className="rounded-[24px] border border-sky-100 bg-sky-50 p-4">
                         <button
                           type="button"
                           onClick={() => setAbnahmeCustomerDevicesOpen((prev) => !prev)}
@@ -13704,10 +13705,10 @@ FE-SERVICE`,
                           </div>
 
                           <div className="flex shrink-0 items-center gap-2">
-                            <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-green-700">
+                            <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-sky-600">
                               {getDevicesForCustomer(Number(abnahmeCustomerId)).length} Gerät(e)
                             </span>
-                            <span className="rounded-full bg-white px-3 py-2 text-sm font-black text-green-700">
+                            <span className="rounded-full bg-white px-3 py-2 text-sm font-black text-sky-600">
                               {abnahmeCustomerDevicesOpen ? "▲" : "▼"}
                             </span>
                           </div>
@@ -13725,8 +13726,8 @@ FE-SERVICE`,
                                   onClick={() => toggleAbnahmeDevice(String(deviceItem.id))}
                                   className={`w-full rounded-2xl border p-3 text-left transition ${
                                     alreadySelected
-                                      ? "border-green-500 bg-green-50"
-                                      : "border-slate-200 bg-white hover:border-green-400"
+                                      ? "border-sky-500 bg-sky-50"
+                                      : "border-slate-200 bg-white hover:border-sky-400"
                                   }`}
                                 >
                                   <div className="flex min-w-0 items-start justify-between gap-3">
@@ -13748,8 +13749,8 @@ FE-SERVICE`,
                                     <span
                                       className={`shrink-0 rounded-full px-3 py-2 text-xs font-black ${
                                         alreadySelected
-                                          ? "bg-green-600 text-white"
-                                          : "bg-green-100 text-green-700"
+                                          ? "bg-sky-500 text-white"
+                                          : "bg-sky-100 text-sky-600"
                                       }`}
                                     >
                                       {alreadySelected ? "✓" : "+"}
@@ -13842,7 +13843,7 @@ FE-SERVICE`,
                           type="checkbox"
                           checked={abnahmeDguvChecked}
                           onChange={(e) => setAbnahmeDguvChecked(e.target.checked)}
-                          className="mt-1 h-5 w-5 shrink-0 accent-green-600"
+                          className="mt-1 h-5 w-5 shrink-0 accent-sky-500"
                         />
                         <span className="min-w-0 flex-1 text-base leading-snug text-slate-900 [overflow-wrap:anywhere]">
                           DGUV202-044
@@ -13854,10 +13855,10 @@ FE-SERVICE`,
                           type="checkbox"
                           checked={abnahmeUvvChecked}
                           onChange={(e) => setAbnahmeUvvChecked(e.target.checked)}
-                          className="mt-1 h-5 w-5 shrink-0 accent-green-600"
+                          className="mt-1 h-5 w-5 shrink-0 accent-sky-500"
                         />
                         <span className="min-w-0 flex-1 text-base leading-snug text-slate-900 [overflow-wrap:anywhere]">
-                          UVV-Unfallverhütungsvorschrift Prüfung
+                          Sicherheitsprüfung-Unfallverhütungsvorschrift Prüfung
                         </span>
                       </label>
                     </div>
@@ -13919,7 +13920,7 @@ FE-SERVICE`,
                           className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
                         >
                           <div className="mb-3 flex items-center justify-between gap-3">
-                            <p className="text-sm font-black text-green-700">
+                            <p className="text-sm font-black text-sky-600">
                               Gerät {rowIndex + 1}
                             </p>
 
@@ -14003,7 +14004,7 @@ FE-SERVICE`,
                     >
                       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                         <div className="min-w-0">
-                          <p className="text-xs font-black text-green-600">
+                          <p className="text-xs font-black text-sky-500">
                             Punkt {index + 1}
                           </p>
                           <h4 className="mt-1 text-lg font-black">
@@ -14168,7 +14169,7 @@ FE-SERVICE`,
               <div className="grid gap-3 md:grid-cols-3">
                 <button
                   onClick={printAbnahmeProtocol}
-                  className="rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+                  className="rounded-2xl bg-sky-500 px-6 py-4 font-black text-white"
                 >
                   PDF speichern & Druckansicht öffnen
                 </button>
@@ -14192,12 +14193,12 @@ FE-SERVICE`,
 
           {activePage === "Wartungsplanung" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
               <div className="grid gap-4 md:grid-cols-4">
-                <StatCard label="UVV/Wartungen gesamt" value={maintenancePlans.length} />
+                <StatCard label="Sicherheitsprüfung/Wartungen gesamt" value={maintenancePlans.length} />
                 <StatCard
                   label="Geplant"
                   value={maintenancePlans.filter((plan) => (plan.status || "Geplant") === "Geplant").length}
@@ -14216,10 +14217,10 @@ FE-SERVICE`,
                 <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
                   <h3 className="text-xl font-black">Abnahmeprotokoll</h3>
                   <p className="mt-2 text-slate-600">
-                    Plane UVV-Prüfungen und Wartungen zuerst kundenbezogen und danach nur für Geräte dieses Kunden.
+                    Plane Sicherheitsprüfungen und Wartungen zuerst kundenbezogen und danach nur für Geräte dieses Kunden.
                   </p>
                   <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-700">
-                    UVV- und Sicherheitsprüfungen dienen der Betriebssicherheit, Unfallvermeidung und nachvollziehbaren Dokumentation. Alle Prüfungen werden digital dokumentiert, archiviert und können später über Geräteakte, Ticket, Servicebericht oder Kundendokumente nachvollzogen werden.
+                    Sicherheitsprüfung- und Sicherheitsprüfungen dienen der Betriebssicherheit, Unfallvermeidung und nachvollziehbaren Dokumentation. Alle Prüfungen werden digital dokumentiert, archiviert und können später über Geräteakte, Ticket, Servicebericht oder Kundendokumente nachvollzogen werden.
                   </div>
 
                   <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -14260,8 +14261,8 @@ FE-SERVICE`,
                       onChange={(e) => setMaintenanceType(e.target.value)}
                       className="rounded-2xl border border-slate-300 px-5 py-4 font-bold"
                     >
-                      <option>UVV-Wartung</option>
-                      <option>UVV-Prüfung</option>
+                      <option>Sicherheitsprüfung-Wartung</option>
+                      <option>Sicherheitsprüfung-Prüfung</option>
                       <option>Regelwartung</option>
                       <option>Sicherheitsprüfung</option>
                       <option>Reparatur-Nachkontrolle</option>
@@ -14320,7 +14321,7 @@ FE-SERVICE`,
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
                     <button
                       onClick={saveMaintenancePlan}
-                      className="rounded-2xl bg-green-600 py-4 font-black text-white"
+                      className="rounded-2xl bg-sky-500 py-4 font-black text-white"
                     >
                       Wartung speichern
                     </button>
@@ -14359,7 +14360,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-bold text-green-600">
+                              <p className="text-xs font-bold text-sky-500">
                                 {plan.maintenance_type || "Wartung"} · {deviceItem?.serial_number || "Keine Seriennummer"}
                               </p>
                               <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
@@ -14425,8 +14426,8 @@ FE-SERVICE`,
           {activePage === "Einsatz" && (
             isAdmin ? (
             <div className="space-y-6 pb-24">
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Einsatzplanung
                 </p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">
@@ -14445,11 +14446,11 @@ FE-SERVICE`,
                   />
                   <div className="rounded-2xl bg-white/10 px-5 py-4">
                     <p className="text-xs font-bold text-slate-300">Ungeplant</p>
-                    <p className="text-2xl font-black text-green-400">{unplannedDispatchTickets.length}</p>
+                    <p className="text-2xl font-black text-sky-400">{unplannedDispatchTickets.length}</p>
                   </div>
                   <div className="rounded-2xl bg-white/10 px-5 py-4">
                     <p className="text-xs font-bold text-slate-300">Geplant am Tag</p>
-                    <p className="text-2xl font-black text-green-400">{plannedDispatchTickets.length}</p>
+                    <p className="text-2xl font-black text-sky-400">{plannedDispatchTickets.length}</p>
                   </div>
                   <div className="rounded-2xl bg-white/10 px-5 py-4">
                     <p className="text-xs font-bold text-slate-300">Überfällig</p>
@@ -14491,7 +14492,7 @@ FE-SERVICE`,
                         return (
                           <div key={ticket.id} className={`rounded-3xl border border-slate-200 bg-slate-50 p-4 ${priorityBorderClass(ticket.priority)}`}>
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                              <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-600">
                                 {ticket.ticket_number}
                               </span>
                               <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
@@ -14522,7 +14523,7 @@ FE-SERVICE`,
                                     key={technician.id}
                                     type="button"
                                     onClick={() => quickPlanTicket(ticket, technician.id)}
-                                    className="rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-slate-800 shadow-sm hover:bg-green-50"
+                                    className="rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-slate-800 shadow-sm hover:bg-sky-50"
                                   >
                                     + {technician.full_name || technician.company || "Techniker"} · {calendarDate}
                                   </button>
@@ -14556,7 +14557,7 @@ FE-SERVICE`,
                       <button
                         type="button"
                         onClick={() => openPage("Kalender")}
-                        className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                        className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                       >
                         Kalender anzeigen
                       </button>
@@ -14591,7 +14592,7 @@ FE-SERVICE`,
                                   <div key={ticket.id} className="rounded-2xl bg-white p-3 shadow-sm">
                                     <div className="flex items-start justify-between gap-3">
                                       <div className="min-w-0">
-                                        <p className="text-xs font-black text-green-700">
+                                        <p className="text-xs font-black text-sky-600">
                                           {ticket.service_time || "ohne Uhrzeit"} · {ticket.ticket_number}
                                         </p>
                                         <p className="mt-1 break-words font-black text-slate-900">
@@ -14665,8 +14666,8 @@ FE-SERVICE`,
             </div>
             ) : (
             <div className="space-y-5 pb-24">
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Heute vor Ort
                 </p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">
@@ -14679,21 +14680,21 @@ FE-SERVICE`,
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl bg-white/10 px-5 py-4">
-                    <p className="text-2xl font-black text-green-400">
+                    <p className="text-2xl font-black text-sky-400">
                       {technicianTodayTickets.length}
                     </p>
                     <p className="text-xs font-bold text-slate-300">Heute</p>
                   </div>
 
                   <div className="rounded-2xl bg-white/10 px-5 py-4">
-                    <p className="text-2xl font-black text-green-400">
+                    <p className="text-2xl font-black text-sky-400">
                       {activeEinsatzTickets.length}
                     </p>
                     <p className="text-xs font-bold text-slate-300">Aktiv</p>
                   </div>
 
                   <div className="rounded-2xl bg-white/10 px-5 py-4">
-                    <p className="text-2xl font-black text-green-400">
+                    <p className="text-2xl font-black text-sky-400">
                       {technicianWaitingParts.length}
                     </p>
                     <p className="text-xs font-bold text-slate-300">Wartet auf Teile</p>
@@ -14727,7 +14728,7 @@ FE-SERVICE`,
                               onClick={() => setSelectedTicketView(ticket)}
                               className="w-full rounded-2xl bg-white p-3 text-left shadow-sm"
                             >
-                              <p className="text-xs font-black text-green-700">
+                              <p className="text-xs font-black text-sky-600">
                                 {ticket.service_date || "ohne Datum"} {ticket.service_time || ""}
                               </p>
                               <p className="mt-1 font-black text-slate-900">
@@ -14774,7 +14775,7 @@ FE-SERVICE`,
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                              <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-600">
                                 {ticket.service_time || "Heute"}
                               </span>
                               <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
@@ -14809,7 +14810,7 @@ FE-SERVICE`,
                                 {contactPhone && (
                                   <a
                                     href={`tel:${contactPhone.replace(/\s+/g, "")}`}
-                                    className="mt-3 inline-flex rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                                    className="mt-3 inline-flex rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                                   >
                                     ☎ Anrufen
                                   </a>
@@ -14883,7 +14884,7 @@ FE-SERVICE`,
                             <button
                               type="button"
                               onClick={() => updateServiceStatus(ticket.id, "Abgeschlossen")}
-                              className="rounded-3xl bg-green-600 px-4 py-4 text-center text-sm font-black text-white"
+                              className="rounded-3xl bg-sky-500 px-4 py-4 text-center text-sm font-black text-white"
                             >
                               ✓ Abschließen
                             </button>
@@ -14913,7 +14914,7 @@ FE-SERVICE`,
               <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
                 <h3 className="text-xl font-black">Prüfungen & Prüfsiegel</h3>
                 {(isAdmin || isTechnician) && (
-                  <div className="mt-5 rounded-[28px] border border-green-200 bg-green-50 p-5">
+                  <div className="mt-5 rounded-[28px] border border-sky-200 bg-sky-50 p-5">
                     <h4 className="text-xl font-black text-slate-900">
                       Prüfsiegel eintragen
                     </h4>
@@ -14979,7 +14980,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={saveInspectionBadge}
-                      className="mt-4 rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+                      className="mt-4 rounded-2xl bg-sky-500 px-6 py-4 font-black text-white"
                     >
                       Prüfsiegel speichern
                     </button>
@@ -15002,7 +15003,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
                             <div>
-                              <p className="text-xs font-bold text-green-600">
+                              <p className="text-xs font-bold text-sky-500">
                                 {item.serial_number || "Keine Seriennummer"}
                               </p>
 
@@ -15053,7 +15054,7 @@ FE-SERVICE`,
                               {inspection.label !== "Gültig" && (
                                 <button
                                   onClick={() => createInspectionTicket(item)}
-                                  className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-bold text-white"
+                                  className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-bold text-white"
                                 >
                                   Ticket erstellen
                                 </button>
@@ -15071,16 +15072,16 @@ FE-SERVICE`,
 
           {activePage === "QR-Scan" && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border border-green-200 bg-green-50 p-4 text-sm font-black text-green-800">
-                FE-SERVICE · Betriebsbereit
+              <div className="rounded-[24px] border border-sky-200 bg-sky-50 p-4 text-sm font-black text-sky-700">
+                PRO-EFFEKT · Betriebsbereit
               </div>
 
-              <div className="rounded-[32px] bg-[#07130d] p-6 text-white shadow-sm">
+              <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
                 <div className="mb-5">
-                  <FeServiceLogo dark />
+                  <ProEffektLogo dark />
                 </div>
 
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-green-400">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
                   Geräte-Scan
                 </p>
 
@@ -15102,7 +15103,7 @@ FE-SERVICE`,
 
                   <button
                     onClick={() => openDeviceFromScanValue(qrManualCode)}
-                    className="rounded-2xl bg-green-600 px-6 py-4 font-black text-white"
+                    className="rounded-2xl bg-sky-500 px-6 py-4 font-black text-white"
                   >
                     Gerät öffnen
                   </button>
@@ -15116,7 +15117,7 @@ FE-SERVICE`,
                   <button
                     onClick={startQrScanner}
                     disabled={qrScannerActive}
-                    className="rounded-2xl bg-green-600 px-6 py-5 text-lg font-black text-white disabled:opacity-50"
+                    className="rounded-2xl bg-sky-500 px-6 py-5 text-lg font-black text-white disabled:opacity-50"
                   >
                     QR-Scan starten
                   </button>
@@ -15133,7 +15134,7 @@ FE-SERVICE`,
                 {qrScannerActive && (
                   <div className="mt-5 overflow-hidden rounded-3xl border border-white/10 bg-black p-3">
                     <div
-                      id="fe-service-qr-reader"
+                      id="pro-effekt-qr-reader"
                       className="min-h-[320px] w-full overflow-hidden rounded-2xl bg-black"
                     />
                   </div>
@@ -15212,7 +15213,7 @@ FE-SERVICE`,
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-black text-green-600">
+                              <p className="text-xs font-black text-sky-500">
                                 ID {item.id} · {linkedCustomer?.company || "Kein Kunde"} · {item.serial_number || "Keine Seriennummer"}
                               </p>
 
@@ -15237,7 +15238,7 @@ FE-SERVICE`,
                               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                                 <button
                                   onClick={() => openDeviceFromQr(item)}
-                                  className="rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white"
+                                  className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white"
                                 >
                                   Geräteakte öffnen
                                 </button>
@@ -15286,13 +15287,13 @@ FE-SERVICE`,
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 <div
                   className={`rounded-[24px] bg-white p-4 shadow-sm ${
-                    editingTicket ? "ring-4 ring-green-200" : ""
+                    editingTicket ? "ring-4 ring-sky-200" : ""
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => setMobileTicketFormOpen((prev) => !prev)}
-                    className="flex w-full items-center justify-between rounded-2xl bg-green-600 px-5 py-4 text-left text-base font-black text-white md:hidden"
+                    className="flex w-full items-center justify-between rounded-2xl bg-sky-500 px-5 py-4 text-left text-base font-black text-white md:hidden"
                   >
                     <span>{editingTicket ? "Ticket bearbeiten" : "Neues Ticket erstellen"}</span>
                     <span>{mobileTicketFormOpen || editingTicket ? "▲" : "▼"}</span>
@@ -15306,8 +15307,8 @@ FE-SERVICE`,
 
                   <div className={`mt-5 space-y-4 ${mobileTicketFormOpen || editingTicket ? "block" : "hidden"} md:block`}>
                     {isCustomer ? (
-                      <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-                        <p className="text-sm font-bold text-green-700">
+                      <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+                        <p className="text-sm font-bold text-sky-600">
                           Kunde
                         </p>
                         <p className="mt-1 text-base font-black text-slate-900">
@@ -15336,8 +15337,8 @@ FE-SERVICE`,
                         />
 
                         {customer && (
-                          <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 p-3">
-                            <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                          <div className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 p-3">
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                               Ausgewählter Kunde
                             </p>
                             <p className="mt-1 text-base font-black text-slate-900">
@@ -15376,7 +15377,7 @@ FE-SERVICE`,
                                   setDevice("");
                                   setTicketDeviceSearch("");
                                 }}
-                                className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-green-300 hover:bg-green-50"
+                                className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition hover:border-sky-300 hover:bg-sky-50"
                               >
                                 <p className="font-black text-slate-900">
                                   {getCustomerLabel(customerItem)}
@@ -15471,7 +15472,7 @@ FE-SERVICE`,
                                   onClick={() => toggleTicketType(typeName)}
                                   className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-black transition-all ${
                                     checked
-                                      ? "bg-green-50 text-green-700"
+                                      ? "bg-sky-50 text-sky-600"
                                       : "text-slate-700 hover:bg-slate-100"
                                   }`}
                                 >
@@ -15492,7 +15493,7 @@ FE-SERVICE`,
                               <button
                                 type="button"
                                 onClick={() => setTicketTypeDropdownOpen(false)}
-                                className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white"
+                                className="rounded-xl bg-sky-500 px-3 py-2 text-xs font-black text-white"
                               >
                                 Fertig
                               </button>
@@ -15532,8 +15533,8 @@ FE-SERVICE`,
                       />
 
                       {(selectedTicketDevices.length > 0 || selectedTicketLibraryModels.length > 0) && (
-                        <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 p-3">
-                          <p className="text-xs font-black uppercase tracking-[0.16em] text-green-700">
+                        <div className="mt-3 rounded-2xl border border-sky-200 bg-sky-50 p-3">
+                          <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
                             Zum Ticket ausgewählt
                           </p>
 
@@ -15612,8 +15613,8 @@ FE-SERVICE`,
                                   }}
                                   className={`w-full rounded-2xl border p-3 text-left transition ${
                                     selected
-                                      ? "border-green-400 bg-green-50"
-                                      : "border-slate-200 bg-white hover:border-green-300 hover:bg-green-50"
+                                      ? "border-sky-400 bg-sky-50"
+                                      : "border-slate-200 bg-white hover:border-sky-300 hover:bg-sky-50"
                                   }`}
                                 >
                                   <p className="font-black text-slate-900">
@@ -15624,7 +15625,7 @@ FE-SERVICE`,
                                     {deviceItem.location || "Kein Standort"}
                                     {linkedCustomer ? ` · ${getCustomerLabel(linkedCustomer)}` : ""}
                                   </p>
-                                  <p className="mt-1 text-xs font-black text-green-700">
+                                  <p className="mt-1 text-xs font-black text-sky-600">
                                     {selected ? "✓ Ausgewählt" : "+ Kundengerät zum Ticket hinzufügen"}
                                   </p>
                                 </button>
@@ -15649,8 +15650,8 @@ FE-SERVICE`,
                                   onClick={() => toggleTicketLibraryModel(String(modelItem.id))}
                                   className={`w-full rounded-2xl border p-3 text-left transition ${
                                     selected
-                                      ? "border-green-400 bg-green-50"
-                                      : "border-slate-200 bg-white hover:border-green-300 hover:bg-green-50"
+                                      ? "border-sky-400 bg-sky-50"
+                                      : "border-slate-200 bg-white hover:border-sky-300 hover:bg-sky-50"
                                   }`}
                                 >
                                   <p className="font-black text-slate-900">
@@ -15659,7 +15660,7 @@ FE-SERVICE`,
                                   <p className="mt-1 text-xs font-semibold text-slate-500">
                                     {getManufacturerNameById(modelItem.manufacturer_id)} · {getDeviceModelTypeName(modelItem) || "Kategorie offen"}
                                   </p>
-                                  <p className="mt-1 text-xs font-black text-green-700">
+                                  <p className="mt-1 text-xs font-black text-sky-600">
                                     {selected ? "✓ Ausgewählt" : "+ Bibliotheksmodell zum Ticket hinzufügen"}
                                   </p>
                                 </button>
@@ -15749,7 +15750,7 @@ FE-SERVICE`,
                               ))}
                           </select>
 
-                          <label className="cursor-pointer rounded-2xl border border-dashed border-green-400 bg-white px-4 py-3 text-center font-bold text-green-700 transition hover:bg-green-50">
+                          <label className="cursor-pointer rounded-2xl border border-dashed border-sky-400 bg-white px-4 py-3 text-center font-bold text-sky-600 transition hover:bg-sky-50">
                             {ticketCreateFile ? ticketCreateFile.name : "Datei auswählen"}
                             <input
                               type="file"
@@ -15765,7 +15766,7 @@ FE-SERVICE`,
                       <div className="grid gap-3 md:grid-cols-2">
                         <button
                           onClick={updateTicket}
-                          className="rounded-2xl bg-green-600 py-4 font-bold text-white"
+                          className="rounded-2xl bg-sky-500 py-4 font-bold text-white"
                         >
                           Änderungen speichern
                         </button>
@@ -15780,7 +15781,7 @@ FE-SERVICE`,
                     ) : (
                       <button
                         onClick={createTicket}
-                        className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white"
+                        className="w-full rounded-2xl bg-sky-500 py-4 font-bold text-white"
                       >
                         Ticket speichern
                       </button>
@@ -15792,7 +15793,7 @@ FE-SERVICE`,
                   <button
                     type="button"
                     onClick={() => setMobileTicketListOpen((prev) => !prev)}
-                    className="flex w-full items-center justify-between rounded-2xl bg-green-600 px-5 py-4 text-left text-base font-black text-white md:hidden"
+                    className="flex w-full items-center justify-between rounded-2xl bg-sky-500 px-5 py-4 text-left text-base font-black text-white md:hidden"
                   >
                     <span>Ticketliste</span>
                     <span>{mobileTicketListOpen ? "▲" : "▼"}</span>
@@ -15883,7 +15884,7 @@ FE-SERVICE`,
                           <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+                                <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-black text-sky-600">
                                   {ticket.ticket_number}
                                 </span>
                                 <span className={`rounded-full px-3 py-1 text-xs font-black ${statusClass(ticket.status)}`}>
@@ -15910,8 +15911,8 @@ FE-SERVICE`,
                                 </div>
 
                                 {hasDifferentServiceLocation(ticket, billingCustomer) && (
-                                  <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">
+                                  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
+                                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-sky-600">
                                       📍 Einsatzort
                                     </p>
                                     <h4 className="mt-1 break-words text-lg font-black leading-tight text-slate-900">
@@ -16094,7 +16095,7 @@ FE-SERVICE`,
                               {!isCustomer && (
                                 <button
                                   onClick={() => startEdit(ticket)}
-                                  className="w-full rounded-2xl bg-green-100 px-3 py-3 text-center text-xs font-bold text-green-700 md:text-sm"
+                                  className="w-full rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-bold text-sky-600 md:text-sm"
                                 >
                                   Bearbeiten
                                 </button>
@@ -16142,7 +16143,7 @@ FE-SERVICE`,
           {activePage === "Kundenportal" && (
             <div className="space-y-6">
               <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
-                <p className="text-sm font-black uppercase tracking-[0.18em] text-green-600">
+                <p className="text-sm font-black uppercase tracking-[0.18em] text-sky-500">
                   Kundenportal
                 </p>
                 <h3 className="mt-2 text-xl font-black leading-tight">
@@ -16196,8 +16197,8 @@ FE-SERVICE`,
                   </p>
 
                   <div className="mt-5 space-y-4">
-                    <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-                      <p className="text-sm font-bold text-green-700">Kunde</p>
+                    <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+                      <p className="text-sm font-bold text-sky-600">Kunde</p>
                       <p className="mt-1 text-base font-black text-slate-900">
                         {profileCustomer?.company ||
                           userProfile?.company ||
@@ -16270,7 +16271,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={customerCreateDeviceTicketAndRequest}
-                      className="w-full rounded-2xl bg-green-600 py-5 text-lg font-black text-white"
+                      className="w-full rounded-2xl bg-sky-500 py-5 text-lg font-black text-white"
                     >
                       Gerät & Anfrage speichern
                     </button>
@@ -16304,7 +16305,7 @@ FE-SERVICE`,
                                 {item.serial_number || "Keine Seriennummer"} ·{" "}
                                 {item.location || "Kein Standort"}
                               </p>
-                              <p className="mt-2 text-sm font-bold text-green-700">
+                              <p className="mt-2 text-sm font-bold text-sky-600">
                                 Nächste Prüfung:{" "}
                                 {item.next_check || "Nicht geplant"}
                               </p>
@@ -16327,7 +16328,7 @@ FE-SERVICE`,
                             key={plan.id}
                             className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4"
                           >
-                            <p className="text-xs font-black uppercase tracking-[0.16em] text-green-600">
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-500">
                               {plan.maintenance_type || "Wartung"}
                             </p>
                             <h4 className="mt-2 text-lg font-black">
@@ -16358,7 +16359,7 @@ FE-SERVICE`,
                             key={ticket.id}
                             className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4"
                           >
-                            <p className="text-xs font-black uppercase tracking-[0.16em] text-green-600">
+                            <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-500">
                               {ticket.ticket_number}
                             </p>
                             <h4 className="mt-2 text-lg font-black">
@@ -16384,7 +16385,7 @@ FE-SERVICE`,
 
           {(activePage === "Ersatzteile" || activePage === "Teile") && (
             <div className="space-y-6">
-              <div className="rounded-[24px] border-2 border-green-500 bg-green-50 p-4 text-sm font-black text-green-800">
+              <div className="rounded-[24px] border-2 border-sky-500 bg-sky-50 p-4 text-sm font-black text-sky-700">
                 Teile-Modul
               </div>
               <div className="grid gap-4 md:grid-cols-4">
@@ -16414,7 +16415,7 @@ FE-SERVICE`,
               <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
                 {isAdmin && (
                   <div
-                    className={`rounded-[24px] bg-white p-4 shadow-sm ${editingPart ? "ring-4 ring-green-200" : ""}`}
+                    className={`rounded-[24px] bg-white p-4 shadow-sm ${editingPart ? "ring-4 ring-sky-200" : ""}`}
                   >
                     <h3 className="text-xl font-black">
                       {editingPart
@@ -16488,7 +16489,7 @@ FE-SERVICE`,
                       <div className="grid gap-3 md:grid-cols-2">
                         <button
                           onClick={saveServicePart}
-                          className="rounded-2xl bg-green-600 py-4 font-bold text-white"
+                          className="rounded-2xl bg-sky-500 py-4 font-bold text-white"
                         >
                           {editingPart
                             ? "Ersatzteil speichern"
@@ -16576,7 +16577,7 @@ FE-SERVICE`,
 
                     <button
                       onClick={consumeServicePart}
-                      className="w-full rounded-2xl bg-green-600 py-4 font-bold text-white"
+                      className="w-full rounded-2xl bg-sky-500 py-4 font-bold text-white"
                     >
                       Verbrauch buchen
                     </button>
@@ -16602,7 +16603,7 @@ FE-SERVICE`,
                         >
                           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                             <div>
-                              <p className="text-xs font-bold text-green-600">
+                              <p className="text-xs font-bold text-sky-500">
                                 {part.sku || part.category || "Ersatzteil"}
                               </p>
                               <h4 className="mt-1 break-words text-lg font-black leading-tight md:text-xl">
@@ -16638,7 +16639,7 @@ FE-SERVICE`,
                                 <>
                                   <button
                                     onClick={() => startEditPart(part)}
-                                    className="w-full rounded-2xl bg-green-100 px-3 py-3 text-center text-xs font-bold text-green-700 md:text-sm"
+                                    className="w-full rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-bold text-sky-600 md:text-sm"
                                   >
                                     Bearbeiten
                                   </button>
