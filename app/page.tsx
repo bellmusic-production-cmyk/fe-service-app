@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-// Pro-Effekt App v2.1.90 · Final Rebranding · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// Pro-Effekt App v2.1.91 · Final Rebranding · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -1038,7 +1038,7 @@ export default function Home() {
       open: sourceTickets.filter((ticket) => ticket.status === "Offen").length,
       assigned: sourceTickets.filter((ticket) => ticket.status === "Zugewiesen").length,
       inProgress: sourceTickets.filter((ticket) => ticket.status === "In Bearbeitung").length,
-      waitingParts: sourceTickets.filter((ticket) => ticket.status === "Wartet auf Teile").length,
+      waitingParts: sourceTickets.filter((ticket) => ticket.status === "Wartet auf Ersatzteile").length,
       completed: sourceTickets.filter(
         (ticket) =>
           ticket.status === "Abgeschlossen" || ticket.status === "Erledigt",
@@ -1722,7 +1722,7 @@ export default function Home() {
 
     if (error) {
       console.error(
-        "Teileverbrauch konnte nicht geladen werden:",
+        "Ersatzteilverbrauch konnte nicht geladen werden:",
         error.message,
       );
       return;
@@ -4443,7 +4443,7 @@ export default function Home() {
       return "bg-yellow-100 text-yellow-800";
     if (statusValue === "Termin vereinbart" || statusValue === "Zugewiesen")
       return "bg-blue-100 text-blue-700";
-    if (statusValue === "Wartet auf Ersatzteil" || statusValue === "Wartet auf Teile")
+    if (statusValue === "Wartet auf Ersatzteil" || statusValue === "Wartet auf Ersatzteile")
       return "bg-purple-100 text-purple-700";
     if (statusValue === "Wartet auf Kundenfreigabe")
       return "bg-orange-100 text-orange-700";
@@ -4456,7 +4456,7 @@ export default function Home() {
     if (statusValue === "Abgeschlossen" || statusValue === "Erledigt") return "●";
     if (statusValue === "In Bearbeitung") return "●";
     if (statusValue === "Termin vereinbart" || statusValue === "Zugewiesen") return "●";
-    if (statusValue === "Wartet auf Ersatzteil" || statusValue === "Wartet auf Teile") return "●";
+    if (statusValue === "Wartet auf Ersatzteil" || statusValue === "Wartet auf Ersatzteile") return "●";
     if (statusValue === "Wartet auf Kundenfreigabe") return "●";
     if (statusValue === "Dringend") return "●";
     return "●";
@@ -5854,7 +5854,7 @@ PRO-EFFEKT`,
     }
 
     if (!partName.trim()) {
-      alert("Bitte Teilebezeichnung eingeben.");
+      alert("Bitte Ersatzteilbezeichnung eingeben.");
       return;
     }
 
@@ -7724,7 +7724,7 @@ PRO-EFFEKT`,
       "Termin vereinbart": 2,
       "In Bearbeitung": 3,
       "Wartet auf Ersatzteil": 4,
-      "Wartet auf Teile": 4,
+      "Wartet auf Ersatzteile": 4,
       "Wartet auf Kundenfreigabe": 5,
     };
 
@@ -7860,7 +7860,7 @@ PRO-EFFEKT`,
   const technicianWaitingParts = sortTicketsByAppointment(
     visibleRoleTickets.filter(
       (ticket) =>
-        ticket.status === "Wartet auf Teile" ||
+        ticket.status === "Wartet auf Ersatzteile" ||
         ticket.status === "Wartet auf Ersatzteil",
     ),
   );
@@ -8301,7 +8301,7 @@ PRO-EFFEKT`,
       Geräte: "Hersteller-/Gerätebibliothek",
       "QR-Scan": "QR-Scan",
       Abnahmeprotokoll: "Abnahmeprotokoll",
-      Ersatzteile: "Teile",
+      Ersatzteile: "Ersatzteile",
       Dokumente: "Dokumente",
       Rechnungen: "Rechnungen",
       Verträge: "Verträge",
@@ -10062,7 +10062,7 @@ PRO-EFFEKT`,
                 </div>
 
                 <div className="min-w-0 overflow-hidden rounded-[24px] bg-white p-4 shadow-sm">
-                  <h3 className="text-xl font-black">Teilebestand</h3>
+                  <h3 className="text-xl font-black">Ersatzteilbestand</h3>
                   <div className="mt-5 min-w-0 space-y-3 overflow-hidden">
                     {lowStockParts.length === 0 ? (
                       <div className="rounded-2xl bg-slate-100 p-4 text-slate-500">
@@ -14570,7 +14570,7 @@ PRO-EFFEKT`,
                     >
                       <option>Geplant</option>
                       <option>In Arbeit</option>
-                      <option>Wartet auf Teile</option>
+                      <option>Wartet auf Ersatzteile</option>
                       <option>Abgeschlossen</option>
                     </select>
                   </div>
@@ -14664,7 +14664,7 @@ PRO-EFFEKT`,
                                 >
                                   <option>Geplant</option>
                                   <option>In Arbeit</option>
-                                  <option>Wartet auf Teile</option>
+                                  <option>Wartet auf Ersatzteile</option>
                                   <option>Abgeschlossen</option>
                                 </select>
                               )}
@@ -14962,7 +14962,7 @@ PRO-EFFEKT`,
                     <p className="text-2xl font-black text-sky-400">
                       {technicianWaitingParts.length}
                     </p>
-                    <p className="text-xs font-bold text-slate-300">Wartet auf Teile</p>
+                    <p className="text-xs font-bold text-slate-300">Wartet auf Ersatzteile</p>
                   </div>
                 </div>
               </div>
@@ -16648,10 +16648,10 @@ PRO-EFFEKT`,
             </div>
           )}
 
-          {(activePage === "Ersatzteile" || activePage === "Teile") && (
+          {(activePage === "Ersatzteile" || activePage === "Ersatzteile") && (
             <div className="space-y-6">
               <div className="rounded-[24px] border-2 border-sky-500 bg-sky-50 p-4 text-sm font-black text-sky-700">
-                Teile-Modul
+                Ersatzteilverwaltung
               </div>
               <div className="grid gap-4 md:grid-cols-4">
                 <StatCard
@@ -16696,7 +16696,7 @@ PRO-EFFEKT`,
                       <input
                         value={partName}
                         onChange={(e) => setPartName(e.target.value)}
-                        placeholder="Teilebezeichnung"
+                        placeholder="Ersatzteilbezeichnung"
                         className="w-full rounded-2xl border border-slate-300 px-5 py-3"
                       />
                       <input
