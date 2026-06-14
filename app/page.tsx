@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-// TechFlow App v2.5.30 · Dokumente Premium · Premium Kundenbereich · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// TechFlow App v2.5.90 · E-Mail Premium · Dashboard Premium · Dokumente Premium · Premium Kundenbereich · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -219,6 +219,10 @@ type NotificationItem = {
   message: string;
   related_ticket_id?: number | null;
   status: string;
+  email_status?: string | null;
+  email_sent_at?: string | null;
+  email_error?: string | null;
+  email_template?: string | null;
   created_at: string;
 };
 
@@ -702,6 +706,8 @@ export default function Home() {
   const [notificationSubject, setNotificationSubject] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationTicketId, setNotificationTicketId] = useState("");
+  const [notificationEmailTemplate, setNotificationEmailTemplate] = useState("Standard");
+  const [notificationEmailStatus, setNotificationEmailStatus] = useState("pending");
 
   const [contractCustomerId, setContractCustomerId] = useState("");
   const [contractTitle, setContractTitle] = useState("");
@@ -1221,6 +1227,37 @@ export default function Home() {
 
     return { ok, soon, overdue, missing };
   }, [devices]);
+
+
+  const emailStatusStats = useMemo(() => {
+    return {
+      pending: notifications.filter((item) => (item.email_status || item.status || "").toLowerCase() === "pending").length,
+      queued: notifications.filter((item) => (item.email_status || item.status || "").toLowerCase() === "queued").length,
+      sent: notifications.filter((item) => (item.email_status || item.status || "").toLowerCase() === "sent").length,
+      failed: notifications.filter((item) => (item.email_status || item.status || "").toLowerCase() === "failed").length,
+    };
+  }, [notifications]);
+
+  function getEmailStatusLabel(status?: string | null) {
+    const value = String(status || "pending").toLowerCase();
+
+    if (value === "sent") return "Gesendet";
+    if (value === "failed") return "Fehler";
+    if (value === "queued") return "Vorgemerkt";
+    if (value === "draft") return "Entwurf";
+
+    return "Ausstehend";
+  }
+
+  function getEmailStatusClass(status?: string | null) {
+    const value = String(status || "pending").toLowerCase();
+
+    if (value === "sent") return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+    if (value === "failed") return "bg-red-500/15 text-red-300 border-red-500/30";
+    if (value === "queued") return "bg-blue-500/15 text-blue-300 border-blue-500/30";
+
+    return "bg-amber-500/15 text-amber-300 border-amber-500/30";
+  }
 
   async function checkSession() {
     const { data } = await supabase.auth.getSession();
