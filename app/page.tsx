@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-// TechFlow App v2.5.10 · Premium Kundenbereich · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// TechFlow App v2.5.30 · Dokumente Premium · Premium Kundenbereich · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -4842,6 +4842,67 @@ export default function Home() {
   function fileSizeText(size: number | null) {
     if (!size) return "Größe unbekannt";
     return `${Math.round(size / 1024)} KB`;
+  }
+
+
+  function getDocumentFileExtension(item: DocumentItem) {
+    const name = String(item.file_name || "").toLowerCase();
+    const parts = name.split(".");
+    return parts.length > 1 ? parts[parts.length - 1] : "";
+  }
+
+  function getDocumentFileIcon(item: DocumentItem) {
+    const extension = getDocumentFileExtension(item);
+
+    if (["pdf"].includes(extension)) return "PDF";
+    if (["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(extension)) return "IMG";
+    if (["mp4", "mov", "avi", "webm"].includes(extension)) return "VID";
+    if (["doc", "docx"].includes(extension)) return "DOC";
+    if (["xls", "xlsx", "csv"].includes(extension)) return "XLS";
+    return "FILE";
+  }
+
+  function getDocumentFileBadgeClass(item: DocumentItem) {
+    const icon = getDocumentFileIcon(item);
+
+    if (icon === "PDF") return "bg-red-100 text-red-700";
+    if (icon === "IMG") return "bg-emerald-100 text-emerald-700";
+    if (icon === "VID") return "bg-purple-100 text-purple-700";
+    if (icon === "DOC") return "bg-blue-100 text-blue-700";
+    if (icon === "XLS") return "bg-green-100 text-green-700";
+    return "bg-slate-100 text-slate-700";
+  }
+
+  function getDocumentDueMeta(item: DocumentItem) {
+    if (item.category !== "Abnahmeprotokolle" || !item.next_inspection_date) {
+      return null;
+    }
+
+    const today = new Date();
+    const dueDate = new Date(item.next_inspection_date);
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return {
+        label: `${Math.abs(diffDays)} Tage überfällig`,
+        className: "bg-red-100 text-red-700 border-red-200",
+      };
+    }
+
+    if (diffDays <= 30) {
+      return {
+        label: `fällig in ${diffDays} Tagen`,
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      };
+    }
+
+    return {
+      label: `gültig bis ${formatDate(item.next_inspection_date).split(",")[0]}`,
+      className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    };
   }
 
   function calculateNextInspectionDateFromUpload() {
@@ -11840,6 +11901,33 @@ PRO-EFFEKT`,
                   </div>
                 </div>
 
+                <div className="mt-8 grid gap-3 md:grid-cols-4">
+                  <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">PDF</p>
+                    <p className="mt-2 text-2xl font-black text-red-600">
+                      {filteredDocuments.filter((item) => getDocumentFileIcon(item) === "PDF").length}
+                    </p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Bilder</p>
+                    <p className="mt-2 text-2xl font-black text-emerald-600">
+                      {filteredDocuments.filter((item) => getDocumentFileIcon(item) === "IMG").length}
+                    </p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Bald fällig</p>
+                    <p className="mt-2 text-2xl font-black text-yellow-700">
+                      {filteredDocuments.filter((item) => getDocumentDueMeta(item)?.label.includes("fällig in")).length}
+                    </p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Überfällig</p>
+                    <p className="mt-2 text-2xl font-black text-red-700">
+                      {filteredDocuments.filter((item) => getDocumentDueMeta(item)?.label.includes("überfällig")).length}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="mt-8 rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <h4 className="text-lg font-black">Archiv filtern</h4>
@@ -11953,6 +12041,7 @@ PRO-EFFEKT`,
                           const customerName = getDocumentCustomerName(item);
                           const ticketNumber = getDocumentTicketNumber(item);
                           const deviceName = getDeviceNameById(item.device_id);
+                          const dueMeta = getDocumentDueMeta(item);
 
                           return (
                             <div key={item.id} className="bg-white">
@@ -11963,21 +12052,29 @@ PRO-EFFEKT`,
                               >
                                 <div className="min-w-0 flex-1">
                                   <div className="flex min-w-0 items-center gap-3">
-                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-lg">
-                                      
+                                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-[10px] font-black ${getDocumentFileBadgeClass(item)}`}>
+                                      {getDocumentFileIcon(item)}
                                     </span>
                                     <div className="min-w-0">
                                       <p className="truncate text-base font-black text-[#07111d]">
                                         {item.file_name}
                                       </p>
                                       <p className="mt-1 truncate text-xs font-bold text-slate-500">
-                                        {customerName} · {ticketNumber} · {formatDate(item.created_at)}
+                                        {customerName} · {deviceName} · {ticketNumber}
+                                      </p>
+                                      <p className="mt-1 truncate text-[11px] font-bold text-slate-400">
+                                        {formatDate(item.created_at)} · {fileSizeText(item.file_size)}
                                       </p>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div className="flex shrink-0 items-center gap-2 pl-12 md:pl-0">
+                                  {dueMeta && (
+                                    <span className={`rounded-full border px-3 py-1 text-xs font-black ${dueMeta.className}`}>
+                                      {dueMeta.label}
+                                    </span>
+                                  )}
                                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
                                     {item.category}
                                   </span>
@@ -12013,6 +12110,12 @@ PRO-EFFEKT`,
                                       <p className="font-bold text-slate-700 md:col-span-2">
                                         <span className="text-sky-600">Prüfung:</span> {item.inspection_date || "-"} · nächste Prüfung: {item.next_inspection_date || "-"}
                                         {item.inspection_badge_number ? ` · Siegel: ${item.inspection_badge_number}` : ""}
+                                      </p>
+                                    )}
+
+                                    {dueMeta && (
+                                      <p className="font-bold text-slate-700 md:col-span-2">
+                                        <span className="text-sky-600">Status:</span> {dueMeta.label}
                                       </p>
                                     )}
                                   </div>
