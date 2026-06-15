@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-// TechFlow App v2.5.90 · E-Mail Premium · Dashboard Premium · Dokumente Premium · Premium Kundenbereich · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// TechFlow App v3.0.0 · Mobile Techniker Premium FIXED · E-Mail Premium · Dashboard Premium · Dokumente Premium · Premium Kundenbereich · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -337,6 +337,8 @@ const navItems = [
 const statusOptions = [
   "Offen",
   "Zugewiesen",
+  "Unterwegs",
+  "Vor Ort",
   "In Bearbeitung",
   "Termin vereinbart",
   "Wartet auf Ersatzteil",
@@ -348,6 +350,8 @@ const filterStatusOptions = [
   "Alle",
   "Offen",
   "Zugewiesen",
+  "Unterwegs",
+  "Vor Ort",
   "In Bearbeitung",
   "Termin vereinbart",
   "Wartet auf Ersatzteil",
@@ -15683,7 +15687,7 @@ PRO-EFFEKT`,
             <div className="space-y-5 pb-24">
               <div className="rounded-[32px] bg-[#07111d] p-6 text-white shadow-sm">
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-sky-400">
-                  Heute vor Ort
+                  Mobile Techniker Premium · v3.0.0
                 </p>
                 <h3 className="mt-2 text-3xl font-black md:text-4xl">
                   Techniker-Einsatzmodus
@@ -15799,6 +15803,11 @@ PRO-EFFEKT`,
                               <span className={`rounded-full px-3 py-1 text-xs font-black ${priorityClass(ticket.priority)}`}>
                                 {ticket.priority}
                               </span>
+                              {ticket.service_status && (
+                                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+                                  Einsatz: {ticket.service_status}
+                                </span>
+                              )}
                               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
                                 {ticket.ticket_number}
                               </span>
@@ -15874,10 +15883,34 @@ PRO-EFFEKT`,
 
                             <button
                               type="button"
+                              onClick={() => updateServiceStatus(ticket.id, "Unterwegs")}
+                              className="rounded-3xl bg-blue-50 px-4 py-4 text-center text-sm font-black text-blue-700"
+                            >
+                              Unterwegs
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => updateServiceStatus(ticket.id, "Vor Ort")}
+                              className="rounded-3xl bg-emerald-50 px-4 py-4 text-center text-sm font-black text-emerald-700"
+                            >
+                              Vor Ort
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => updateServiceStatus(ticket.id, "Gestartet")}
                               className="rounded-3xl bg-yellow-100 px-4 py-4 text-center text-sm font-black text-yellow-800"
                             >
-                              â–¶ Einsatz starten
+                              Einsatz starten
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => updateServiceStatus(ticket.id, "Pause")}
+                              className="rounded-3xl bg-orange-50 px-4 py-4 text-center text-sm font-black text-orange-700"
+                            >
+                              Pause
                             </button>
 
                             <button
@@ -15890,10 +15923,23 @@ PRO-EFFEKT`,
 
                             <button
                               type="button"
+                              onClick={() => {
+                                setActivePage("Dokumente");
+                                setSelectedDeviceId(relatedDevice?.id ? String(relatedDevice.id) : "");
+                                setSelectedUploadCustomerId(ticket.customer_id ? String(ticket.customer_id) : "");
+                                setTicketAkteUploadCategory("Fotos");
+                              }}
+                              className="rounded-3xl bg-purple-100 px-4 py-4 text-center text-sm font-black text-purple-700"
+                            >
+                              Foto / Dokument
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => openServiceReportSigning(ticket)}
                               className="rounded-3xl bg-blue-100 px-4 py-4 text-center text-sm font-black text-blue-700"
                             >
-                              âœ Bericht / Signatur
+                              Bericht / Signatur
                             </button>
 
                             <button
@@ -15901,7 +15947,7 @@ PRO-EFFEKT`,
                               onClick={() => updateServiceStatus(ticket.id, "Abgeschlossen")}
                               className="rounded-3xl bg-sky-500 px-4 py-4 text-center text-sm font-black text-white"
                             >
-                              âœ“ Abschließen
+                              Abschließen
                             </button>
                           </div>
                         </div>
