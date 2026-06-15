@@ -1,7 +1,7 @@
 ﻿
 "use client";
 
-// TechFlow App v3.1.0 · Kundenportal Final · Mobile Techniker Premium FIXED · E-Mail Premium · Dashboard Premium · Dokumente Premium · Kundenportal Final · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
+// TechFlow App v3.2.0 · Resend Mailversand · Kundenportal Final · Mobile Techniker Premium FIXED · E-Mail Premium · Dashboard Premium · Dokumente Premium · Company Branding + Wartungserinnerungen · Secure Auth · Fast Role Cache · keine Sprachsteuerung
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
@@ -6654,6 +6654,8 @@ PRO-EFFEKT`,
         ? Number(notificationTicketId)
         : null,
       status: "Geplant",
+      email_status: notificationEmailStatus || "pending",
+      email_template: notificationEmailTemplate || "Standard",
     };
 
     const { error } = await supabase
@@ -6669,6 +6671,81 @@ PRO-EFFEKT`,
     resetNotificationForm();
 
     alert("Benachrichtigung gespeichert.");
+  }
+
+
+  async function sendNotificationEmail(notificationItem: NotificationItem) {
+    if (!notificationItem.recipient || !notificationItem.subject) {
+      alert("Empfänger und Betreff fehlen.");
+      return;
+    }
+
+    setNotifications((prev) =>
+      prev.map((item) =>
+        item.id === notificationItem.id
+          ? { ...item, email_status: "queued", status: "Geplant", email_error: null }
+          : item,
+      ),
+    );
+
+    const { data, error } = await supabase.functions.invoke("send-notification-email", {
+      body: {
+        notificationId: notificationItem.id,
+        to: notificationItem.recipient,
+        subject: notificationItem.subject,
+        message: notificationItem.message,
+        template: notificationItem.email_template || "Standard",
+        type: notificationItem.type,
+      },
+    });
+
+    if (error) {
+      await supabase
+        .from("notifications")
+        .update({
+          email_status: "failed",
+          status: "Fehler",
+          email_error: error.message,
+        })
+        .eq("id", notificationItem.id);
+
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.id === notificationItem.id
+            ? { ...item, email_status: "failed", status: "Fehler", email_error: error.message }
+            : item,
+        ),
+      );
+
+      alert(`E-Mail konnte nicht gesendet werden: ${error.message}`);
+      return;
+    }
+
+    const nextStatus = data?.success ? "sent" : "failed";
+    const nextLabel = data?.success ? "Gesendet" : "Fehler";
+    const nextError = data?.error || null;
+
+    setNotifications((prev) =>
+      prev.map((item) =>
+        item.id === notificationItem.id
+          ? {
+              ...item,
+              email_status: nextStatus,
+              status: nextLabel,
+              email_sent_at: data?.sentAt || new Date().toISOString(),
+              email_error: nextError,
+            }
+          : item,
+      ),
+    );
+
+    await loadNotifications();
+
+    if (data?.success) {
+      alert("E-Mail wurde gesendet.");
+    } else {
+      alert(`E-Mail konnte nicht gesendet werden: ${nextError || "Unbekannter Fehler"}`);
+    }
   }
 
   async function updateNotificationStatus(
@@ -11392,7 +11469,23 @@ PRO-EFFEKT`,
                               </p>
                             </div>
 
-                            <div className="flex flex-col gap-2 xl:w-48">
+                            <div className="flex flex-col gap-2 xl:w-56">
+                              <div className={`rounded-2xl border px-4 py-3 text-xs font-black ${getEmailStatusClass(item.email_status || item.status)}`}>
+                                Mail: {getEmailStatusLabel(item.email_status || item.status)}
+                              </div>
+
+                              {item.email_template && (
+                                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-bold text-slate-600">
+                                  Vorlage: {item.email_template}
+                                </div>
+                              )}
+
+                              {item.email_error && (
+                                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-red-700">
+                                  {item.email_error}
+                                </div>
+                              )}
+
                               <select
                                 value={item.status}
                                 onChange={(e) =>
@@ -11404,6 +11497,15 @@ PRO-EFFEKT`,
                                 <option>Gesendet</option>
                                 <option>Fehler</option>
                               </select>
+
+                              <button
+                                type="button"
+                                onClick={() => sendNotificationEmail(item)}
+                                disabled={(item.email_status || "").toLowerCase() === "sent"}
+                                className="rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white disabled:bg-slate-300 disabled:text-slate-500"
+                              >
+                                E-Mail senden
+                              </button>
                             </div>
                           </div>
                         </div>
